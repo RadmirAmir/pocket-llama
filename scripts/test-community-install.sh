@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # Only run against a disposable emulator: the public test package is reset below.
 set -euo pipefail
+if [ "$(adb shell getprop ro.kernel.qemu | tr -d '\r')" != 1 ] && [ "$(adb shell getprop ro.boot.qemu | tr -d '\r')" != 1 ]; then
+    echo 'Refusing destructive installation tests on a physical device' >&2
+    exit 1
+fi
 mkdir -p install-evidence
 adb shell getprop > install-evidence/device-properties.txt
 adb shell getprop ro.product.cpu.abilist
