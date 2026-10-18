@@ -52,6 +52,18 @@ class SuryaDistributionTests(unittest.TestCase):
                     else:
                         self.assertFalse((stage / 'assets/surya').exists())
 
+    def test_retired_files_in_staging_stop_packaging(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            common = Path(temporary)
+            delivery.assert_scanner_assets(common, False, {})
+            for path in ['surya/line-detector.onnx', 'surya/manifest.json', 'notices/Surya-detector-source.txt']:
+                retired = common / path
+                retired.parent.mkdir(parents=True, exist_ok=True)
+                retired.write_bytes(b'stale build resource')
+                with self.assertRaises(SystemExit):
+                    delivery.assert_scanner_assets(common, False, {})
+                retired.unlink()
+
     def test_free_policy_does_not_enable_play_or_allow_embedding_vlm(self):
         self.assertEqual(delivery.surya_policy(self.config, 'play'), (False, False))
         with self.assertRaises(SystemExit):

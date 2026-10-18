@@ -27,6 +27,11 @@ def surya_policy(config,channel,with_surya=None,bundle_surya=None):
   if not (community or licensed):raise SystemExit('Surya requires the free personal-use community profile or documented rights for the Surya VLM. See docs/LICENSING.md.')
   if community and bundle_surya and not licensed:raise SystemExit('Free community downloads the VLM directly after accepting its terms; use the compact package.')
  return bool(with_surya),bool(with_surya and bundle_surya)
+def assert_scanner_assets(common,bundle_surya,scanner):
+ expected={'bundled/'+f['name'] for f in scanner['surya']['models']} if bundle_surya else set()
+ actual={p.relative_to(common/'surya').as_posix() for p in (common/'surya').rglob('*') if p.is_file() and not any(part.startswith('.') for part in p.relative_to(common/'surya').parts)}
+ if actual!=expected or any((common/'notices').glob('Surya-detector-*')):
+  raise SystemExit('Unexpected retired/stale scanner assets in staging; remove the build directory and retry.')
 def prepare(channel,with_surya=None,bundle_surya=None):
  config=json.loads((ROOT/'distribution/release.json').read_text());personal=channel=='personal'
  with_surya,bundle_surya=surya_policy(config,channel,with_surya,bundle_surya)
@@ -73,6 +78,7 @@ def prepare(channel,with_surya=None,bundle_surya=None):
    packs.update({name:sum(p.stat().st_size for p in (ROOT/name/'src/main/assets').rglob('*') if p.is_file()) for name in ['surya_pack','surya_vision_pack']})
   else:
    for f in scanner['surya']['models']:copy(ROOT/'.cache/surya'/f['name'],common/'surya/bundled'/f['name'])
+ assert_scanner_assets(common,bundle_surya and channel!='play',scanner if with_surya else {})
  report={'channel':channel,'surya':with_surya,'suryaBundled':bool(with_surya and bundle_surya),'assetBytes':sum(p.stat().st_size for p in common.rglob('*') if p.is_file()),'packs':packs}
  (stage/'manifest.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(report),flush=True);return stage
 def main():
