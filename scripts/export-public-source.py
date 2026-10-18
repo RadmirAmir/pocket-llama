@@ -3,7 +3,7 @@
 from pathlib import Path
 import argparse,hashlib,json,re,zipfile
 ROOT=Path(__file__).resolve().parents[1]
-DIRS={'app','native','scripts','tests','notices','model-configs','gradle','distribution','docs','.github','speech_pack','ocr_pack','surya_pack','surya_vision_pack'}
+DIRS={'app','native','scripts','tests','tools','notices','model-configs','gradle','distribution','docs','.github','speech_pack','ocr_pack','surya_pack','surya_vision_pack'}
 FILES={'.gitignore','LICENSE','NOTICE','README.md','README-RU.md','CHANGELOG.md','SECURITY.md','CONTRIBUTING.md','build.gradle.kts','settings.gradle.kts','gradle.properties','gradlew','gradlew.bat','requirements-build.txt'}
 DENY={'.git','.cache','.gradle','build','artifacts','vendor','node_modules','__pycache__','signing'}
 def selected():

@@ -3,6 +3,9 @@ on:
   push:
     paths:
       - '.github/workflows/install-apk.yml'
+      - 'scripts/test-community-install.sh'
+      - 'scripts/test-community-installer.py'
+      - 'tools/community-installer/**'
   workflow_dispatch:
 permissions:
   contents: read
@@ -23,6 +26,16 @@ jobs:
           curl --fail --location --retry 3 --output build/install/community-0.8.0.apk https://github.com/RadmirAmir/pocket-llama/releases/download/v0.8.0-rc.1/PocketLlama-0.8.0-community-arm64.apk
           echo '8cfccbfed0c38e2c53d8f05ae1ecf2dc66522ba7252221d2f133d17c18cc8302  build/install/community-0.9.0.apk' | sha256sum --check
           echo '59612c26dee500d49892b896b5f93ae3a682d3e3db228e0683a767bb1a568bf6  build/install/community-0.8.0.apk' | sha256sum --check
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+      - name: Build the diagnostic installer from source
+        env:
+          POCKET_INSTALLER_PASSWORD: android
+        run: |
+          sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+          keytool -genkeypair -keystore build/install/helper-test.keystore -storepass android -keypass android -alias androiddebugkey -dname 'CN=Pocket Installer CI' -keyalg RSA -keysize 2048 -validity 365
+          python3 tools/community-installer/build.py --build-tools "$ANDROID_HOME/build-tools/36.0.0" --android-jar "$ANDROID_HOME/platforms/android-36/android.jar" --keystore build/install/helper-test.keystore
       - name: Enable emulator hardware acceleration
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -39,29 +52,7 @@ jobs:
           disk-size: 8192M
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
-          script: |
-            mkdir -p install-evidence
-            adb shell getprop > install-evidence/device-properties.txt
-            adb shell getprop ro.product.cpu.abilist
-            adb shell getprop ro.dalvik.vm.native.bridge
-            adb logcat -c
-            trap 'adb logcat -d > install-evidence/logcat.txt' EXIT
-            set +e
-            adb install --no-streaming --no-incremental -r build/install/community-0.9.0.apk > install-evidence/fresh-0.9.0.txt 2>&1
-            fresh=$?
-            cat install-evidence/fresh-0.9.0.txt
-            set -e
-            if [ "$fresh" -ne 0 ]; then adb install --no-streaming --no-incremental -r build/install/community-0.8.0.apk > install-evidence/baseline-0.8.0.txt 2>&1 || true; cat install-evidence/baseline-0.8.0.txt; exit "$fresh"; fi
-            adb shell am start -W -n dev.pocketllama/dev.pocketllama.MainActivity > install-evidence/startup.txt
-            sleep 3
-            adb shell pidof dev.pocketllama
-            adb shell dumpsys package dev.pocketllama > install-evidence/package.txt
-            adb shell uiautomator dump /sdcard/pocket-install-ui.xml || true
-            adb pull /sdcard/pocket-install-ui.xml install-evidence/ui.xml || true
-            adb uninstall dev.pocketllama
-            adb install --no-streaming --no-incremental build/install/community-0.8.0.apk > install-evidence/baseline-0.8.0.txt 2>&1
-            adb install --no-streaming --no-incremental -r build/install/community-0.9.0.apk > install-evidence/upgrade-0.8-to-0.9.txt 2>&1
-            cat install-evidence/upgrade-0.8-to-0.9.txt
+          script: bash scripts/test-community-install.sh
       - name: Retain installer output and Android logs
         if: always()
         uses: actions/upload-artifact@v4
