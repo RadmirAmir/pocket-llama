@@ -6,7 +6,7 @@ This release removes the separate Surya line detector. Main Surya OCR/table reco
 
 - Scanner core: 54 checks; generation guards: 16; encrypted-file privacy: 11; production document/photo stores: 40; production Surya pipeline with scripted native transport: 79.
 - PDF search/rasterization and XLSX merged-cell/inline-string validation passed.
-- Model distribution: 27 assertions; channel-policy/stale-asset exclusion: 6 tests; retired-cache cleanup: 9 checks.
+- Model distribution: 27 assertions; channel-policy/stale-asset exclusion: 7 tests; retired-cache cleanup: 9 checks.
 - JavaScript/Python syntax, source packaging and whitespace checks passed.
 
 Cache tests cover fresh installs, complete and interrupted detector copies, verification stamps, repeated cleanup, preserved VLM/projector and encrypted documents, unexpected files and symbolic links. Pipeline tests cover text-only legacy refinement without a model request, VLM-only table grids and preserved manual corrections.
@@ -20,7 +20,7 @@ The main Surya model retains its own license. Removing the line detector does no
 - Source: `d9c48448e107f2c061d4fca6942202f2ea8fb461`; package `dev.pocketllama`, versionCode 25, Android 10+ ARM64, target API 36.
 - All 16 bundled model files verified against their pinned size and SHA-256. No separate line-detector weights, runtime class or detector notices in the APK. Full main-Surya terms are included and match the source.
 - Update certificate matches community 0.9.1: `ef3cea40110c13d179cc7e1f1e570aeb2f870cb7d46f16273eb5d733cf9b2ed0`.
-- Built from a clean source directory. Distribution preparation now stops if retired scanner files remain in its staging directory.
+- Built from a clean source directory. Distribution preparation stops if retired scanner files remain in staging; the APK writer also rejects any retired file that appears later.
 
 [Artifact report](artifact-validation-0.9.2.json) · [Build and UI workflow](https://github.com/RadmirAmir/pocket-llama/actions/runs/39158492854).
 

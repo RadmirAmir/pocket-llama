@@ -24,6 +24,14 @@ def source_files(directory, pattern):
 def run(*args):
     subprocess.run([str(a) for a in args], check=True)
 
+def package_assets(archive, assets):
+    # Check each actual ZIP input, including files that appear after staging.
+    for asset in source_files(assets, '*'):
+        relative = asset.relative_to(assets)
+        if 'line-detector' in relative.name or relative.name.startswith('Surya-detector-'):
+            raise SystemExit('Retired scanner asset in APK input: ' + str(relative))
+        archive.write(asset, 'assets/' + relative.as_posix())
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--sdk', default=os.environ.get('ANDROID_SDK_ROOT') or os.environ.get('ANDROID_HOME'))
@@ -126,8 +134,7 @@ def main():
         # The staged assets include notices and channel-specific model capabilities.
         assets = stage / 'assets'
         if assets.is_dir():
-            for asset in source_files(assets, '*'):
-                if asset.is_file(): z.write(asset, 'assets/' + str(asset.relative_to(assets)))
+            package_assets(z, assets)
     aligned = build / 'aligned.apk'
     run(tools / ('zipalign'+suffix), '-P', '16', '-f', '4', unsigned, aligned)
     keystore=Path(args.keystore).resolve()

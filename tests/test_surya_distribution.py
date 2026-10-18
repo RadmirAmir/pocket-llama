@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import unittest
 import tempfile
+import zipfile
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -62,6 +63,27 @@ class SuryaDistributionTests(unittest.TestCase):
                 retired.write_bytes(b'stale build resource')
                 with self.assertRaises(SystemExit):
                     delivery.assert_scanner_assets(common, False, {})
+                retired.unlink()
+
+    def test_apk_writer_rejects_retired_files_that_appear_after_staging(self):
+        spec = importlib.util.spec_from_file_location('apk_build', ROOT / 'scripts/build-apk.py')
+        builder = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(builder)
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            assets = root / 'assets'
+            assets.mkdir()
+            (assets / 'app.js').write_bytes(b'valid UI asset')
+            for relative in ['surya/line-detector.onnx', 'notices/Surya-detector-source.txt']:
+                retired = assets / relative
+                retired.parent.mkdir(parents=True, exist_ok=True)
+                retired.write_bytes(b'late stale file')
+                with zipfile.ZipFile(root / 'output.apk', 'w') as archive:
+                    with self.assertRaises(SystemExit):
+                        builder.package_assets(archive, assets)
+                with zipfile.ZipFile(root / 'output.apk') as archive:
+                    self.assertEqual(archive.read('assets/app.js'), b'valid UI asset')
+                    self.assertNotIn('assets/' + relative, archive.namelist())
                 retired.unlink()
 
     def test_free_policy_does_not_enable_play_or_allow_embedding_vlm(self):
