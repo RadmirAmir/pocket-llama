@@ -69,6 +69,8 @@ After installing the app and selecting a downloaded LLM, enable airplane mode. T
 
 ## Updates and existing installations
 
+If Android only shows **“App not installed”**, try opening the downloaded APK through the phone's built-in file manager. A [small local installer helper](../tools/community-installer/README.md) can verify the community APK and show Android's detailed error, including version or signature conflicts. It has no network permission and does not uninstall existing apps or access their vaults.
+
 The public package is **`dev.pocketllama`**. The previous personal package is **`dev.pocketllama.memoryfix`**. They install alongside one another, with separate encrypted vaults. Installing the public preview does not migrate the personal vault. Keep the original app if it holds content you need.
 
 An in-place update needs the same package ID and signing identity. Self-built debug APKs, CI debug APKs and maintainer-signed releases may use different certificates. Export important content while you still have access before changing installation channels. A normal compatible update preserves app data; uninstalling does not.
