@@ -33,6 +33,8 @@ with zipfile.ZipFile('build/install/community-0.9.3.apk') as apk:
         assert apk.getinfo('lib/arm64-v8a/'+name).file_size>0
 print('Published community contains the complete pinned video program bundle')
 PY
+# Reset only after the emulator guard, including reruns of the native fixture tests.
+adb uninstall dev.pocketllama >/dev/null 2>&1 || true
 adb install --no-streaming --no-incremental build/install/community-0.9.2.apk > install-evidence/baseline-0.9.2.txt 2>&1
 adb shell am start -W -n dev.pocketllama/dev.pocketllama.MainActivity > install-evidence/startup-baseline-0.9.2.txt
 adb install --no-streaming --no-incremental -r build/install/community-0.9.3.apk > install-evidence/upgrade-0.9.2-to-0.9.3.txt 2>&1
