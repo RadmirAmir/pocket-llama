@@ -25,6 +25,12 @@ Gradle release compilation and `lintVitalRelease` passed. Official bundletool va
 
 The English and Russian GitHub pages render without horizontal overflow at 390 and 1,100 px, and all screenshots load. Screenshots use the actual localized app UI with synthetic demonstration data.
 
+## Additional Android installation checks
+
+The [published-APK installation run](https://github.com/RadmirAmir/pocket-llama/actions/runs/39141155678) verified the exact community 0.9.0 release bytes on Android 16 (API 36): a fresh install succeeded, the app process remained running after startup and its UI hierarchy was captured, and an upgrade from the signed community 0.8.0 APK succeeded.
+
+The [subsequent install run](https://github.com/RadmirAmir/pocket-llama/actions/runs/39142020180) also exercised the standalone helper through the system file picker and confirmation dialog. The valid pinned APK installed and returned a success callback; a corrupt file was rejected before commit while the installed app remained present. The helper test isolates the local PackageInstaller contract from Google's network scanner. Both emulator images use x86_64 with `libndk_translation.so` for ARM64; they do not establish native ARM64 performance or Samsung-specific compatibility. A reported Samsung installation refusal still needs its device-specific error code.
+
 ## Remaining acceptance
 
 Test EN/RU switching, English and Russian speech, word navigation, pause/resume/cancellation, speaker labels, encrypted-vault retention, OCR, summaries and memory pressure on physical phones. Performance, battery use and recognition quality have not been measured on those devices. Validate installation and AI-pack availability from a Play test track before production publication.
