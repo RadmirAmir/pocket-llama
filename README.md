@@ -4,6 +4,8 @@ Private Android recorder, Russian speech transcription, document scanner and loc
 
 Version 0.8.0 prepares distribution and model management. It is a release candidate, not an already reviewed Google Play release.
 
+**[Download the Android preview APK](https://github.com/RadmirAmir/pocket-llama/releases/download/v0.8.0-rc.1/PocketLlama-0.8.0-community-arm64.apk)** · [Release notes, unsigned AAB and SHA-256 checksums](https://github.com/RadmirAmir/pocket-llama/releases/tag/v0.8.0-rc.1). Android 10+, ARM64. GigaAM and PaddleOCR are included; choose and download an LLM from the in-app catalog. The public preview installs alongside the personal app.
+
 | Channel | Application ID | Included models |
 | --- | --- | --- |
 | Personal update | `dev.pocketllama.memoryfix` | GigaAM v3 INT8, Silero VAD, CAM++, PaddleOCR; optional Surya for the existing permitted personal use |
