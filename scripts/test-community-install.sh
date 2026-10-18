@@ -54,7 +54,14 @@ adb install --no-streaming --no-incremental -r build/install/community-0.9.1.apk
 cat install-evidence/upgrade-0.9.0-to-0.9.1.txt
 adb shell am start -W -n dev.pocketllama/dev.pocketllama.MainActivity > install-evidence/startup-upgrade-0.9.1.txt
 adb shell dumpsys package dev.pocketllama > install-evidence/package-0.9.1.txt
-rg 'versionCode=24|versionName=0.9.1' install-evidence/package-0.9.1.txt
+python3 - <<'PY'
+from pathlib import Path
+import re
+package=Path('install-evidence/package-0.9.1.txt').read_text()
+assert re.search(r'versionCode=24(?:\s|$)',package), 'Unexpected installed version code'
+assert re.search(r'versionName=0\.9\.1(?:\s|$)',package), 'Unexpected installed version name'
+print('Installed community version 0.9.1 / code 24 verified')
+PY
 adb uninstall dev.pocketllama
 adb install --no-streaming --no-incremental build/install/community-0.9.1.apk > install-evidence/fresh-0.9.1.txt 2>&1
 cat install-evidence/fresh-0.9.1.txt
