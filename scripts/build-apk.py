@@ -41,7 +41,7 @@ def main():
     info=json.loads((ROOT/'distribution/release.json').read_text())
     spec=importlib.util.spec_from_file_location('distribution_prepare',ROOT/'scripts/prepare-distribution.py')
     module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
-    stage=module.prepare(args.channel,bundle_surya=not args.no_bundled_surya)
+    stage=module.prepare(args.channel,bundle_surya=False if args.no_bundled_surya else None)
     package=info['legacyApplicationId'] if args.channel=='personal' else info['applicationId']
     artifact_channel='personal-update' if args.channel=='personal' and args.no_bundled_surya else args.channel
     if not args.output:args.output=str(ROOT/'artifacts'/('PocketLlama-'+info['versionName']+'-'+artifact_channel+'-arm64.apk'))
@@ -86,7 +86,7 @@ def main():
             parser.error('Video runtime mismatch: run python3 scripts/prepare-video.py: '+item['path'])
     scanner = json.loads((ROOT / 'scanner-runtime.lock.json').read_text())
     for item in scanner['files'] + [f for a in scanner['artifacts'] for f in a['files']]:
-        if args.channel!='personal' and item['path'].startswith('app/src/main/assets/surya/'):continue
+        if not json.loads((stage/'manifest.json').read_text())['surya'] and item['path'].startswith('app/src/main/assets/surya/'):continue
         path = ROOT / item['path']
         if not path.is_file() or path.stat().st_size != item['bytes'] or hashlib.sha256(path.read_bytes()).hexdigest() != item['sha256']:
             parser.error('Scanner runtime mismatch: run python3 scripts/prepare-scanner.py: ' + item['path'])

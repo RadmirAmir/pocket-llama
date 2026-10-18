@@ -59,6 +59,9 @@ def main():
   else:shutil.copyfile(path,ROOT/artifact['files'][0]['path'])
  if a.export_detector and a.public:raise SystemExit('--export-detector is not a public-distribution preparation step')
  if a.export_detector:export()
+ if not a.public:
+  d=lock['detector'];target=ROOT/'app/src/main/assets/surya'/d['file']
+  if not target.is_file() or digest(target)!=d['sha256']:download(d['onnx_url'],target,d['bytes'],d['sha256'])
  for f in lock['files']+[f for a in lock['artifacts'] for f in a['files']]:
   if a.public and f['path'].startswith('app/src/main/assets/surya/'):continue
   path=ROOT/f['path']

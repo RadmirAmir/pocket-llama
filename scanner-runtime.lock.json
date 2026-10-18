@@ -31,6 +31,7 @@
     "torch": "2.9.1+cpu",
     "onnx_opset": 17,
     "file": "line-detector.onnx",
+    "onnx_url": "https://github.com/RadmirAmir/pocket-llama/releases/download/v0.9.0-rc.1/surya-line-detector-v1.onnx",
     "bytes": 153847992,
     "sha256": "b5f51dcfd8df8ae55bbc7938d8226f20699eef6e9d9577ee59b456cd6c169a78",
     "license": "CC-BY-NC-SA-4.0"

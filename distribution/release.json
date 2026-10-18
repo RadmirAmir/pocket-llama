@@ -1,6 +1,6 @@
 {
-  "versionName": "0.9.0",
-  "versionCode": 23,
+  "versionName": "0.9.1",
+  "versionCode": 24,
   "applicationId": "dev.pocketllama",
   "legacyApplicationId": "dev.pocketllama.memoryfix",
   "publisher": {
@@ -9,6 +9,12 @@
     "privacyPolicyUrl": "",
     "reportingUrl": "",
     "catalogUrl": ""
+  },
+  "communitySurya": {
+    "enabled": true,
+    "distribution": "free-personal-use",
+    "monetized": false,
+    "noticeFile": "notices/Surya-community.txt"
   },
   "suryaRedistribution": {
     "approved": false,

@@ -25,11 +25,11 @@ An unsigned bundle is for structural validation. Upload requires the publisher's
 
 | Profile | Application ID | Model delivery |
 | --- | --- | --- |
-| `community` | `dev.pocketllama` | GigaAM v3 INT8, Moonshine Streaming Medium, Silero VAD, CAM++ and PaddleOCR in the APK |
+| `community` | `dev.pocketllama` | GigaAM v3 INT8, Moonshine Streaming Medium, Silero VAD, CAM++ and PaddleOCR in the APK; Surya detector bundled, VLM/projector downloaded on demand |
 | `play` | `dev.pocketllama` | The same models in install-time AI packs |
 | Personal | `dev.pocketllama.memoryfix` | Separate existing installation; restricted components require their own redistribution rights |
 
-The public profiles exclude Surya weights and the CC-BY-NC-SA detector. See [the license inventory](LICENSING.md). A personal package's vault does not automatically migrate to the public package.
+The free community profile enables Surya for personal, noncommercial use. Its detector is bundled under CC BY-NC-SA; the VLM is downloaded from the author after the user accepts the full model terms. Play keeps Surya disabled by default. See [the license inventory](LICENSING.md). A personal package's vault does not automatically migrate to the public package.
 
 ## Verification
 

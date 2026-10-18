@@ -2,8 +2,10 @@ import groovy.json.JsonSlurper
 plugins { id("com.android.application") }
 val channel = providers.gradleProperty("pocket.channel").orElse("community").get()
 require(channel in listOf("personal", "community", "play"))
-val withSurya = channel == "personal" || providers.gradleProperty("pocket.withSurya").orElse("false").get().toBoolean()
 val releaseInfo = JsonSlurper().parse(rootProject.file("distribution/release.json")) as Map<*, *>
+val communitySurya = releaseInfo["communitySurya"] as? Map<*, *>
+val defaultSurya = channel == "personal" || (channel == "community" && communitySurya?.get("enabled") == true)
+val withSurya = providers.gradleProperty("pocket.withSurya").orElse(defaultSurya.toString()).get().toBoolean()
 val signingFile = providers.environmentVariable("POCKET_KEYSTORE").orNull
 android {
     namespace = "dev.pocketllama"
@@ -40,7 +42,7 @@ android {
 }
 val prepareDistribution by tasks.registering(Exec::class) {
     workingDir = rootProject.projectDir
-    commandLine(listOf("python3", "scripts/prepare-distribution.py", "--channel", channel) + if (withSurya) listOf("--with-surya") else emptyList())
+    commandLine("python3", "scripts/prepare-distribution.py", "--channel", channel, if (withSurya) "--with-surya" else "--without-surya")
 }
 tasks.named("preBuild") { dependsOn(prepareDistribution) }
 dependencies {

@@ -12,12 +12,16 @@ Pocket's own code is Apache-2.0. Preserve all third-party notices. This document
 | PaddleOCR and OpenCV | Apache-2.0; preserve notices |
 | SQLCipher, AndroidX, Kotlin, jsoup | Retain the notices and source links in `notices/` |
 | Video runtime | Mixed upstream licenses, including the GPL-3.0 notice supplied by the runtime project. Preserve source links, build recipes and modifications; distribution review must cover corresponding-source obligations. Pocket does not relicense this runtime. |
-| Surya OCR 2 weights | Modified AI Pubs OpenRAIL-M; excluded from public profiles unless redistribution rights are documented |
-| Surya `line_detector0` | CC-BY-NC-SA-4.0; excluded from public profiles unless additional rights are documented |
+| Surya OCR 2 weights | Modified AI Pubs OpenRAIL-M; optional direct upstream download in free community, after displaying and accepting the full terms |
+| Surya `line_detector0` | CC-BY-NC-SA-4.0; adapted ONNX bundled in free community with full attribution, modification notice and source recipe |
 
-The Surya license includes restrictions on competing products, funding/revenue thresholds, and wording applying ShareAlike to output. Moving its download to a separate button does not remove those terms. Obtain written scope covering redistribution in a public Android app and its users. The detector needs its own coverage.
+Community 0.9.1 is a free personal assistant with no ads, payments or hosted OCR service. The publisher has chosen noncommercial distribution. The model license permits distribution subject to its conditions; the detector license permits noncommercial sharing and adaptations with attribution and ShareAlike. The previous blanket exclusion from all public profiles was stricter than this policy requires.
 
-`distribution/release.json` stores approval flags. The `evidenceFile` values must refer to actual permission documents outside the public repository. `prepare-distribution.py` refuses to stage a public Surya package without both approvals. The personal profile preserves the previously used model package; it must not be uploaded as the public release.
+Surya's complete pinned license is in `notices/Surya-weights.txt`. It includes restrictions on competing products, organization revenue/funding thresholds with personal/research exceptions, and wording applying ShareAlike to output. Personal use does not waive every clause. Moving its download to a separate button does not remove any terms. Before setup, the app displays the full model/detector licenses and requires an explicit acceptance action. Refusing does not download models. See `notices/Surya-community.txt` for the exact scope and sources. This records our packaging decision; it is not a claim of special permission or a blanket clearance for third-party commercial use.
+
+`distribution/release.json` enables the compact, free-personal-use community profile. Its detector adaptation retains CC BY-NC-SA 4.0; the original source, configuration, ONNX export and parity checks are in `scripts/prepare-scanner.py`. The VLM/projector stay out of the APK and are downloaded unchanged from the pinned author revision, with size/SHA-256 verification and resume support.
+
+The separate `suryaRedistribution` and `detectorRedistribution` approval flags remain false. They are only for separately documented additional rights, such as a broader licensed public/Play build; no permission document has been fabricated. Play keeps Surya disabled by default. The personal package must not be uploaded as the public app.
 
 Primary references:
 

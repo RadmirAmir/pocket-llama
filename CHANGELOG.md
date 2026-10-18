@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.9.1 — Surya returns to the free community edition
+
+- Restored Surya OCR 2 text, layout, reading order, tables and optional precise line geometry in community.
+- Bundled the existing pinned ONNX detector under CC BY-NC-SA 4.0 with attribution, modification notice and conversion source.
+- Kept the APK compact: VLM/projector download once from the author (1.47 GB), with resume and SHA-256 checks.
+- Added complete local model terms and an explicit acceptance action before setup, in EN/RU. Declining does not start a download.
+- Preserved the community package and update certificate; installs over 0.9.0. No changes to vault format or inference engines.
+- Kept the additional commercial-redistribution approval flags false and Play Surya disabled by default.
+
 ## 0.9.0 — English and Russian, fully local
 
 - Persistent EN/RU setting across recorder, scanner, chat, PIN screens, dialogs and notifications.

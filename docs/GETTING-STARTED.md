@@ -4,9 +4,9 @@
 
 ## Install and protect your space
 
-Download **[PocketLlama-0.9.0-community-arm64.apk](https://github.com/RadmirAmir/pocket-llama/releases/download/v0.9.0-rc.1/PocketLlama-0.9.0-community-arm64.apk)** from this repository's release. You need Android 10+ with a 64-bit ARM system. The APK is approximately 641 MB; both speech models and OCR account for most of the size.
+Download **[PocketLlama-0.9.1-community-arm64.apk](https://github.com/RadmirAmir/pocket-llama/releases/download/v0.9.1-rc.1/PocketLlama-0.9.1-community-arm64.apk)** from this repository's release. You need Android 10+ with a 64-bit ARM system. The APK is approximately 750 MB; both speech models and OCR account for most of the size.
 
-Open it on your phone and allow installation from the browser or file manager when Android asks. You can turn that installation permission off again afterward. The `.aab` file is for Play publishers and cannot be installed directly like an APK. The release includes [SHA-256 checksums](https://github.com/RadmirAmir/pocket-llama/releases/download/v0.9.0-rc.1/SHA256SUMS.txt).
+Open it on your phone and allow installation from the browser or file manager when Android asks. You can turn that installation permission off again afterward. The `.aab` file is for Play publishers and cannot be installed directly like an APK. The release includes [SHA-256 checksums](https://github.com/RadmirAmir/pocket-llama/releases/download/v0.9.1-rc.1/SHA256SUMS.txt).
 
 On first launch, create and repeat a **six-digit PIN**. It controls access to your recordings, scans and chat. Remember it: there is no account-based recovery. Microphone and camera permissions are used for the corresponding tools; grant them when you want to record or scan.
 
@@ -48,7 +48,7 @@ Open **Scanner** → **Scan a document** to capture a page, or **Photo or PDF** 
 
 Choose **Recognize document**. The public build uses bundled PaddleOCR for Russian and English; no separate OCR download is needed. Read and correct the recognized text, search your documents, or export a PDF with a text layer. Sharp, evenly lit pages work better than blurred or curved ones.
 
-The public preview does not include Surya's layout and table features. The source contains those optional paths for separately permitted builds.
+Select **Surya OCR 2** inside a document for page layout, reading order, tables and precise line boxes. First setup shows the complete model and detector terms; accepting starts a resumable 1.47 GB model download. The detector is already in the APK. Once prepared, recognition runs offline; photos and text are never uploaded. Surya is offered for personal, noncommercial use, subject to its use restrictions and output license terms. PaddleOCR remains available without this download.
 
 ## Try offline mode
 
@@ -69,7 +69,7 @@ After installing the app and selecting a downloaded LLM, enable airplane mode. T
 
 ## Updates and existing installations
 
-If Android only shows **“App not installed”**, try opening the downloaded APK through the phone's built-in file manager. A [small local installer helper](../tools/community-installer/README.md) can verify the community APK and show Android's detailed error, including version or signature conflicts. It has no network permission and does not uninstall existing apps or access their vaults.
+If Android only shows **“App not installed”**, try opening the downloaded APK through the phone's built-in file manager. For the previous 0.9.0 release, a [small local installer helper](../tools/community-installer/README.md) can verify the community APK and show Android's detailed error, including version or signature conflicts. It has no network permission and does not uninstall existing apps or access their vaults.
 
 The public package is **`dev.pocketllama`**. The previous personal package is **`dev.pocketllama.memoryfix`**. They install alongside one another, with separate encrypted vaults. Installing the public preview does not migrate the personal vault. Keep the original app if it holds content you need.
 

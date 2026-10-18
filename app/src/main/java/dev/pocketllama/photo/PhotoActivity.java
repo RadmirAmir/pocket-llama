@@ -30,6 +30,14 @@ public final class PhotoActivity extends dev.pocketllama.security.SecureActivity
     }
     private JSONObject act(String action,JSONObject a)throws Exception {
         String id=a.optString("id"),page=a.optString("page");switch(action){
+            case "suryaTerms":{
+                StringBuilder text=new StringBuilder();
+                for(String name:new String[]{"Surya-community.txt","Surya-weights.txt","Surya-detector-source.txt","Surya-detector-CC-BY-NC-SA-4.0.txt"}){
+                    if(text.length()>0)text.append("\n\n────────────────────\n\n");
+                    try(InputStream in=getAssets().open("notices/"+name)){text.append(new String(dev.pocketllama.core.TextAttachment.readLimited(in,64000),java.nio.charset.StandardCharsets.UTF_8));}
+                }
+                return object("text",text.toString());
+            }
             case "list":store.recover();docs.recover();return docs.list(a.optString("query").substring(0,Math.min(200,a.optString("query").length())),a.optInt("limit",100));
             case "detail":selected=docs.resolve(id);store.recover();docs.recover();return docs.detail(selected).put("model",new SuryaAssets(this).status());
             case "page":member(id,page,false);JSONObject p=store.get(page);int[] dims=ScanImages.dimensions(p);return p.put("renderWidth",dims[0]).put("renderHeight",dims[1]);

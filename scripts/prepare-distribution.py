@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Stage one distribution channel. Public packages exclude restricted weights unless rights are recorded."""
+"""Stage a distribution channel, preserving the free community model terms."""
 import argparse,hashlib,json,os,shutil
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
@@ -15,11 +15,21 @@ def copy(source,target):
 def approval(config,name):
  a=config[name];e=a.get('evidenceFile','')
  return bool(a.get('approved') and e and Path(e).is_file())
-def prepare(channel,with_surya=None,bundle_surya=True):
+def free_community(config,channel):
+ a=config.get('communitySurya',{})
+ return bool(channel=='community' and a.get('enabled') is True and a.get('distribution')=='free-personal-use' and a.get('monetized') is False and a.get('noticeFile')=='notices/Surya-community.txt' and (ROOT/a['noticeFile']).is_file())
+def surya_policy(config,channel,with_surya=None,bundle_surya=None):
+ personal=channel=='personal';community=free_community(config,channel)
+ if with_surya is None:with_surya=personal or community
+ if bundle_surya is None:bundle_surya=personal or channel=='play'
+ if with_surya and not personal:
+  licensed=approval(config,'suryaRedistribution') and approval(config,'detectorRedistribution')
+  if not (community or licensed):raise SystemExit('Surya requires the free personal-use community profile or documented rights for BOTH models. See docs/LICENSING.md.')
+  if community and bundle_surya and not licensed:raise SystemExit('Free community downloads the VLM directly after accepting its terms; use the compact package.')
+ return bool(with_surya),bool(with_surya and bundle_surya)
+def prepare(channel,with_surya=None,bundle_surya=None):
  config=json.loads((ROOT/'distribution/release.json').read_text());personal=channel=='personal'
- if with_surya is None:with_surya=personal
- if with_surya and not personal and not (approval(config,'suryaRedistribution') and approval(config,'detectorRedistribution')):
-  raise SystemExit('Public Surya distribution requires documented rights for BOTH the VLM and the CC-BY-NC-SA detector. See docs/LICENSING.md.')
+ with_surya,bundle_surya=surya_policy(config,channel,with_surya,bundle_surya)
  assets=ROOT/'app/src/main/assets'
  allowed={}
  for group in ['speech','ocr','moonshine']:
@@ -69,5 +79,5 @@ def prepare(channel,with_surya=None,bundle_surya=True):
  report={'channel':channel,'surya':with_surya,'suryaBundled':bool(with_surya and bundle_surya),'assetBytes':sum(p.stat().st_size for p in common.rglob('*') if p.is_file()),'packs':packs}
  (stage/'manifest.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(report),flush=True);return stage
 def main():
- p=argparse.ArgumentParser(description=__doc__);p.add_argument('--channel',choices=['personal','community','play'],default='community');p.add_argument('--with-surya',action='store_true',default=None);p.add_argument('--no-bundled-surya',action='store_true',help='Keep permitted Surya support, with its large VLM weights downloaded separately.');a=p.parse_args();prepare(a.channel,a.with_surya,not a.no_bundled_surya)
+ p=argparse.ArgumentParser(description=__doc__);p.add_argument('--channel',choices=['personal','community','play'],default='community');g=p.add_mutually_exclusive_group();g.add_argument('--with-surya',action='store_true',dest='with_surya',default=None);g.add_argument('--without-surya',action='store_false',dest='with_surya');p.add_argument('--no-bundled-surya',action='store_true',help='Download the large VLM weights separately after accepting model terms.');a=p.parse_args();prepare(a.channel,a.with_surya,False if a.no_bundled_surya else None)
 if __name__=='__main__':main()

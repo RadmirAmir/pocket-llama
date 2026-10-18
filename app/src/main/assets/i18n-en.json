@@ -1230,5 +1230,15 @@
   "Более крупная модель. Для мощных телефонов; длительные ответы могут нагревать устройство.": "A larger model for powerful phones. Long replies may warm the device.",
   "RU: GigaAM v3 · EN: Moonshine Streaming Medium. Язык новых расшифровок соответствует интерфейсу.": "RU: GigaAM v3 · EN: Moonshine Streaming Medium. New transcriptions follow the interface language.",
   "Язык расшифровки: ": "Transcription language: ",
-  "Незавершённая расшифровка продолжится на прежнем языке. Для смены языка выберите распознавание заново.": "An unfinished transcript resumes in its original language. To change language, choose transcription again."
+  "Незавершённая расшифровка продолжится на прежнем языке. Для смены языка выберите распознавание заново.": "An unfinished transcript resumes in its original language. To change language, choose transcription again.",
+  "Пакет Surya уже установлен. Подготовка проходит на телефоне без интернета.": "Surya is already installed. Setup runs on your phone without internet.",
+  "Загрузится пакет 1,47 ГБ. Нужны интернет и свободное место. Загрузку можно остановить и продолжить. После подготовки Surya работает без интернета; фото и текст никуда не отправляются.": "A 1.47 GB package will be downloaded. Internet and free space are required. The download can be paused and resumed. After setup, Surya works offline; photos and text are never uploaded.",
+  "Текст и ручные исправления сохранятся.": "Text and manual edits will be kept.",
+  "Ручные правки обрабатываемых страниц будут заменены.": "Manual edits on processed pages will be replaced.",
+  "Surya предлагается для личного некоммерческого использования. У модели есть ограничения использования и условия для результатов OCR. Нажимая «Принять», вы соглашаетесь с полными условиями ниже.": "Surya is offered for personal, noncommercial use. Its license includes use restrictions and terms for OCR output. By selecting Accept, you agree to the complete terms below.",
+  "Принять и уточнить": "Accept and refine",
+  "Принять и распознать": "Accept and recognize",
+  "Условия Surya и детектора": "Surya and detector terms",
+  "Открываем условия…": "Loading terms…",
+  "Не удалось открыть условия. Закройте окно и повторите подготовку.": "Could not load the terms. Close this dialog and try setup again."
 }
