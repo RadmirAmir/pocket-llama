@@ -1,0 +1,17 @@
+{
+  "release": "0.8.0",
+  "approved": false,
+  "devices": [],
+  "requiredCases": [
+    "fresh-install-offline-asr-ocr",
+    "model-download-pause-restart",
+    "low-storage",
+    "screen-locked-recording",
+    "multipage-ocr-cancel-resume",
+    "long-transcription-summary-thermal",
+    "legacy-update-vault-pin",
+    "16kb-device",
+    "play-internal-split-install"
+  ],
+  "note": "Host and interface checks do not replace physical-device acceptance."
+}

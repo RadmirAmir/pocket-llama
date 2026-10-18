@@ -1,0 +1,53 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera.any" android:required="false" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <application android:name="dev.pocketllama.security.PocketApp" android:label="Pocket" android:theme="@style/Theme.Pocket.Splash"
+        android:allowBackup="false" android:fullBackupContent="false" android:dataExtractionRules="@xml/private_data_rules" android:usesCleartextTraffic="true" android:extractNativeLibs="true"
+        android:icon="@mipmap/ic_launcher">
+        <activity android:name="dev.pocketllama.security.LockActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden|fontScale|uiMode" android:windowSoftInputMode="adjustResize" />
+        <uses-native-library android:name="libOpenCL.so" android:required="false" />
+        <activity android:name="dev.pocketllama.MainActivity" android:exported="true" android:configChanges="orientation|screenSize|keyboardHidden|uiMode|fontScale|screenLayout|smallestScreenSize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name="dev.pocketllama.ChatActivity" android:exported="false"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode|fontScale|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
+        <activity android:name="dev.pocketllama.voice.VoiceActivity" android:exported="true" android:launchMode="singleTop" android:configChanges="orientation|screenSize|keyboardHidden|uiMode|fontScale|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize">
+            <intent-filter><action android:name="android.intent.action.SEND" /><category android:name="android.intent.category.DEFAULT" /><data android:mimeType="text/plain" /></intent-filter>
+        </activity>
+        <activity android:name="dev.pocketllama.photo.PhotoActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
+        <activity android:name="dev.pocketllama.photo.PhotoCameraActivity" android:exported="false" android:screenOrientation="portrait" />
+        <service android:name="dev.pocketllama.photo.OcrService" android:process=":ocr" android:exported="false" android:stopWithTask="false" android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="User-started offline multipage OCR, layout and table recognition. Encrypted app-private files, bounded processing, checkpoints and cancellation." />
+        </service>
+        <service android:name="dev.pocketllama.video.VideoImportService" android:process=":video" android:exported="false" android:stopWithTask="false" android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="User-started video URL import. Streams audio into encrypted app-private storage, then decodes locally; bounded size, progress and cancel." />
+        </service>
+        <service android:name="dev.pocketllama.voice.RecorderService" android:exported="false" android:stopWithTask="false" android:foregroundServiceType="microphone" />
+        <service android:name="dev.pocketllama.models.ModelDownloadService" android:exported="false" android:stopWithTask="false" android:foregroundServiceType="dataSync" />
+        <service android:name="dev.pocketllama.voice.SpeechService" android:process=":speech" android:exported="false" android:stopWithTask="false" android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="User-started offline speech transcription and speaker labeling, bounded chunks with progress and cancel." />
+        </service>
+        <service android:name="dev.pocketllama.voice.SummaryService" android:exported="false" android:stopWithTask="false" android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="User-started offline meeting summary through a local GGUF model. Persistent progress and cancel." />
+        </service>
+        <service android:name="dev.pocketllama.InferenceService" android:exported="false"
+            android:stopWithTask="false" android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="User-started local offline LLM inference HTTP API. Runs while the UI is closed, with a persistent notification and a Stop action." />
+        </service>
+    </application>
+</manifest>

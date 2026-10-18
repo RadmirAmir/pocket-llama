@@ -1,0 +1,15 @@
+{
+  "versionName": "0.8.0",
+  "versionCode": 22,
+  "applicationId": "dev.pocketllama",
+  "legacyApplicationId": "dev.pocketllama.memoryfix",
+  "publisher": {
+    "name": "",
+    "supportEmail": "",
+    "privacyPolicyUrl": "",
+    "reportingUrl": "",
+    "catalogUrl": ""
+  },
+  "suryaRedistribution": { "approved": false, "evidenceFile": "" },
+  "detectorRedistribution": { "approved": false, "evidenceFile": "" }
+}

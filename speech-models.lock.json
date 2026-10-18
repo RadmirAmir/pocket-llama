@@ -1,0 +1,33 @@
+{
+  "models": [
+    {
+      "name": "gigaam.int8.onnx",
+      "url": "https://huggingface.co/vvpreo/gigaam-v3-onnx/resolve/03cf125f754af526260037bc96f4edf0642e963b/v3_e2e_ctc.int8.onnx",
+      "sha256": "c1f03c86a725bd1c8815375bf4a9fdc812ec9927c204df45e85734760d8f9308",
+      "bytes": 224905716,
+      "source": "vvpreo/gigaam-v3-onnx",
+      "revision": "03cf125f754af526260037bc96f4edf0642e963b"
+    },
+    {
+      "name": "silero.onnx",
+      "url": "https://huggingface.co/vvpreo/gigaam-v3-onnx/resolve/03cf125f754af526260037bc96f4edf0642e963b/silero_vad.onnx",
+      "sha256": "1a153a22f4509e292a94e67d6f9b85e8deb25b4988682b7e174c65279d8788e3",
+      "bytes": 2327524,
+      "source": "vvpreo/gigaam-v3-onnx",
+      "revision": "03cf125f754af526260037bc96f4edf0642e963b"
+    },
+    {
+      "name": "campplus.onnx",
+      "url": "https://huggingface.co/csukuangfj/speaker-embedding-models/resolve/0743f301363dec56491a490f6d6cbc9d67f9a3bf/3dspeaker_speech_campplus_sv_zh_en_16k-common_advanced.onnx",
+      "sha256": "aa3cfc16963a10586a9393f5035d6d6b57e98d358b347f80c2a30bf4f00ceba2",
+      "bytes": 28281164,
+      "source": "csukuangfj/speaker-embedding-models",
+      "revision": "0743f301363dec56491a490f6d6cbc9d67f9a3bf"
+    }
+  ],
+  "mobile_conversion": {
+    "script": "scripts/prepare-speech.py",
+    "transform": "ConvInteger signed weights -> unsigned weights and zero points, exact shift +128, 51 nodes",
+    "output_sha256": "66b97bc75df595967e8eaddb9c1835d3f8865fff21ad9f28987ac333972e0ae4"
+  }
+}

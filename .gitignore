@@ -1,0 +1,39 @@
+.gradle/
+build/
+app/build/
+local.properties
+vendor/
+app/src/main/jniLibs/
+*.apk
+
+# Downloaded model/runtime bytes are restored from reviewed lock files.
+.cache/
+artifacts/
+node_modules/
+__pycache__/
+**/__pycache__/
+*.pyc
+*.aab
+*.apks
+*.part
+app/libs/*.jar
+app/src/main/assets/speech/*.onnx
+app/src/main/assets/ocr/*.onnx
+app/src/main/assets/surya/*.onnx
+app/src/main/assets/surya/bundled/
+app/src/main/assets/video/python.zip
+app/src/main/assets/video/yt-dlp
+app/src/main/assets/video/runtime-id.txt
+*_pack/src/main/assets/
+# Signing and publishing credentials always live outside the repository.
+signing/
+*.keystore
+*.jks
+*.p12
+*.pfx
+*.pem
+.env
+.env.*
+
+# Private engineering history is retained in the maintainer snapshot only.
+docs/internal/

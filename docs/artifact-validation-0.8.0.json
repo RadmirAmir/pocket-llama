@@ -1,0 +1,22 @@
+{
+  "personal": {
+    "modelsVerified": 8,
+    "channel": "personal",
+    "suryaBundled": false,
+    "bytes": 380323882
+  },
+  "community": {
+    "modelsVerified": 7,
+    "channel": "community",
+    "suryaBundled": false,
+    "bytes": 271439765
+  },
+  "play": {
+    "modelsVerified": 7,
+    "channel": "play",
+    "suryaBundled": false,
+    "bytes": 271450429
+  },
+  "legacyCertificateMatches": true,
+  "legacyCertificateSha256": "ef3cea40110c13d179cc7e1f1e570aeb2f870cb7d46f16273eb5d733cf9b2ed0"
+}

@@ -1,0 +1,25 @@
+Video import runtime — Pocket 0.6.0
+
+The APK embeds public CPython and QuickJS binaries supplied by
+io.github.junkfood02.youtubedl-android:library:0.18.1, plus the official yt-dlp
+2026.08.19 release zipapp (including yt-dlp-ejs). No wrapper classes.jar is used.
+The Python package ZIP is normalized to resolve Unix symlinks to regular files.
+The app-specific launcher replaces the upstream QuickJS temporary JS-file
+transport with a Linux anonymous memfd and uses a private process group.
+
+Upstream runtime build/source:
+https://github.com/yausername/youtubedl-android/tree/0.18.1
+https://github.com/termux/termux-packages
+https://github.com/python/cpython/tree/3.12
+https://github.com/bellard/quickjs
+https://github.com/yt-dlp/yt-dlp/tree/2026.08.19
+https://github.com/yt-dlp/ejs
+
+Individual bundled components retain their original licenses, including
+CPython (PSF), QuickJS and EJS (MIT), yt-dlp (Unlicense with upstream notices),
+OpenSSL (Apache-2.0), SQLite (public domain), zlib (zlib), libffi and Expat
+(MIT), bzip2 (bzip2 license), XZ/liblzma, ncurses and optional GNU runtime
+libraries shipped in the upstream Python package. The original runtime
+project's GPL-3.0 text and core license texts are included alongside this file.
+Pinned input URLs, sizes and SHA-256 digests are in video-runtime.lock.json.
+Build preparation and all Pocket Java/Python sources are in the source ZIP.

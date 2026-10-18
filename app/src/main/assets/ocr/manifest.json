@@ -1,0 +1,19 @@
+{
+  "files": [
+    {
+      "name": "det.onnx",
+      "bytes": 4826518,
+      "sha256": "a431985659dc921974177a95adcfbb90fd9e51989a5e04d70d0b75f597b6e61d"
+    },
+    {
+      "name": "rec.onnx",
+      "bytes": 7887627,
+      "sha256": "b3018ef2b09a0250b6e0c8e871c927098363e5fd4df890cc68e8358eb0aaf1bd"
+    },
+    {
+      "name": "characters.txt",
+      "bytes": 1663,
+      "sha256": "3e95f1581557162870cacdba5af91a4c6be2890710d395b0c3c7578e7ee5e6eb"
+    }
+  ]
+}

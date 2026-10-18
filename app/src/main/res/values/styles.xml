@@ -1,0 +1,6 @@
+<resources>
+ <style name="Theme.Pocket" parent="android:style/Theme.Material.Light.NoActionBar">
+  <item name="android:windowBackground">@color/pocket_background</item><item name="android:statusBarColor">@color/pocket_background</item><item name="android:navigationBarColor">@color/pocket_background</item><item name="android:colorAccent">#B84432</item><item name="android:windowLightStatusBar">true</item><item name="android:windowLightNavigationBar">true</item><item name="android:forceDarkAllowed">false</item><item name="android:windowActionModeOverlay">true</item>
+ </style>
+ <style name="Theme.Pocket.Splash" parent="Theme.Pocket" />
+</resources>

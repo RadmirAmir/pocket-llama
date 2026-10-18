@@ -1,0 +1,150 @@
+{
+  "description": "Synthetic Russian/English table, real pinned Surya GGUF and projector; host CPU, not device benchmark.",
+  "revision": "6a3a4c30e5e74446d4f8b6afd05b2f2da970f470",
+  "responses": {
+    "layout": {
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "[{\"label\": \"Section-Header\", \"bbox\": \"49 83 328 112\", \"count\": 30}, {\"label\": \"Table\", \"bbox\": \"53 250 942 580\", \"count\": 110}]"
+          }
+        }
+      ],
+      "created": 1792255035,
+      "model": "/workspace/scratch/1f5660a69431/models/surya-2.gguf",
+      "system_fingerprint": "b0-unknown",
+      "object": "chat.completion",
+      "usage": {
+        "completion_tokens": 31,
+        "prompt_tokens": 1225,
+        "total_tokens": 1256,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "id": "chatcmpl-HyuJOhFUeqtpvQLsS6dtRCkTgT4oKUjc",
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 1225,
+        "prompt_ms": 13542.199,
+        "prompt_per_token_ms": 11.054856326530613,
+        "prompt_per_second": 90.45798248866376,
+        "predicted_n": 31,
+        "predicted_ms": 967.909,
+        "predicted_per_token_ms": 32.26363333333333,
+        "predicted_per_second": 30.994649290377506
+      }
+    },
+    "table": {
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "[{\"label\": \"Row\", \"bbox\": \"4 6 996 261\"}, {\"label\": \"Row\", \"bbox\": \"4 261 996 502\"}, {\"label\": \"Row\", \"bbox\": \"4 502 996 743\"}, {\"label\": \"Row\", \"bbox\": \"4 743 996 992\"}, {\"label\": \"Col\", \"bbox\": \"4 6 500 992\"}, {\"label\": \"Col\", \"bbox\": \"500 6 723 992\"}, {\"label\": \"Col\", \"bbox\": \"723 6 996 992\"}]"
+          }
+        }
+      ],
+      "created": 1792255050,
+      "model": "/workspace/scratch/1f5660a69431/models/surya-2.gguf",
+      "system_fingerprint": "b0-unknown",
+      "object": "chat.completion",
+      "usage": {
+        "completion_tokens": 72,
+        "prompt_tokens": 1184,
+        "total_tokens": 1256,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "id": "chatcmpl-JEjyUxZjbRY7xNnpwhnDwozSS12dBIlK",
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 1184,
+        "prompt_ms": 12809.282,
+        "prompt_per_token_ms": 10.818650337837838,
+        "prompt_per_second": 92.43297165289982,
+        "predicted_n": 72,
+        "predicted_ms": 2083.713,
+        "predicted_per_token_ms": 29.348070422535216,
+        "predicted_per_second": 34.07379039243888
+      }
+    },
+    "ocr": {
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "<table>\n<tbody><tr>\n<td>Товар</td><td>Кол-во</td><td>Сумма</td></tr>\n<tr>\n<td>Бумага</td><td>2</td><td>500 ₽</td></tr>\n<tr>\n<td>Ручка</td><td>1</td><td>100 ₽</td></tr>\n<tr>\n<td>Итого</td><td></td><td>600 ₽</td></tr>\n</tbody></table>"
+          }
+        }
+      ],
+      "created": 1792255065,
+      "model": "/workspace/scratch/1f5660a69431/models/surya-2.gguf",
+      "system_fingerprint": "b0-unknown",
+      "object": "chat.completion",
+      "usage": {
+        "completion_tokens": 89,
+        "prompt_tokens": 1081,
+        "total_tokens": 1170,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "id": "chatcmpl-muZbwc0UsbAVZKEmzToK2Dp3kfzTdk09",
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 1081,
+        "prompt_ms": 12759.01,
+        "prompt_per_token_ms": 11.802969472710453,
+        "prompt_per_second": 84.72444178662765,
+        "predicted_n": 89,
+        "predicted_ms": 2536.84,
+        "predicted_per_token_ms": 28.827727272727273,
+        "predicted_per_second": 34.68882546790495
+      }
+    },
+    "header": {
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "<h2>Счёт № 7 / Invoice</h2>"
+          }
+        }
+      ],
+      "created": 1792255078,
+      "model": "/workspace/scratch/1f5660a69431/models/surya-2.gguf",
+      "system_fingerprint": "b0-unknown",
+      "object": "chat.completion",
+      "usage": {
+        "completion_tokens": 21,
+        "prompt_tokens": 1091,
+        "total_tokens": 1112,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "id": "chatcmpl-k1SbXhZE7I95ZnbHXDmjT3TOB5L7glgG",
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 1091,
+        "prompt_ms": 12343.205,
+        "prompt_per_token_ms": 11.313661778185152,
+        "prompt_per_second": 88.38871265607271,
+        "predicted_n": 21,
+        "predicted_ms": 545.27,
+        "predicted_per_token_ms": 27.2635,
+        "predicted_per_second": 36.67907642085572
+      }
+    }
+  }
+}

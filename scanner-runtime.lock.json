@@ -1,0 +1,90 @@
+{
+  "version": 1,
+  "surya": {
+    "repository": "datalab-to/surya-ocr-2-gguf",
+    "revision": "6a3a4c30e5e74446d4f8b6afd05b2f2da970f470",
+    "downloaded_on_device": true,
+    "models": [
+      {
+        "name": "surya-2.gguf",
+        "bytes": 1266400864,
+        "sha256": "1f18abe17b1ed8b4e47ee9b1ad0e274c93daf5efbb6b29a04ff1712e37051e05"
+      },
+      {
+        "name": "surya-2-mmproj.gguf",
+        "bytes": 204986688,
+        "sha256": "98c0563673b1657ff6d021d1e5f04af06cbf61bb40c63ac613e8bb71b42fb2c0"
+      }
+    ]
+  },
+  "detector": {
+    "source": "datalab-to/line_detector0",
+    "revision": "5b7f57b471c54026adb9726ab527c9fbbedac1b7",
+    "source_sha256": "fed8f5e45287766dcb1706b405c8b9756a338f1753f5375dbad31318f0515f9d",
+    "shape": [
+      1,
+      1,
+      300,
+      300
+    ],
+    "max_abs_error": 6.705522537231445e-07,
+    "torch": "2.9.1+cpu",
+    "onnx_opset": 17,
+    "file": "line-detector.onnx",
+    "bytes": 153847992,
+    "sha256": "b5f51dcfd8df8ae55bbc7938d8226f20699eef6e9d9577ee59b456cd6c169a78",
+    "license": "CC-BY-NC-SA-4.0"
+  },
+  "artifacts": [
+    {
+      "source": "https://repo.maven.apache.org/maven2/org/opencv/opencv/4.12.0/opencv-4.12.0.aar",
+      "bytes": 117745028,
+      "sha256": "f71846a313388d9da667a59be1e921669fcf792d1ba264b3898253ca789bc3f0",
+      "files": [
+        {
+          "path": "app/libs/opencv-4.12.0.jar",
+          "bytes": 435072,
+          "sha256": "60b7be2b59393bc1689b840d7b60fd75b811bb06477bdd03abee6fbc17afa5cf"
+        },
+        {
+          "path": "app/src/main/jniLibs/arm64-v8a/libopencv_java4.so",
+          "bytes": 23465088,
+          "sha256": "144bbc9ad0b0bac4ba58f7d53198aead64379e5314f68200968c703d2c1c14ab"
+        },
+        {
+          "path": "app/src/main/jniLibs/arm64-v8a/libc++_shared.so",
+          "bytes": 1292904,
+          "sha256": "4397241b4bd20a8e579bfb41d21107857e12985f6a01ca0c2a5f83380d1270b4"
+        }
+      ]
+    },
+    {
+      "source": "https://repo.maven.apache.org/maven2/org/jsoup/jsoup/1.21.2/jsoup-1.21.2.jar",
+      "sha256": "f05496e255734759f0d4b5632da7b24f81313147c78c69e90ad045d096191344",
+      "files": [
+        {
+          "path": "app/libs/jsoup-1.21.2.jar",
+          "bytes": 500363,
+          "sha256": "f05496e255734759f0d4b5632da7b24f81313147c78c69e90ad045d096191344"
+        }
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": "app/src/main/assets/surya/line-detector.onnx",
+      "bytes": 153847992,
+      "sha256": "b5f51dcfd8df8ae55bbc7938d8226f20699eef6e9d9577ee59b456cd6c169a78"
+    },
+    {
+      "path": "app/src/main/assets/surya/manifest.json",
+      "bytes": 490,
+      "sha256": "f32178629d3185d2340f9f90f7bba7871d294f0ba41495a8b9079428e5dbfed0"
+    },
+    {
+      "path": "model-configs/surya-line-detector.json",
+      "bytes": 913,
+      "sha256": "de083dc5a6da523acd0cea5900cdab53b5878d5c43794ea7889a3cae4200c54a"
+    }
+  ]
+}

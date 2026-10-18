@@ -1,0 +1,55 @@
+{
+  "model_load_ms": 3080,
+  "block_count": 5,
+  "metrics": {
+    "request_ms": 29856.830789,
+    "cache_n": 0,
+    "max_tokens": 8192,
+    "prompt_ms": 19971.272,
+    "prompt_per_second": 78.36255998115693,
+    "image_width": 896,
+    "first_output_ms": 20288.063987,
+    "predicted_n": 264,
+    "task": "page",
+    "image_height": 1204,
+    "predicted_ms": 9568.682,
+    "predicted_per_second": 27.485499047831247,
+    "prepare_ms": 13,
+    "finish": "stop",
+    "prompt_n": 1565,
+    "first_text_ms": 20288.064558
+  },
+  "events": [
+    {
+      "phase": "prepare",
+      "elapsed_ms": 3113,
+      "message": "Подготавливаем изображение"
+    },
+    {
+      "phase": "input",
+      "elapsed_ms": 3127,
+      "message": "Обрабатываем изображение"
+    },
+    {
+      "phase": "input",
+      "elapsed_ms": 3452,
+      "message": "Обрабатываем изображение · 0% подготовки"
+    },
+    {
+      "phase": "input",
+      "elapsed_ms": 23356,
+      "message": "Обрабатываем изображение · 99% подготовки"
+    },
+    {
+      "phase": "input",
+      "elapsed_ms": 23415,
+      "message": "Обрабатываем изображение · 100% подготовки"
+    },
+    {
+      "phase": "text",
+      "elapsed_ms": 23416,
+      "message": "Распознаём текст"
+    }
+  ],
+  "first_text_ms": 23416
+}

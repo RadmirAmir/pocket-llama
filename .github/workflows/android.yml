@@ -1,0 +1,79 @@
+name: Android builds and checks
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  host:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Prepare host test dependency
+        run: python3 scripts/prepare-test-deps.py
+      - name: Core and distribution checks
+        env:
+          CHAT_JSON_JAR: ${{ github.workspace }}/build/test-deps/json.jar
+        run: |
+          bash scripts/test-core.sh
+          bash scripts/test-voice-core.sh
+          bash scripts/test-distribution.sh
+          python3 scripts/release-check.py
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save playwright@1.62.1
+      - run: npx playwright install --with-deps chromium
+      - name: UI checks
+        run: |
+          node scripts/test-catalogue-ui.cjs
+          node scripts/test-studio-ui.cjs
+          node scripts/test-scanner-ui.cjs
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: android-actions/setup-android@v3
+      - name: SDK and build dependencies
+        run: |
+          sdkmanager 'platforms;android-36' 'build-tools;36.0.0' 'ndk;28.2.13676358'
+          python3 -m pip install -r requirements-build.txt
+      - name: Restore pinned runtimes and models
+        run: python3 scripts/prepare-runtime.py
+      - name: Build portable ARM64 CPU runtime
+        run: bash scripts/build-native.sh cpu
+      - name: Community test APK
+        run: ./gradlew --no-daemon -Ppocket.channel=community assembleDebug
+      - name: Play bundle with install-time AI packs
+        run: |
+          python3 scripts/prepare-build-tools.py
+          ./gradlew --no-daemon -Ppocket.channel=play :app:buildReleasePreBundle :app:assetPackReleasePreBundleTask :app:lintVitalRelease
+          python3 scripts/build-play-bundle.py --bundletool build/tools/bundletool.jar
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pocket-android-preview
+          path: |
+            app/build/outputs/apk/debug/*.apk
+            artifacts/*.aab
+
+# This workflow builds previews only. Production signing keys, publisher settings,
+# device acceptance and store submission are intentionally publisher-controlled.

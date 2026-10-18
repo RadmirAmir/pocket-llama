@@ -1,0 +1,7 @@
+Pocket
+Copyright 2026 Pocket contributors
+
+The original Pocket code is licensed under Apache-2.0.
+Third-party code, runtimes and model weights retain their individual licenses.
+See notices/, the lock files and docs/LICENSING.md.
+Surya model weights are not licensed under the application license.

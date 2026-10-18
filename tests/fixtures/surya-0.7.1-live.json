@@ -1,0 +1,338 @@
+[
+  {
+    "label": "f16-invoice",
+    "seconds": 17.810760529999925,
+    "width": 896,
+    "height": 1204,
+    "response": {
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "<div data-bbox=\"49 80 328 109\" data-label=\"Section-Header\"><h2>Счёт № 7 / Invoice</h2></div><div data-bbox=\"52 248 942 581\" data-label=\"Table\"><table border=\"1\"><thead><tr><th>Товар</th><th>Кол-во</th><th>Сумма</th></tr></thead><tbody><tr><td>Бумага</td><td>2</td><td>500 ₽</td></tr><tr><td>Ручка</td><td>1</td><td>100 ₽</td></tr><tr><td>Итого</td><td></td><td>600 ₽</td></tr></tbody></table></div>"
+          }
+        }
+      ],
+      "created": 1792265818,
+      "model": "/workspace/scratch/1f5660a69431/dependencies/surya-2.gguf",
+      "system_fingerprint": "b0-unknown",
+      "object": "chat.completion",
+      "usage": {
+        "completion_tokens": 139,
+        "prompt_tokens": 1185,
+        "total_tokens": 1324,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "id": "chatcmpl-Wf1p3B9P7nr5qBnyWz3j13UZ16hdlags",
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 1185,
+        "prompt_ms": 13455.576,
+        "prompt_per_token_ms": 11.354916455696202,
+        "prompt_per_second": 88.06757882382739,
+        "predicted_n": 139,
+        "predicted_ms": 4329.762,
+        "predicted_per_token_ms": 31.375086956521738,
+        "predicted_per_second": 31.872421625022348
+      }
+    }
+  },
+  {
+    "label": "f16-text",
+    "seconds": 45.3243823119999,
+    "width": 1232,
+    "height": 1708,
+    "response": {
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "<div data-bbox=\"64 47 411 75\" data-label=\"Section-Header\"><h1>План работы / Project plan</h1></div><div data-bbox=\"64 127 547 366\" data-label=\"List-Group\"><ol><li>1. Подготовить документы к 25 октября 2026 года.</li><li>2. Проверить сумму договора: 125 480 рублей.</li><li>3. Ответственный: Иван Петров. Телефон: 123-45-67.</li><li>4. Сохранить оригиналы и подписанные копии.</li></ol></div><div data-bbox=\"64 589 401 606\" data-label=\"Text\"><p>Примечание: номер заявки 904172, срок 15 дней.</p></div>"
+          }
+        }
+      ],
+      "created": 1792265864,
+      "model": "/workspace/scratch/1f5660a69431/dependencies/surya-2.gguf",
+      "system_fingerprint": "b0-unknown",
+      "object": "chat.completion",
+      "usage": {
+        "completion_tokens": 296,
+        "prompt_tokens": 2188,
+        "total_tokens": 2484,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "id": "chatcmpl-Q5WDsJOk8rUkWNeAwgZvnaifca1enlYN",
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 2188,
+        "prompt_ms": 34140.143,
+        "prompt_per_token_ms": 15.603356032906763,
+        "prompt_per_second": 64.08877666388217,
+        "predicted_n": 296,
+        "predicted_ms": 11107.513,
+        "predicted_per_token_ms": 37.65258644067797,
+        "predicted_per_second": 26.558600471590715
+      }
+    }
+  },
+  {
+    "label": "f16-small-block",
+    "seconds": 1.9624903190001532,
+    "width": 672,
+    "height": 84,
+    "response": {
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "<p>Счёт № 7 / Invoice</p>"
+          }
+        }
+      ],
+      "created": 1792265866,
+      "model": "/workspace/scratch/1f5660a69431/dependencies/surya-2.gguf",
+      "system_fingerprint": "b0-unknown",
+      "object": "chat.completion",
+      "usage": {
+        "completion_tokens": 21,
+        "prompt_tokens": 174,
+        "total_tokens": 195,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "id": "chatcmpl-DC3K5GnzmBeOmD4AMLPip8bA9MOryFdy",
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 174,
+        "prompt_ms": 1208.032,
+        "prompt_per_token_ms": 6.942712643678161,
+        "prompt_per_second": 144.0359195782893,
+        "predicted_n": 21,
+        "predicted_ms": 748.108,
+        "predicted_per_token_ms": 37.4054,
+        "predicted_per_second": 26.734107909553167
+      }
+    }
+  },
+  {
+    "label": "legacy-layout",
+    "seconds": 14.318485769999825,
+    "width": 900,
+    "height": 1200,
+    "response": {
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "[{\"label\": \"Section-Header\", \"bbox\": \"49 83 328 112\", \"count\": 30}, {\"label\": \"Table\", \"bbox\": \"53 250 942 580\", \"count\": 110}]"
+          }
+        }
+      ],
+      "created": 1792265881,
+      "model": "/workspace/scratch/1f5660a69431/dependencies/surya-2.gguf",
+      "system_fingerprint": "b0-unknown",
+      "object": "chat.completion",
+      "usage": {
+        "completion_tokens": 31,
+        "prompt_tokens": 1225,
+        "total_tokens": 1256,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "id": "chatcmpl-ZchnhfadmaII9rY49ZmvwDewpMq8Zkxb",
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 1225,
+        "prompt_ms": 13255.706,
+        "prompt_per_token_ms": 10.820984489795919,
+        "prompt_per_second": 92.41303330052735,
+        "predicted_n": 31,
+        "predicted_ms": 1024.334,
+        "predicted_per_token_ms": 34.144466666666666,
+        "predicted_per_second": 29.28732229917195
+      }
+    }
+  },
+  {
+    "label": "legacy-block-0",
+    "seconds": 13.272950998999931,
+    "width": 251,
+    "height": 34,
+    "response": {
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "<h2>Счёт № 7 / Invoice</h2>"
+          }
+        }
+      ],
+      "created": 1792265894,
+      "model": "/workspace/scratch/1f5660a69431/dependencies/surya-2.gguf",
+      "system_fingerprint": "b0-unknown",
+      "object": "chat.completion",
+      "usage": {
+        "completion_tokens": 21,
+        "prompt_tokens": 1090,
+        "total_tokens": 1111,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "id": "chatcmpl-dqOfoqIsGd6qjVlWnqWFUysgm3btF4qh",
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 1090,
+        "prompt_ms": 12608.537,
+        "prompt_per_token_ms": 11.567465137614679,
+        "prompt_per_second": 86.44936363354448,
+        "predicted_n": 21,
+        "predicted_ms": 640.196,
+        "predicted_per_token_ms": 32.0098,
+        "predicted_per_second": 31.240432617510887
+      }
+    }
+  },
+  {
+    "label": "legacy-block-1",
+    "seconds": 15.835926598999777,
+    "width": 800,
+    "height": 396,
+    "response": {
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "<table>\n<tbody><tr>\n<td>Товар</td><td>Кол-во</td><td>Сумма</td></tr>\n<tr>\n<td>Бумага</td><td>2</td><td>500 ₽</td></tr>\n<tr>\n<td>Ручка</td><td>1</td><td>100 ₽</td></tr>\n<tr>\n<td>Итого</td><td></td><td>600 ₽</td></tr>\n</tbody></table>"
+          }
+        }
+      ],
+      "created": 1792265910,
+      "model": "/workspace/scratch/1f5660a69431/dependencies/surya-2.gguf",
+      "system_fingerprint": "b0-unknown",
+      "object": "chat.completion",
+      "usage": {
+        "completion_tokens": 89,
+        "prompt_tokens": 1104,
+        "total_tokens": 1193,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "id": "chatcmpl-xfTTKNZMxStFwzblO0k78ha5XeVlTC6U",
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 1104,
+        "prompt_ms": 12565.846,
+        "prompt_per_token_ms": 11.38210688405797,
+        "prompt_per_second": 87.85719640364843,
+        "predicted_n": 89,
+        "predicted_ms": 3242.588,
+        "predicted_per_token_ms": 36.84759090909091,
+        "predicted_per_second": 27.138816278848864
+      }
+    }
+  },
+  {
+    "label": "q8-invoice",
+    "seconds": 16.950772870000037,
+    "width": 896,
+    "height": 1204,
+    "response": {
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "<div data-bbox=\"49 80 328 109\" data-label=\"Section-Header\"><h2>Счёт № 7 / Invoice</h2></div><div data-bbox=\"52 248 942 581\" data-label=\"Table\"><table border=\"1\"><tr><td>Товар</td><td>Кол-во</td><td>Сумма</td></tr><tr><td>Бумага</td><td>2</td><td>500 ₽</td></tr><tr><td>Ручка</td><td>1</td><td>100 ₽</td></tr><tr><td>Итого</td><td></td><td>600 ₽</td></tr></table></div>"
+          }
+        }
+      ],
+      "created": 1792265927,
+      "model": "/workspace/scratch/1f5660a69431/dependencies/surya-2-Q8_0.gguf",
+      "system_fingerprint": "b0-unknown",
+      "object": "chat.completion",
+      "usage": {
+        "completion_tokens": 135,
+        "prompt_tokens": 1185,
+        "total_tokens": 1320,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "id": "chatcmpl-PkOwhMmYcpD42p6UdvJi3tznjDsnoPaM",
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 1185,
+        "prompt_ms": 13533.03,
+        "prompt_per_token_ms": 11.420278481012659,
+        "prompt_per_second": 87.56353898572603,
+        "predicted_n": 135,
+        "predicted_ms": 3391.831,
+        "predicted_per_token_ms": 25.312171641791046,
+        "predicted_per_second": 39.50668532718758
+      }
+    }
+  },
+  {
+    "label": "q8-text",
+    "seconds": 47.62018594400001,
+    "width": 1232,
+    "height": 1708,
+    "response": {
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "<div data-bbox=\"64 47 411 75\" data-label=\"Section-Header\"><h1>План работы / Project plan</h1></div><div data-bbox=\"64 127 547 366\" data-label=\"List-Group\"><ol><li>1. Подготовить документы к 25 октября 2026 года.</li><li>2. Проверить сумму договора: 125 480 рублей.</li><li>3. Ответственный: Иван Петров. Телефон: 123-45-67.</li><li>4. Сохранить оригиналы и подписанные копии.</li></ol></div><div data-bbox=\"64 589 401 606\" data-label=\"Text\"><p>Примечание: номер заявки 904172, срок 15 дней.</p></div>"
+          }
+        }
+      ],
+      "created": 1792265975,
+      "model": "/workspace/scratch/1f5660a69431/dependencies/surya-2-Q8_0.gguf",
+      "system_fingerprint": "b0-unknown",
+      "object": "chat.completion",
+      "usage": {
+        "completion_tokens": 296,
+        "prompt_tokens": 2188,
+        "total_tokens": 2484,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "id": "chatcmpl-kzkUlAkimT5jmm7SjrqtbQ6WK4OTngov",
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 2188,
+        "prompt_ms": 38666.039,
+        "prompt_per_token_ms": 17.671864259597804,
+        "prompt_per_second": 56.58712546170038,
+        "predicted_n": 296,
+        "predicted_ms": 8874.366,
+        "predicted_per_token_ms": 30.082596610169492,
+        "predicted_per_second": 33.24181130235106
+      }
+    }
+  }
+]

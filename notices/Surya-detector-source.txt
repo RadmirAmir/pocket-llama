@@ -1,0 +1,14 @@
+Surya standalone line detector: datalab-to/line_detector0
+Original authors: Datalab / Vik Paruchuri and contributors.
+Source: https://huggingface.co/datalab-to/line_detector0
+Pinned revision: 5b7f57b471c54026adb9726ab527c9fbbedac1b7
+The source model card declares CC-BY-NC-SA-4.0.
+Full license: Surya-detector-CC-BY-NC-SA-4.0.txt
+License URL: https://creativecommons.org/licenses/by-nc-sa/4.0/
+
+Modifications in Pocket Llama 0.7.0 (2026-10-17): converted the official
+single-channel float16 EfficientViT checkpoint to float32 ONNX opset17;
+folded inference constants and verified numerical parity. This adapted
+line-detector.onnx remains under CC-BY-NC-SA-4.0. Attribution does not
+imply endorsement. The separate Surya OCR 2 VLM has its own modified
+AI Pubs OpenRAIL-M license, reproduced in Surya-weights.txt.

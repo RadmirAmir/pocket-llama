@@ -1,0 +1,39 @@
+package dev.pocketllama.photo;
+import java.io.*;
+import java.nio.*;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.zip.DeflaterOutputStream;
+import org.json.*;
+
+/** Streaming image PDF with an invisible Unicode text layer; no plaintext temporary files. */
+public final class ScanPdf {
+    public interface Source {int count();Page page(int i)throws Exception;}
+    public static final class Page {public byte[] jpeg;public int width,height;public double coordinateWidth,coordinateHeight;public JSONArray lines;}
+    private final OutputStream out;private final ArrayList<Long> offsets=new ArrayList<>();private long position;private final LinkedHashMap<Integer,Integer> cids=new LinkedHashMap<>();private final byte[] font;private final Map<String,Integer> tables=new HashMap<>();
+    public ScanPdf(OutputStream out,byte[] font)throws IOException {this.out=out;this.font=font;ByteBuffer b=ByteBuffer.wrap(font).order(ByteOrder.BIG_ENDIAN);int count=b.getShort(4)&65535;for(int i=0;i<count;i++){int p=12+i*16;if(p+16>font.length)throw new IOException("Некорректный шрифт PDF");tables.put(new String(font,p,4,StandardCharsets.US_ASCII),b.getInt(p+8));}}
+    private void bytes(byte[] b)throws IOException {out.write(b);position+=b.length;}
+    private void text(String s)throws IOException {bytes(s.getBytes(StandardCharsets.US_ASCII));}
+    private void object(int id,String value)throws IOException {start(id);text(value+"\nendobj\n");}
+    private void start(int id)throws IOException {while(offsets.size()<=id)offsets.add(0L);offsets.set(id,position);text(id+" 0 obj\n");}
+    private void stream(int id,String dictionary,byte[] data,boolean compress)throws IOException {if(compress){ByteArrayOutputStream b=new ByteArrayOutputStream();try(DeflaterOutputStream z=new DeflaterOutputStream(b)){z.write(data);}data=b.toByteArray();dictionary+=" /Filter /FlateDecode";}start(id);text("<< "+dictionary+" /Length "+data.length+" >>\nstream\n");bytes(data);text("\nendstream\nendobj\n");}
+    private static String n(double x){return String.format(Locale.ROOT,"%.4f",x);}
+    public void write(Source source)throws Exception {
+        int pages=source.count();if(pages<1||pages>50)throw new IOException("В PDF может быть от 1 до 50 страниц");text("%PDF-1.7\n%Pocket\n");StringBuilder kids=new StringBuilder();
+        for(int i=0;i<pages;i++){if(Thread.currentThread().isInterrupted())throw new InterruptedException();Page p=source.page(i);int page=9+i*3,image=page+1,content=page+2;kids.append(page).append(" 0 R ");double scale=Math.min(559./p.width,806./p.height),w=p.width*scale,h=p.height*scale,left=(595-w)/2,base=(842-h)/2;
+            StringBuilder drawing=new StringBuilder("q "+n(w)+" 0 0 "+n(h)+" "+n(left)+" "+n(base)+" cm /Im"+i+" Do Q\n");
+            if(p.lines!=null)for(int j=0;j<p.lines.length();j++){JSONObject line=p.lines.getJSONObject(j);String value=line.optString("text");JSONArray q=line.optJSONArray("box");if(q==null||q.length()!=8||value.isEmpty())continue;double x0=Double.MAX_VALUE,y0=Double.MAX_VALUE,x1=0,y1=0;for(int k=0;k<4;k++){x0=Math.min(x0,q.getDouble(k*2));x1=Math.max(x1,q.getDouble(k*2));y0=Math.min(y0,q.getDouble(k*2+1));y1=Math.max(y1,q.getDouble(k*2+1));}String[] rows=value.replace('\t',' ').split("\\R",-1);double lineH=(y1-y0)/Math.max(1,rows.length);for(int row=0;row<rows.length;row++){String s=rows[row];int len=s.codePointCount(0,s.length());if(len==0)continue;String codes=encode(s);double tw=(x1-x0)/p.coordinateWidth*w,th=lineH/p.coordinateHeight*h,tx=left+x0/p.coordinateWidth*w,ty=base+h-(y0+(row+1)*lineH)/p.coordinateHeight*h;
+                    drawing.append("BT /F1 12 Tf 3 Tr ").append(n(tw/(12*len))).append(" 0 0 ").append(n(Math.max(.1,th/12))).append(' ').append(n(tx)).append(' ').append(n(ty)).append(" Tm <").append(codes).append("> Tj ET\n");}}
+            stream(image,"/Type /XObject /Subtype /Image /Width "+p.width+" /Height "+p.height+" /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode",p.jpeg,false);
+            stream(content,"",drawing.toString().getBytes(StandardCharsets.US_ASCII),true);
+            object(page,"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /XObject << /Im"+i+" "+image+" 0 R >> /Font << /F1 3 0 R >> >> /Contents "+content+" 0 R >>");
+        }
+        object(3,"<< /Type /Font /Subtype /Type0 /BaseFont /Manrope /Encoding /Identity-H /DescendantFonts [4 0 R] /ToUnicode 8 0 R >>");object(4,"<< /Type /Font /Subtype /CIDFontType2 /BaseFont /Manrope /CIDSystemInfo << /Registry (Adobe) /Ordering (Identity) /Supplement 0 >> /FontDescriptor 5 0 R /DW 1000 /CIDToGIDMap 7 0 R >>");object(5,"<< /Type /FontDescriptor /FontName /Manrope /Flags 32 /FontBBox [-600 -400 1800 1300] /ItalicAngle 0 /Ascent 1000 /Descent -300 /CapHeight 800 /StemV 80 /FontFile2 6 0 R >>");stream(6,"/Length1 "+font.length,font,true);
+        byte[] gids=new byte[(cids.size()+1)*2];for(Map.Entry<Integer,Integer> e:cids.entrySet()){int glyph=glyph(e.getKey()),cid=e.getValue();gids[cid*2]=(byte)(glyph>>>8);gids[cid*2+1]=(byte)glyph;}stream(7,"",gids,true);
+        StringBuilder cmap=new StringBuilder("/CIDInit /ProcSet findresource begin\n12 dict begin\nbegincmap\n/CIDSystemInfo << /Registry (Adobe) /Ordering (UCS) /Supplement 0 >> def\n/CMapName /PocketUnicode def\n/CMapType 2 def\n1 begincodespacerange\n<0000> <FFFF>\nendcodespacerange\n");ArrayList<Map.Entry<Integer,Integer>> entries=new ArrayList<>(cids.entrySet());for(int i=0;i<entries.size();i+=100){int end=Math.min(i+100,entries.size());cmap.append(end-i).append(" beginbfchar\n");for(int j=i;j<end;j++){Map.Entry<Integer,Integer> e=entries.get(j);cmap.append('<').append(hex(e.getValue())).append("> <");for(char c:Character.toChars(e.getKey()))cmap.append(hex(c));cmap.append(">\n");}cmap.append("endbfchar\n");}cmap.append("endcmap\nCMapName currentdict /CMap defineresource pop\nend\nend\n");stream(8,"",cmap.toString().getBytes(StandardCharsets.US_ASCII),true);
+        object(2,"<< /Type /Pages /Count "+pages+" /Kids ["+kids+"] >>");object(1,"<< /Type /Catalog /Pages 2 0 R >>");long xref=position;text("xref\n0 "+offsets.size()+"\n0000000000 65535 f \n");for(int i=1;i<offsets.size();i++)text(String.format(Locale.ROOT,"%010d 00000 n \n",offsets.get(i)));text("trailer\n<< /Size "+offsets.size()+" /Root 1 0 R >>\nstartxref\n"+xref+"\n%%EOF\n");out.flush();
+    }
+    private static String hex(int n){return String.format(Locale.ROOT,"%04X",n);}
+    private String encode(String text)throws IOException {StringBuilder s=new StringBuilder();for(int offset=0;offset<text.length();){int cp=text.codePointAt(offset);offset+=Character.charCount(cp);Integer id=cids.get(cp);if(id==null){id=cids.size()+1;if(id>65534)throw new IOException("Слишком много разных символов в PDF");cids.put(cp,id);}s.append(hex(id));}return s.toString();}
+    private int glyph(int code){try{ByteBuffer b=ByteBuffer.wrap(font).order(ByteOrder.BIG_ENDIAN);int cmap=tables.get("cmap"),count=b.getShort(cmap+2)&65535,selected=-1;for(int i=0;i<count;i++){int sub=cmap+b.getInt(cmap+4+i*8+4),format=b.getShort(sub)&65535;if(format==12){int groups=b.getInt(sub+12);for(int j=0;j<groups;j++){int p=sub+16+j*12,first=b.getInt(p),last=b.getInt(p+4);if(code>=first&&code<=last)return b.getInt(p+8)+code-first;}}if(format==4)selected=sub;}if(code>65535||selected<0)return 0;int segments=(b.getShort(selected+6)&65535)/2,end=selected+14,start=end+segments*2+2,delta=start+segments*2,range=delta+segments*2;for(int i=0;i<segments;i++){int last=b.getShort(end+i*2)&65535,first=b.getShort(start+i*2)&65535;if(code<first||code>last)continue;int d=b.getShort(delta+i*2),r=b.getShort(range+i*2)&65535;if(r==0)return (code+d)&65535;int g=b.getShort(range+i*2+r+(code-first)*2)&65535;return g==0?0:(g+d)&65535;}}catch(Exception ignored){}return 0;}
+}

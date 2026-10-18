@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "files": [
+    {
+      "name": "campplus.onnx",
+      "bytes": 28281164,
+      "sha256": "aa3cfc16963a10586a9393f5035d6d6b57e98d358b347f80c2a30bf4f00ceba2"
+    },
+    {
+      "name": "gigaam.int8.onnx",
+      "bytes": 224907756,
+      "sha256": "66b97bc75df595967e8eaddb9c1835d3f8865fff21ad9f28987ac333972e0ae4"
+    },
+    {
+      "name": "silero.onnx",
+      "bytes": 2327524,
+      "sha256": "1a153a22f4509e292a94e67d6f9b85e8deb25b4988682b7e174c65279d8788e3"
+    },
+    {
+      "name": "tokens.tsv",
+      "bytes": 3790,
+      "sha256": "41ff316979963f8629feba77fc4f8041930f4ef80cb7ad308feb06e91dcff299"
+    }
+  ]
+}

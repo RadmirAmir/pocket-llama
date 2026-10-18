@@ -1,0 +1,57 @@
+{
+  "schema": 1,
+  "revision": 2026101801,
+  "models": [
+    {
+      "id": "qwen35-08b-q5_k_m",
+      "title": "Qwen 3.5 · 0.8B",
+      "tier": "fast",
+      "description": "Компактная модель для коротких вопросов и простых конспектов.",
+      "filename": "Qwen3.5-0.8B-Q5_K_M-7f5b4185.gguf",
+      "bytes": 646093920,
+      "sha256": "7f5b4185c9a3fd54daae8925927377c80e16e3afa094ea9444b3c0a9077136ab",
+      "url": "https://huggingface.co/bartowski/Qwen_Qwen3.5-0.8B-GGUF/resolve/f36b1ea49a332ede8fe5f389bbf5b3575ef71f48/Qwen_Qwen3.5-0.8B-Q5_K_M.gguf",
+      "source": "https://huggingface.co/bartowski/Qwen_Qwen3.5-0.8B-GGUF/tree/f36b1ea49a332ede8fe5f389bbf5b3575ef71f48",
+      "license": "Apache-2.0",
+      "architecture": "qwen35",
+      "minRamBytes": 4294967296,
+      "workingBytes": 1572864000,
+      "context": 2048,
+      "minAppCode": 22
+    },
+    {
+      "id": "qwen35-2b-q5_k_m",
+      "title": "Qwen 3.5 · 2B",
+      "tier": "balanced",
+      "description": "Основной кандидат для русского чата и конспектов. Выше требования к памяти.",
+      "filename": "Qwen3.5-2B-Q5_K_M-3f50d5f8.gguf",
+      "bytes": 1568476256,
+      "sha256": "3f50d5f830873c22d33558f69eb2c34aa59858f37e7a58a982aae88bb38ebe88",
+      "url": "https://huggingface.co/bartowski/Qwen_Qwen3.5-2B-GGUF/resolve/7d26695454df6de5fbcce2e58681e62dae06ce43/Qwen_Qwen3.5-2B-Q5_K_M.gguf",
+      "source": "https://huggingface.co/bartowski/Qwen_Qwen3.5-2B-GGUF/tree/7d26695454df6de5fbcce2e58681e62dae06ce43",
+      "license": "Apache-2.0",
+      "architecture": "qwen35",
+      "minRamBytes": 6442450944,
+      "workingBytes": 2936012800,
+      "context": 2048,
+      "minAppCode": 22
+    },
+    {
+      "id": "qwen35-4b-q4_k_m",
+      "title": "Qwen 3.5 · 4B",
+      "tier": "quality",
+      "description": "Более крупная модель. Для мощных телефонов; длительные ответы могут нагревать устройство.",
+      "filename": "Qwen3.5-4B-Q4_K_M-13c16f42.gguf",
+      "bytes": 3013027808,
+      "sha256": "13c16f426047e2de38cd075bdade4a7bcbc8c774384876f677740cda65f8a983",
+      "url": "https://huggingface.co/bartowski/Qwen_Qwen3.5-4B-GGUF/resolve/4168f45a16a1290d65a4ec0fa312ae917a4c15d6/Qwen_Qwen3.5-4B-Q4_K_M.gguf",
+      "source": "https://huggingface.co/bartowski/Qwen_Qwen3.5-4B-GGUF/tree/4168f45a16a1290d65a4ec0fa312ae917a4c15d6",
+      "license": "Apache-2.0",
+      "architecture": "qwen35",
+      "minRamBytes": 10737418240,
+      "workingBytes": 5033164800,
+      "context": 2048,
+      "minAppCode": 22
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "models": [
+    {
+      "name": "det.onnx",
+      "url": "https://huggingface.co/PaddlePaddle/PP-OCRv5_mobile_det_onnx/resolve/e6f4fa85f00e168c862bc462aebca69eef9b3d3d/inference.onnx",
+      "bytes": 4826518,
+      "sha256": "a431985659dc921974177a95adcfbb90fd9e51989a5e04d70d0b75f597b6e61d"
+    },
+    {
+      "name": "det.yml",
+      "url": "https://huggingface.co/PaddlePaddle/PP-OCRv5_mobile_det_onnx/resolve/e6f4fa85f00e168c862bc462aebca69eef9b3d3d/inference.yml",
+      "bytes": 903,
+      "sha256": "98069072e1b6b37d727fd9d9f11725faa46d6ea0de012f2ed26caea011c37699"
+    },
+    {
+      "name": "rec.onnx",
+      "url": "https://huggingface.co/PaddlePaddle/eslav_PP-OCRv5_mobile_rec_onnx/resolve/9a32171fc5718746875e1a261818884517975013/inference.onnx",
+      "bytes": 7887627,
+      "sha256": "b3018ef2b09a0250b6e0c8e871c927098363e5fd4df890cc68e8358eb0aaf1bd"
+    },
+    {
+      "name": "rec.yml",
+      "url": "https://huggingface.co/PaddlePaddle/eslav_PP-OCRv5_mobile_rec_onnx/resolve/9a32171fc5718746875e1a261818884517975013/inference.yml",
+      "bytes": 4538,
+      "sha256": "025039bac23eb4a308efcefa4d58eab3af440767815c6ba6938468bf6353ee5a"
+    }
+  ]
+}
