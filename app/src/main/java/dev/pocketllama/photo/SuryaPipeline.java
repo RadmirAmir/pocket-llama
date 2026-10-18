@@ -16,10 +16,10 @@ public final class SuryaPipeline implements AutoCloseable {
         default void phase(String phase,String detail,double fraction,long startedAt)throws Exception {update(detail,fraction);}
     }
     private final Context c;private final PhotoStore photos;private final SuryaRuntime.Check check;
-    private volatile SuryaDetector detector;private volatile SuryaRuntime runtime;
+    private volatile SuryaRuntime runtime;
     private Progress progressSink;private String phaseKey="";private long phaseStarted;private int requestSerial;private double stageFraction;
     public SuryaPipeline(Context c,PhotoStore photos,SuryaRuntime.Check check){this.c=c;this.photos=photos;this.check=check;}
-    public void cancel(){SuryaDetector d=detector;if(d!=null)d.cancel();SuryaRuntime r=runtime;if(r!=null)r.cancel();}
+    public void cancel(){SuryaRuntime r=runtime;if(r!=null)r.cancel();}
     @Override public void close(){SuryaRuntime r=runtime;runtime=null;if(r!=null)r.close();}
     private void begin(Progress progress)throws Exception {progressSink=progress;phaseKey="";requestSerial=0;stageFraction=.01;stage("page","Готовим страницу");}
     private void stage(String key,String message)throws Exception {if(!key.equals(phaseKey)){phaseKey=key;phaseStarted=System.currentTimeMillis();}progressSink.phase(key,message,stageFraction,phaseStarted);}
@@ -83,7 +83,7 @@ public final class SuryaPipeline implements AutoCloseable {
             }
             if(errors>0)throw new IOException("Не завершено областей: "+errors+". "+firstError+". Готовые области сохранены");
             performance(result).put("recognition_ms",previous+SystemClock.elapsedRealtime()-started);result.put("ocrComplete",true).put("pagePending",false);
-            photos.analysis(id,"done","Surya: текст, разметка и таблицы готовы. Рамки строк и сетку можно уточнить отдельно.",1,result);complete=true;progress.update("Страница готова",1);
+            photos.analysis(id,"done","Surya: текст, разметка и таблицы готовы. Сетки таблиц можно уточнить отдельно.",1,result);complete=true;progress.update("Страница готова",1);
         }finally {
             image.recycle();
             if(!complete){performance(result).put("recognition_ms",previous+SystemClock.elapsedRealtime()-started);try{photos.analysis(id,"interrupted",result.optBoolean("pagePending")||result.optBoolean("layoutPending")?"Страница прервана. Готовые области сохранены; продолжение обработает оставшиеся области.":"Обработка прервана. Готовые области сохранены; можно продолжить.",page.optDouble("progress"),result);}catch(Exception ignored){}}
@@ -117,25 +117,20 @@ public final class SuryaPipeline implements AutoCloseable {
         for(int i=0;i<blocks.length();i++)if(!blocks.getJSONObject(i).optBoolean("complete"))throw new IOException("Сначала завершите распознавание областей");
         Bitmap image=ScanImages.render(photos.image(id,false),page,4096);boolean complete=false;long started=SystemClock.elapsedRealtime(),previous=performance(result).optLong("geometry_ms");performance(result).put("runtime_reused",runtime!=null);
         try {
-            if(!result.has("detection")) {
-                progress.update("Ищем точные рамки строк",.05);long detectStarted=SystemClock.elapsedRealtime();
-                try(SuryaDetector d=new SuryaDetector(SuryaAssets.detector(c))){detector=d;result.put("detection",d.detect(image,check));}finally{detector=null;}
-                performance(result).put("detection_ms",SystemClock.elapsedRealtime()-detectStarted);geometrySave(id,result,"Рамки строк готовы",.3);
-            }
             for(int i=0;i<blocks.length();i++) {
                 check.run();JSONObject block=blocks.getJSONObject(i);if(!block.optString("label").equals("Table")||block.has("tableStructure"))continue;
-                stageFraction=.35+.6*i/Math.max(1,blocks.length());load(model,result,progress);progress.update("Уточняем сетку таблицы · область "+(i+1),stageFraction);Bitmap crop=crop(image,block.getJSONArray("bbox"));
+                stageFraction=.05+.9*i/Math.max(1,blocks.length());load(model,result,progress);progress.update("Уточняем сетку таблицы · область "+(i+1),stageFraction);Bitmap crop=crop(image,block.getJSONArray("bbox"));
                 try {
                     String raw=generate(result,crop,SuryaProtocol.TABLE,true,true,3072);JSONArray structure=SuryaProtocol.parse(raw,true,crop.getWidth(),crop.getHeight());
                     boolean row=false,col=false;for(int j=0;j<structure.length();j++){String label=structure.getJSONObject(j).getString("label");row|=label.equals("Row");col|=label.equals("Col");}
                     if(!row||!col)throw new IOException("Surya не определила строки и столбцы таблицы. Текст сохранён; можно повторить уточнение");
-                    block.put("tableStructure",structure);geometrySave(id,result,"Сетка таблицы сохранена",.35+.6*(i+1)/Math.max(1,blocks.length()));
+                    block.put("tableStructure",structure);geometrySave(id,result,"Сетка таблицы сохранена",.05+.9*(i+1)/Math.max(1,blocks.length()));
                 }finally{if(crop!=image)crop.recycle();}
             }
             performance(result).put("geometry_ms",previous+SystemClock.elapsedRealtime()-started);result.put("geometryComplete",true);
-            photos.geometry(id,"done","Текст, строки, разметка и сетки таблиц готовы",1,result);complete=true;progress.update("Рамки и сетки готовы",1);
+            photos.geometry(id,"done","Текст, разметка и сетки таблиц готовы",1,result);complete=true;progress.update("Сетки таблиц готовы",1);
         }finally {
-            image.recycle();if(!complete){performance(result).put("geometry_ms",previous+SystemClock.elapsedRealtime()-started);try{photos.geometry(id,"interrupted","Уточнение прервано. Текст и готовые рамки сохранены; можно продолжить.",page.optDouble("progress"),result);}catch(Exception ignored){}}
+            image.recycle();if(!complete){performance(result).put("geometry_ms",previous+SystemClock.elapsedRealtime()-started);try{photos.geometry(id,"interrupted","Уточнение прервано. Текст и готовые сетки таблиц сохранены; можно продолжить.",page.optDouble("progress"),result);}catch(Exception ignored){}}
         }
     }
     private static Bitmap crop(Bitmap image,JSONArray box)throws Exception {

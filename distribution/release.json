@@ -1,6 +1,6 @@
 {
-  "versionName": "0.9.1",
-  "versionCode": 24,
+  "versionName": "0.9.2",
+  "versionCode": 25,
   "applicationId": "dev.pocketllama",
   "legacyApplicationId": "dev.pocketllama.memoryfix",
   "publisher": {
@@ -17,10 +17,6 @@
     "noticeFile": "notices/Surya-community.txt"
   },
   "suryaRedistribution": {
-    "approved": false,
-    "evidenceFile": ""
-  },
-  "detectorRedistribution": {
     "approved": false,
     "evidenceFile": ""
   }

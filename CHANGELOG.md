@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9.2 — remove the separate Surya line detector
+
+- Removed the CC BY-NC-SA line detector, its model/configuration, runtime class, conversion dependencies and download paths from every current distribution channel.
+- Kept main Surya OCR 2 text, page layout, reading order and table recognition; optional table-grid refinement uses the same VLM. PaddleOCR remains bundled.
+- Removed the precise-line overlay and offer table refinement only on pages containing tables, in EN/RU.
+- Reclaim only the retired detector’s known private cache files on update. Preserve documents, manual corrections and downloaded Surya VLM/projector files.
+- Keep the community package/update certificate and increment versionCode to 25. Main Surya license terms still apply.
+
 ## 0.9.1 — Surya returns to the free community edition
 
 - Restored Surya OCR 2 text, layout, reading order, tables and optional precise line geometry in community.

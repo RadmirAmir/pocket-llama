@@ -4,6 +4,8 @@ import importlib.util
 import json
 from pathlib import Path
 import unittest
+import tempfile
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location('distribution_prepare', ROOT / 'scripts/prepare-distribution.py')
@@ -15,10 +17,40 @@ class SuryaDistributionTests(unittest.TestCase):
     def setUp(self):
         self.config = json.loads((ROOT / 'distribution/release.json').read_text())
 
-    def test_free_community_has_detector_and_downloads_vlm(self):
+    def test_free_community_downloads_vlm_without_separate_detector(self):
         self.assertEqual(delivery.surya_policy(self.config, 'community'), (True, False))
         self.assertFalse(self.config['suryaRedistribution']['approved'])
-        self.assertFalse(self.config['detectorRedistribution']['approved'])
+        self.assertNotIn('detectorRedistribution', self.config)
+
+    def test_stale_detector_assets_never_enter_any_new_channel(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / 'distribution').mkdir()
+            (root / 'distribution/release.json').write_text(json.dumps(self.config))
+            (root / 'notices').mkdir()
+            (root / 'notices/Surya-community.txt').write_text('Main model terms')
+            assets = root / 'app/src/main/assets'
+            for group in ['speech', 'moonshine', 'ocr']:
+                (assets / group).mkdir(parents=True)
+                (assets / group / 'manifest.json').write_text('{"files": []}')
+            (assets / 'surya').mkdir()
+            (assets / 'surya/line-detector.onnx').write_bytes(b'stale developer weight')
+            (assets / 'surya/manifest.json').write_text('{"stale": true}')
+            (root / '.cache/surya').mkdir(parents=True)
+            models = []
+            for name in ['surya.gguf', 'mmproj.gguf']:
+                (root / '.cache/surya' / name).write_bytes(b'fixture')
+                models.append({'name': name, 'bytes': 7, 'sha256': 'unused fixture hash'})
+            (root / 'scanner-runtime.lock.json').write_text(json.dumps({'surya': {'models': models}}))
+            with patch.object(delivery, 'ROOT', root), patch.object(delivery, 'checked'):
+                for channel in ['community', 'play', 'personal']:
+                    stage = delivery.prepare(channel)
+                    names = [p.relative_to(stage).as_posix() for p in stage.rglob('*') if p.is_file()]
+                    self.assertFalse(any('line-detector' in n or n == 'assets/surya/manifest.json' for n in names))
+                    if channel == 'personal':
+                        self.assertEqual((stage / 'assets/surya/bundled/surya.gguf').read_bytes(), b'fixture')
+                    else:
+                        self.assertFalse((stage / 'assets/surya').exists())
 
     def test_free_policy_does_not_enable_play_or_allow_embedding_vlm(self):
         self.assertEqual(delivery.surya_policy(self.config, 'play'), (False, False))

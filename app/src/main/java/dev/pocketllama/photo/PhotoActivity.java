@@ -32,7 +32,7 @@ public final class PhotoActivity extends dev.pocketllama.security.SecureActivity
         String id=a.optString("id"),page=a.optString("page");switch(action){
             case "suryaTerms":{
                 StringBuilder text=new StringBuilder();
-                for(String name:new String[]{"Surya-community.txt","Surya-weights.txt","Surya-detector-source.txt","Surya-detector-CC-BY-NC-SA-4.0.txt"}){
+                for(String name:new String[]{"Surya-community.txt","Surya-weights.txt"}){
                     if(text.length()>0)text.append("\n\n────────────────────\n\n");
                     try(InputStream in=getAssets().open("notices/"+name)){text.append(new String(dev.pocketllama.core.TextAttachment.readLimited(in,64000),java.nio.charset.StandardCharsets.UTF_8));}
                 }

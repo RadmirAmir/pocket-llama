@@ -1,16 +1,16 @@
-# Publishing Pocket 0.9.1
+# Publishing Pocket 0.9.2
 
 The code, personal update and public preview are prepared independently. Uploading to Google Play still requires the publisher's verified account, a production signature, real-device acceptance and completed store declarations.
 
 ## One source tree, three channels
 
-`personal` retains `dev.pocketllama.memoryfix`. Sign it with the previous private update key to install over 0.7.3. GigaAM and PaddleOCR are always bundled. The supplied compact APK is built with `scripts/build-apk.py --channel personal --no-bundled-surya`; it retains the previous line detector and reuses verified Surya VLM/projector files. A fresh Surya setup downloads those large files separately.
+`personal` retains `dev.pocketllama.memoryfix`. Sign it with the previous private update key to install over 0.7.3. GigaAM and PaddleOCR are always bundled. The supplied compact APK is built with `scripts/build-apk.py --channel personal --no-bundled-surya`; it reuses verified Surya VLM/projector files. A fresh Surya setup downloads those large files separately.
 
-Omit `--no-bundled-surya` for a fully bundled personal build, after restoring the permitted weights with `scripts/prepare-surya-weights.py --accept-model-license`. That larger APK copies and verifies the Surya files locally on first use without a network request. It needs additional disk space; bundled weights do not make inference faster. Broader licensed distribution still requires rights for both components; separate downloads do not remove model restrictions.
+Omit `--no-bundled-surya` for a fully bundled personal build, after restoring the permitted weights with `scripts/prepare-surya-weights.py --accept-model-license`. That larger APK copies and verifies the Surya files locally on first use without a network request. It needs additional disk space; bundled weights do not make inference faster. Broader licensed distribution still requires suitable rights for the model and projector; separate downloads do not remove model restrictions.
 
-`community` uses `dev.pocketllama`, includes both speech models/PaddleOCR and the CC BY-NC-SA detector, and has no Google Play dependency. The free personal-use profile restores optional Surya: its VLM/projector are downloaded directly from the author after explicit acceptance of the full local license texts. No ads, paid features or hosted OCR are part of this edition. Preserve the model licenses and conversion-source attribution. It is a separate installation from the personal app. It does not migrate or erase the personal vault. Do not delete the personal app to try this preview.
+`community` uses `dev.pocketllama`, includes both speech models and PaddleOCR, and has no Google Play dependency. The free personal-use profile restores optional Surya: its VLM/projector are downloaded directly from the author after explicit acceptance of the full local license texts. No ads, paid features or hosted OCR are part of this edition. Preserve the model licenses and attribution. It is a separate installation from the personal app. It does not migrate or erase the personal vault. Do not delete the personal app to try this preview.
 
-`play` uses the same public ID. GigaAM and its metadata are in `speech_pack`; OCR weights and metadata are in `ocr_pack`. Both are install-time AI packs. The paths inside AssetManager are unchanged, and no Play AI runtime SDK is required for this delivery mode. The installer obtains the model packs before first launch. Native libraries remain in the base module. Optional licensed Surya packs are split into VLM and vision/detector packs.
+`play` uses the same public ID. GigaAM and its metadata are in `speech_pack`; OCR weights and metadata are in `ocr_pack`. Both are install-time AI packs. The paths inside AssetManager are unchanged, and no Play AI runtime SDK is required for this delivery mode. The installer obtains the model packs before first launch. Native libraries remain in the base module. Optional licensed Surya packs are split into VLM and vision-projector packs.
 
 ## Publisher settings and signing
 

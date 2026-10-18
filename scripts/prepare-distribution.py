@@ -23,8 +23,8 @@ def surya_policy(config,channel,with_surya=None,bundle_surya=None):
  if with_surya is None:with_surya=personal or community
  if bundle_surya is None:bundle_surya=personal or channel=='play'
  if with_surya and not personal:
-  licensed=approval(config,'suryaRedistribution') and approval(config,'detectorRedistribution')
-  if not (community or licensed):raise SystemExit('Surya requires the free personal-use community profile or documented rights for BOTH models. See docs/LICENSING.md.')
+  licensed=approval(config,'suryaRedistribution')
+  if not (community or licensed):raise SystemExit('Surya requires the free personal-use community profile or documented rights for the Surya VLM. See docs/LICENSING.md.')
   if community and bundle_surya and not licensed:raise SystemExit('Free community downloads the VLM directly after accepting its terms; use the compact package.')
  return bool(with_surya),bool(with_surya and bundle_surya)
 def prepare(channel,with_surya=None,bundle_surya=None):
@@ -40,7 +40,6 @@ def prepare(channel,with_surya=None,bundle_surya=None):
   scanner=json.loads((ROOT/'scanner-runtime.lock.json').read_text())
   if bundle_surya:
    for f in scanner['surya']['models']:checked(ROOT/'.cache/surya'/f['name'],f['bytes'],f['sha256'])
-  d=scanner['detector'];checked(assets/'surya'/d['file'],d['bytes'],d['sha256'])
  stage=ROOT/'build/distribution'/channel
  if stage.exists():shutil.rmtree(stage)
  common=stage/'assets';common.mkdir(parents=True)
@@ -49,7 +48,7 @@ def prepare(channel,with_surya=None,bundle_surya=None):
   rel=p.relative_to(assets)
   if any(part.startswith('.') for part in rel.parts):continue
   if rel.parts[0] in allowed and rel.name not in allowed[rel.parts[0]]:continue
-  if rel.parts[0]=='surya' and not with_surya:continue
+  if rel.parts[0]=='surya':continue  # Only explicitly staged GGUF files may be bundled.
   if channel=='play' and rel.parts[0] in ['speech','ocr','moonshine','surya']:continue
   copy(p,common/rel)
  for p in (ROOT/'notices').glob('*.txt'):copy(p,common/'notices'/p.name)
@@ -71,8 +70,6 @@ def prepare(channel,with_surya=None,bundle_surya=None):
     pack=ROOT/pack_name/'src/main/assets'
     if pack.exists():shutil.rmtree(pack)
     copy(ROOT/'.cache/surya'/f['name'],pack/'surya/bundled'/f['name'])
-   for p in (assets/'surya').glob('*'):
-    if p.is_file():copy(p,ROOT/'surya_vision_pack/src/main/assets/surya'/p.name)
    packs.update({name:sum(p.stat().st_size for p in (ROOT/name/'src/main/assets').rglob('*') if p.is_file()) for name in ['surya_pack','surya_vision_pack']})
   else:
    for f in scanner['surya']['models']:copy(ROOT/'.cache/surya'/f['name'],common/'surya/bundled'/f['name'])

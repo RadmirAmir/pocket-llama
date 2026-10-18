@@ -25,11 +25,11 @@ An unsigned bundle is for structural validation. Upload requires the publisher's
 
 | Profile | Application ID | Model delivery |
 | --- | --- | --- |
-| `community` | `dev.pocketllama` | GigaAM v3 INT8, Moonshine Streaming Medium, Silero VAD, CAM++ and PaddleOCR in the APK; Surya detector bundled, VLM/projector downloaded on demand |
+| `community` | `dev.pocketllama` | GigaAM v3 INT8, Moonshine Streaming Medium, Silero VAD, CAM++ and PaddleOCR in the APK; Surya VLM/projector downloaded on demand; no separate line detector |
 | `play` | `dev.pocketllama` | The same models in install-time AI packs |
 | Personal | `dev.pocketllama.memoryfix` | Separate existing installation; restricted components require their own redistribution rights |
 
-The free community profile enables Surya for personal, noncommercial use. Its detector is bundled under CC BY-NC-SA; the VLM is downloaded from the author after the user accepts the full model terms. Play keeps Surya disabled by default. See [the license inventory](LICENSING.md). A personal package's vault does not automatically migrate to the public package.
+The free community profile enables Surya for personal, noncommercial use. The VLM is downloaded from the author after the user accepts the full model terms. Play keeps Surya disabled by default. See [the license inventory](LICENSING.md). A personal package's vault does not automatically migrate to the public package.
 
 ## Verification
 
@@ -39,7 +39,7 @@ bash scripts/test-core.sh
 python3 scripts/release-check.py
 ```
 
-The [GitHub workflow](../.github/workflows/android.yml) restores pinned dependencies and checks the host, frontend and Android build. [Validation notes](VALIDATION-0.9.1.md) distinguish automated checks from the phone and Play-track checks still needed.
+The [GitHub workflow](../.github/workflows/android.yml) restores pinned dependencies and checks the host, frontend and Android build. [Validation notes](VALIDATION-0.9.2.md) distinguish automated checks from the phone and Play-track checks still needed.
 
 ## Documentation graphics
 

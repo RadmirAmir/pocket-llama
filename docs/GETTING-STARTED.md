@@ -4,9 +4,9 @@
 
 ## Install and protect your space
 
-Download **[PocketLlama-0.9.1-community-arm64.apk](https://github.com/RadmirAmir/pocket-llama/releases/download/v0.9.1-rc.1/PocketLlama-0.9.1-community-arm64.apk)** from this repository's release. You need Android 10+ with a 64-bit ARM system. The APK is approximately 750 MB; both speech models and OCR account for most of the size.
+Download **[PocketLlama-0.9.2-community-arm64.apk](https://github.com/RadmirAmir/pocket-llama/releases/download/v0.9.2-rc.1/PocketLlama-0.9.2-community-arm64.apk)** from this repository's release. You need Android 10+ with a 64-bit ARM system. The APK is approximately 641 MB; both speech models and OCR account for most of the size.
 
-Open it on your phone and allow installation from the browser or file manager when Android asks. You can turn that installation permission off again afterward. The `.aab` file is for Play publishers and cannot be installed directly like an APK. The release includes [SHA-256 checksums](https://github.com/RadmirAmir/pocket-llama/releases/download/v0.9.1-rc.1/SHA256SUMS.txt).
+Open it on your phone and allow installation from the browser or file manager when Android asks. You can turn that installation permission off again afterward. The `.aab` file is for Play publishers and cannot be installed directly like an APK. The release includes [SHA-256 checksums](https://github.com/RadmirAmir/pocket-llama/releases/download/v0.9.2-rc.1/SHA256SUMS.txt).
 
 On first launch, create and repeat a **six-digit PIN**. It controls access to your recordings, scans and chat. Remember it: there is no account-based recovery. Microphone and camera permissions are used for the corresponding tools; grant them when you want to record or scan.
 
@@ -48,7 +48,7 @@ Open **Scanner** → **Scan a document** to capture a page, or **Photo or PDF** 
 
 Choose **Recognize document**. The public build uses bundled PaddleOCR for Russian and English; no separate OCR download is needed. Read and correct the recognized text, search your documents, or export a PDF with a text layer. Sharp, evenly lit pages work better than blurred or curved ones.
 
-Select **Surya OCR 2** inside a document for page layout, reading order, tables and precise line boxes. First setup shows the complete model and detector terms; accepting starts a resumable 1.47 GB model download. The detector is already in the APK. Once prepared, recognition runs offline; photos and text are never uploaded. Surya is offered for personal, noncommercial use, subject to its use restrictions and output license terms. PaddleOCR remains available without this download.
+Select **Surya OCR 2** inside a document for page layout, reading order, tables and optional table-grid refinement. First setup shows the complete model terms; accepting starts a resumable 1.47 GB model download. Once prepared, recognition runs offline; photos and text are never uploaded. Surya is offered for personal, noncommercial use, subject to its use restrictions and output license terms. PaddleOCR remains available without this download.
 
 ## Try offline mode
 

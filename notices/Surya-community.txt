@@ -20,15 +20,6 @@ use is not an exception to every clause. By accepting and using Surya, you
 agree to comply with the complete license, including Section III paragraph
 5 and Attachment A. This notice does not grant additional permissions.
 
-The bundled line detector is an ONNX adaptation of datalab-to/line_detector0.
-It is distributed under CC BY-NC-SA 4.0 for noncommercial use. Preserve its
-attribution, license, modification notice and ShareAlike terms when sharing
-the adapted detector. See Surya-detector-source.txt and
-Surya-detector-CC-BY-NC-SA-4.0.txt. The corresponding source, configuration,
-conversion recipe and numerical validation are in the Pocket repository:
-https://github.com/RadmirAmir/pocket-llama
-scripts/prepare-scanner.py and model-configs/surya-line-detector.json.
-
 Pocket's own code remains Apache-2.0. These model licenses do not relicense
 that independent code. Commercial forks, hosted services and organizational
 use must independently satisfy all model terms or obtain suitable rights.

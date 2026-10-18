@@ -10,7 +10,7 @@ public final class SuryaRuntime implements AutoCloseable {
  public static final class Incomplete extends IOException {public final String reason;public Incomplete(String reason){super(reason);this.reason=reason;}}
  public static final class Step {final String value;final Exception error;public Step(String value,Exception error){this.value=value;this.error=error;}}
  public static Runnable beforeRequest,onInput;public static int loads,closes;public static final List<SuryaImageSize.Task> calls=new ArrayList<>();public static final Deque<Step> steps=new ArrayDeque<>();
- public static void reset(){beforeRequest=onInput=null;loads=closes=SuryaDetector.calls=0;calls.clear();steps.clear();}
+ public static void reset(){beforeRequest=onInput=null;loads=closes=0;calls.clear();steps.clear();}
  public static void reply(String text){steps.add(new Step(text,null));}public static void fail(String text,Exception error){steps.add(new Step(text,error));}
  public SuryaRuntime(Context c,File file,Check check)throws Exception{check.run();loads++;}public long loadMs(){return 1;}
  public JSONObject metrics(){return new JSONObject();}public void cancel(){}public void close(){closes++;}

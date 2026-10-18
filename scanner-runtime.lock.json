@@ -17,25 +17,6 @@
       }
     ]
   },
-  "detector": {
-    "source": "datalab-to/line_detector0",
-    "revision": "5b7f57b471c54026adb9726ab527c9fbbedac1b7",
-    "source_sha256": "fed8f5e45287766dcb1706b405c8b9756a338f1753f5375dbad31318f0515f9d",
-    "shape": [
-      1,
-      1,
-      300,
-      300
-    ],
-    "max_abs_error": 6.705522537231445e-07,
-    "torch": "2.9.1+cpu",
-    "onnx_opset": 17,
-    "file": "line-detector.onnx",
-    "onnx_url": "https://github.com/RadmirAmir/pocket-llama/releases/download/v0.9.0-rc.1/surya-line-detector-v1.onnx",
-    "bytes": 153847992,
-    "sha256": "b5f51dcfd8df8ae55bbc7938d8226f20699eef6e9d9577ee59b456cd6c169a78",
-    "license": "CC-BY-NC-SA-4.0"
-  },
   "artifacts": [
     {
       "source": "https://repo.maven.apache.org/maven2/org/opencv/opencv/4.12.0/opencv-4.12.0.aar",
@@ -71,21 +52,5 @@
       ]
     }
   ],
-  "files": [
-    {
-      "path": "app/src/main/assets/surya/line-detector.onnx",
-      "bytes": 153847992,
-      "sha256": "b5f51dcfd8df8ae55bbc7938d8226f20699eef6e9d9577ee59b456cd6c169a78"
-    },
-    {
-      "path": "app/src/main/assets/surya/manifest.json",
-      "bytes": 490,
-      "sha256": "f32178629d3185d2340f9f90f7bba7871d294f0ba41495a8b9079428e5dbfed0"
-    },
-    {
-      "path": "model-configs/surya-line-detector.json",
-      "bytes": 913,
-      "sha256": "de083dc5a6da523acd0cea5900cdab53b5878d5c43794ea7889a3cae4200c54a"
-    }
-  ]
+  "files": []
 }

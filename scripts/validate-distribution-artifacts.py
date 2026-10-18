@@ -14,6 +14,9 @@ def models(archive,prefix,personal,personal_compact=False):
   config=json.loads((ROOT/'distribution/release.json').read_text())
   community=config.get('communitySurya',{})
   with_surya=personal or (prefix=='apk' and meta['channel']=='community' and community.get('enabled') is True and community.get('monetized') is False and community.get('distribution')=='free-personal-use')
+  assert not any('line-detector' in n or '/notices/Surya-detector-' in n for n in names),'Retired scanner model in artifact'
+  if prefix=='apk':
+   assert not any(b'Ldev/pocketllama/photo/SuryaDetector;' in z.read(n) for n in names if n.endswith('.dex')),'Retired detector class in DEX'
   expected=[]
   for group in ['speech','moonshine','ocr']:
    module='' if prefix=='apk' else ('speech_pack/' if group=='moonshine' else group+'_pack/')
@@ -24,7 +27,6 @@ def models(archive,prefix,personal,personal_compact=False):
    if personal_compact or not personal:assert not any(n.startswith('assets/surya/bundled/') for n in names),'Unexpected bundled Surya in compact update'
    else:
     for item in scanner['surya']['models']:expected.append(('assets/surya/bundled/'+item['name'],item['bytes'],item['sha256']))
-   d=scanner['detector'];expected.append(('assets/surya/'+d['file'],d['bytes'],d['sha256']))
   else:assert not any(n.startswith('assets/surya/') or n.startswith('surya_pack/') or n.startswith('surya_vision_pack/') for n in names),'Surya in a disabled channel'
   for name,size,sha in expected:
    assert names.count(name)==1 and z.getinfo(name).file_size==size,name
@@ -33,8 +35,8 @@ def models(archive,prefix,personal,personal_compact=False):
   for asset in ['studio.js','photos.js','photos.html','photos.css','chat.html','i18n.js','i18n-en.json','model-catalog/catalog.signed.json','model-catalog/public-key.txt']:
    assert z.read(('' if prefix=='apk' else 'base/')+'assets/'+asset)==(ROOT/'app/src/main/assets'/asset).read_bytes(),'Stale app asset: '+asset
   if with_surya:
-   for name in ['Surya-community.txt','Surya-weights.txt','Surya-detector-source.txt','Surya-detector-CC-BY-NC-SA-4.0.txt']:
-    assert z.read('assets/notices/'+name)==(ROOT/'notices'/name).read_bytes(),'Missing or stale model terms: '+name
+   for name in ['Surya-community.txt','Surya-weights.txt']:
+    assert z.read(('' if prefix=='apk' else 'base/')+'assets/notices/'+name)==(ROOT/'notices'/name).read_bytes(),'Missing or stale model terms: '+name
   return {'modelsVerified':len(expected),'channel':meta['channel'],'suryaBundled':bool(personal and not personal_compact),'bytes':Path(archive).stat().st_size}
 def certificate(java,signer,path):
  result=subprocess.check_output([java,'-jar',str(signer),'verify','--print-certs',str(path)],text=True)

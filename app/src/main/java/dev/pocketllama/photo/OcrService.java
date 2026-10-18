@@ -49,7 +49,7 @@ public final class OcrService extends Service {
                 }catch(InterruptedException e){throw e;}catch(Exception e){check();errors++;failure=message(e);store.progress(pageId,"interrupted","Страница прервана. "+failure,0,Collections.emptyList(),false);if(e instanceof IOException&&!(e instanceof SuryaRuntime.Incomplete))break;}finally{engine=null;}
             }
             check();
-            if(details&&finished==pages.length()){boolean allDone=true;for(int i=0;i<documentPages.length();i++)allDone&=store.get(documentPages.getString(i)).optString("state").equals("done");documents.progress(id,allDone?"done":"ready","Рамки строк и сетки таблиц уточнены. Текст и ручные исправления сохранены.",allDone?1:0);}
+            if(details&&finished==pages.length()){boolean allDone=true;for(int i=0;i<documentPages.length();i++)allDone&=store.get(documentPages.getString(i)).optString("state").equals("done");documents.progress(id,allDone?"done":"ready","Сетки таблиц уточнены. Текст и ручные исправления сохранены.",allDone?1:0);}
             else documents.progress(id,finished==pages.length()?"done":"interrupted",finished==pages.length()?"Документ распознан · "+finished+" стр. Проверьте важные цифры.":"Готово страниц: "+finished+" / "+pages.length()+". Можно продолжить. "+failure,(double)finished/pages.length());
         }
     }catch(Throwable e){Thread.interrupted();try{if(store!=null&&pageId!=null)store.progress(pageId,"interrupted",cancelled?"Остановлено. Готовые области сохранены.":message(e),0,Collections.emptyList(),false);if(documents!=null)documents.progress(id,"interrupted",cancelled?"Остановлено. Готовые страницы и области сохранены; можно продолжить.":"Обработка прервана. "+message(e),0);}catch(Exception ignored){}}

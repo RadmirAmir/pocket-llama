@@ -54,11 +54,4 @@ public final class SuryaAssets {
     }
     private String digest(File f)throws Exception {MessageDigest d=MessageDigest.getInstance("SHA-256");try(InputStream in=new FileInputStream(f)){byte[] b=new byte[1024*1024];int n;while((n=in.read(b))!=-1){check();d.update(b,0,n);}}StringBuilder s=new StringBuilder();for(byte b:d.digest())s.append(String.format(Locale.ROOT,"%02x",b&255));return s.toString();}
     private void stamp(File f,String hash)throws Exception {File dest=new File(f.getPath()+".verified"),temp=new File(dest.getPath()+".tmp");try(FileOutputStream out=new FileOutputStream(temp)){out.write((hash+":"+f.lastModified()).getBytes(java.nio.charset.StandardCharsets.US_ASCII));out.getFD().sync();}Files.move(temp.toPath(),dest.toPath(),StandardCopyOption.REPLACE_EXISTING);}
-    public static File detector(Context c)throws Exception {
-        JSONObject m;try(InputStream in=c.getAssets().open("surya/manifest.json")){m=new JSONObject(new String(dev.pocketllama.core.TextAttachment.readLimited(in,64000),java.nio.charset.StandardCharsets.UTF_8));}
-        File dir=new File(c.getFilesDir(),"surya-2/detector");dir.mkdirs();File dest=new File(dir,m.getString("file"));File stamp=new File(dest.getPath()+".verified");String expected=m.getString("sha256");
-        if(dest.isFile()&&dest.length()==m.getLong("bytes")&&stamp.isFile()&&new String(Files.readAllBytes(stamp.toPath()),java.nio.charset.StandardCharsets.US_ASCII).equals(expected+":"+dest.lastModified()))return dest;
-        File tmp=new File(dest.getPath()+".part");MessageDigest hash=MessageDigest.getInstance("SHA-256");long size=0;try(InputStream in=c.getAssets().open("surya/"+m.getString("file"));FileOutputStream out=new FileOutputStream(tmp)){byte[] b=new byte[262144];int n;while((n=in.read(b))!=-1){if(Thread.currentThread().isInterrupted())throw new InterruptedException();out.write(b,0,n);hash.update(b,0,n);size+=n;}out.getFD().sync();}
-        StringBuilder actual=new StringBuilder();for(byte b:hash.digest())actual.append(String.format(Locale.ROOT,"%02x",b&255));if(size!=m.getLong("bytes")||!actual.toString().equals(expected)){tmp.delete();throw new IOException("Повреждён детектор Surya. Установите APK заново поверх приложения");}Files.move(tmp.toPath(),dest.toPath(),StandardCopyOption.REPLACE_EXISTING);new SuryaAssets(c).stamp(dest,expected);return dest;
-    }
 }
