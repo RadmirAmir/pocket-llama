@@ -1,0 +1,10 @@
+{
+  "community": {
+    "modelsVerified": 16,
+    "channel": "community",
+    "suryaBundled": false,
+    "bytes": 640809824
+  },
+  "legacyCertificateMatches": true,
+  "legacyCertificateSha256": "ef3cea40110c13d179cc7e1f1e570aeb2f870cb7d46f16273eb5d733cf9b2ed0"
+}
