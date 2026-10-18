@@ -97,6 +97,6 @@ The public build targets **Android 10 or newer with a 64-bit ARM system**. It us
 
 Pocket's own code is **Apache-2.0**. The recorder uses GigaAM v3 (RU), Moonshine Streaming Medium (EN), Silero VAD and CAM++; the scanner includes PaddleOCR and optional Surya OCR 2; chat runs through llama.cpp. Dependencies and model weights retain their own licenses. The free community edition includes the CC BY-NC-SA line detector; Surya models and output retain their separate license terms. The app is free, with no ads or paid features. [Licenses and inventory →](docs/LICENSING.md)
 
-[Build from source](docs/BUILDING.md) · [Contribute](CONTRIBUTING.md) · [Release guide](docs/RELEASE.md) · [What has been tested](docs/VALIDATION-0.9.0.md) · [Report a bug](https://github.com/RadmirAmir/pocket-llama/issues/new/choose)
+[Build from source](docs/BUILDING.md) · [Contribute](CONTRIBUTING.md) · [Release guide](docs/RELEASE.md) · [What has been tested](docs/VALIDATION-0.9.1.md) · [Report a bug](https://github.com/RadmirAmir/pocket-llama/issues/new/choose)
 
 If you want a useful AI that stays on your phone, **star Pocket** and help shape the next release. A helpful bug report includes your phone model, Android version, chosen LLM and steps to reproduce. Please keep private recordings, documents and conversations out of public issues.

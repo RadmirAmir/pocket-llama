@@ -97,6 +97,6 @@
 
 Собственный код Pocket распространяется по **Apache-2.0**. Для речи используются GigaAM v3 (RU), Moonshine Streaming Medium (EN), Silero VAD и CAM++; в сканере — PaddleOCR и дополнительная Surya OCR 2; чат работает через llama.cpp. У зависимостей и весов моделей свои лицензии. Бесплатная community включает детектор под CC BY-NC-SA; для моделей Surya и результатов OCR действуют отдельные условия. Приложение бесплатное, без рекламы и платных функций. [Лицензии и состав →](docs/LICENSING.md)
 
-[Собрать из исходников](docs/BUILDING.md) · [Участвовать](CONTRIBUTING.md) · [Подготовка релиза](docs/RELEASE.md) · [Что проверено](docs/VALIDATION-0.9.0.md) · [Сообщить об ошибке](https://github.com/RadmirAmir/pocket-llama/issues/new/choose)
+[Собрать из исходников](docs/BUILDING.md) · [Участвовать](CONTRIBUTING.md) · [Подготовка релиза](docs/RELEASE.md) · [Что проверено](docs/VALIDATION-0.9.1.md) · [Сообщить об ошибке](https://github.com/RadmirAmir/pocket-llama/issues/new/choose)
 
 Если вам тоже нужен полезный ИИ, который остаётся на вашем телефоне, **поставьте Pocket звезду** и помогите сделать следующий релиз лучше. Для сообщения об ошибке пригодятся модель телефона, версия Android, выбранная LLM и шаги воспроизведения. Личные записи, документы и переписку в публичные issues не прикладывайте.

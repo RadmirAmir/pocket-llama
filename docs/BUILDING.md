@@ -39,7 +39,7 @@ bash scripts/test-core.sh
 python3 scripts/release-check.py
 ```
 
-The [GitHub workflow](../.github/workflows/android.yml) restores pinned dependencies and checks the host, frontend and Android build. [Validation notes](VALIDATION-0.9.0.md) distinguish automated checks from the phone and Play-track checks still needed.
+The [GitHub workflow](../.github/workflows/android.yml) restores pinned dependencies and checks the host, frontend and Android build. [Validation notes](VALIDATION-0.9.1.md) distinguish automated checks from the phone and Play-track checks still needed.
 
 ## Documentation graphics
 
