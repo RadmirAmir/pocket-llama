@@ -1233,5 +1233,6 @@
   "Текст, разметка и сетки таблиц готовы": "Text, layout and table grids are ready",
   "Уточнение прервано. Текст и готовые сетки таблиц сохранены; можно продолжить.": "Refinement interrupted. Text and completed table grids are saved; you can resume.",
   "Сетки таблиц уточнены. Текст и ручные исправления сохранены.": "Table grids refined. Text and manual edits are saved.",
-  "Условия Surya": "Surya terms"
+  "Условия Surya": "Surya terms",
+  "Не удалось подготовить загрузчик видео. Установите обновление Pocket.": "Could not prepare the video downloader. Install the latest Pocket update."
 }

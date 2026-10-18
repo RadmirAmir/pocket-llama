@@ -1,4 +1,4 @@
-# Publishing Pocket 0.9.2
+# Publishing Pocket 0.9.3
 
 The code, personal update and public preview are prepared independently. Uploading to Google Play still requires the publisher's verified account, a production signature, real-device acceptance and completed store declarations.
 

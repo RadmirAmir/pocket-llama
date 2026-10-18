@@ -39,7 +39,7 @@ public final class AndroidVideoRegression {
     net.zetetic.database.sqlcipher.SQLiteDatabase db=h.getWritableDatabase();id=UUID.randomUUID().toString();db.execSQL("INSERT INTO meetings(id,title,summary,created,samples,state) VALUES(?,?,?,?,?,?)",new Object[]{id,"Старая запись · тест","Сохранённый конспект",1,32000,"done"});db.execSQL("INSERT INTO turns(mid,idx,start,end,speaker,text) VALUES(?,?,?,?,?,?)",new Object[]{id,1,0,1000,1,"Не потерять эту реплику"});
    }
    try(VoiceStore store=new VoiceStore(legacy)){
-    check(store.getWritableDatabase().getVersion()==3,"v"+old+" upgrades to schema 3");JSONObject row=store.get(id);check(row.getString("title").equals("Старая запись · тест")&&row.getString("summary").equals("Сохранённый конспект"),"v"+old+" keeps original text and summary");check(row.optString("video_url").isEmpty()&&row.optInt("auto_summary")==0,"legacy row has neutral video defaults");
+    check(store.getWritableDatabase().getVersion()==4,"v"+old+" upgrades to schema 4");JSONObject row=store.get(id);check(row.optString("asr_language").equals("ru"),"legacy transcript keeps Russian ASR default");check(row.getString("title").equals("Старая запись · тест")&&row.getString("summary").equals("Сохранённый конспект"),"v"+old+" keeps original text and summary");check(row.optString("video_url").isEmpty()&&row.optInt("auto_summary")==0,"legacy row has neutral video defaults");
     try(Cursor turns=store.turns(id)){check(turns.moveToFirst()&&turns.getString(4).contains("Не потерять"),"v"+old+" retains transcript");}
     String video=store.create("Новый ролик",false,0);ContentValues meta=new ContentValues();meta.put("video_url",url);meta.put("auto_summary",1);store.update(video,meta);store.startJob(video,"downloading");check(store.anyBusy()&&VoiceStore.busy("downloading"),"download reserves cross-process job slot");
     boolean rejected=false;try{store.startJob(id,"processing");}catch(IOException e){rejected=true;}check(rejected,"ASR cannot overlap another video job");
@@ -47,7 +47,7 @@ public final class AndroidVideoRegression {
    }
    try(VoiceStore store=new VoiceStore(legacy)){check(store.get(id).getString("summary").equals("Сохранённый конспект"),"upgraded database reopens with same key");}
   }
-  try(VoiceStore store=new VoiceStore(c)){check(store.getWritableDatabase().getVersion()==3,"fresh schema 3 opens");check(store.list().length()==0,"fresh database starts empty");}
+  try(VoiceStore store=new VoiceStore(c)){check(store.getWritableDatabase().getVersion()==4,"fresh schema 4 opens");check(store.list().length()==0,"fresh database starts empty");}
   check(!new String(Files.readAllBytes(Vault.database(c).toPath()),java.nio.charset.StandardCharsets.ISO_8859_1).startsWith("SQLite format 3"),"database stays encrypted");
   System.out.println("PASS: "+checks+" Android video and migration checks");
  }

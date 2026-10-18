@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9.3 — restore video import in the community APK
+
+- Fixed the missing `video/runtime-id.txt` in the 0.9.2 community APK. The generated runtime inventory now includes the marker and production launcher, alongside Python, yt-dlp and native executables.
+- Validate every required video file and checksum in source, staging and the finished APK/AAB. An incomplete clean-build export now fails before signing.
+- Test the loader using assets extracted from the signed APK. Android regression coverage includes native yt-dlp/QuickJS, encrypted download, audio decoding and preservation of older recordings.
+- Show a translated update instruction when an installed video bundle is incomplete.
+- Keep package ID, signing identity and data format. Existing interrupted imports can be resumed with “Retry import”.
+
 ## 0.9.2 — remove the separate Surya line detector
 
 - Removed the CC BY-NC-SA line detector, its model/configuration, runtime class, conversion dependencies and download paths from every current distribution channel.

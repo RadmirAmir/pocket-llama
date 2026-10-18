@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Stage a distribution channel, preserving the free community model terms."""
-import argparse,hashlib,json,os,shutil
+import argparse,hashlib,json,os,shutil,sys
 from pathlib import Path
+sys.path.insert(0,str(Path(__file__).resolve().parent))
+import video_bundle
 ROOT=Path(__file__).resolve().parents[1]
 def checked(path,size,sha):
  if not path.is_file() or path.stat().st_size!=size:raise SystemExit('Missing or incomplete asset: '+str(path.relative_to(ROOT)))
@@ -36,7 +38,8 @@ def prepare(channel,with_surya=None,bundle_surya=None):
  config=json.loads((ROOT/'distribution/release.json').read_text());personal=channel=='personal'
  with_surya,bundle_surya=surya_policy(config,channel,with_surya,bundle_surya)
  assets=ROOT/'app/src/main/assets'
- allowed={}
+ video=video_bundle.inventory(ROOT)
+ allowed={'video':set(video_bundle.ASSETS)}
  for group in ['speech','ocr','moonshine']:
   manifest=json.loads((assets/group/'manifest.json').read_text())
   allowed[group]={'manifest.json'}|{f['name'] for f in manifest['files']}
@@ -78,6 +81,7 @@ def prepare(channel,with_surya=None,bundle_surya=None):
    packs.update({name:sum(p.stat().st_size for p in (ROOT/name/'src/main/assets').rglob('*') if p.is_file()) for name in ['surya_pack','surya_vision_pack']})
   else:
    for f in scanner['surya']['models']:copy(ROOT/'.cache/surya'/f['name'],common/'surya/bundled'/f['name'])
+ video_bundle.validate_assets(common,video)
  assert_scanner_assets(common,bundle_surya and channel!='play',scanner if with_surya else {})
  report={'channel':channel,'surya':with_surya,'suryaBundled':bool(with_surya and bundle_surya),'assetBytes':sum(p.stat().st_size for p in common.rglob('*') if p.is_file()),'packs':packs}
  (stage/'manifest.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(report),flush=True);return stage

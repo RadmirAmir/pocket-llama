@@ -16,3 +16,5 @@ javac --release 17 -d "$test_dir" \
  "$project_dir/app/src/main/java/dev/pocketllama/photo/LegacyScannerCache.java" \
  "$project_dir/tests/LegacyScannerCacheTests.java"
 java -cp "$test_dir" LegacyScannerCacheTests
+
+python3 -m unittest discover -s "$project_dir/tests" -p test_video_distribution.py
