@@ -25,3 +25,16 @@ The main Surya model retains its own license. Removing the line detector does no
 [Artifact report](artifact-validation-0.9.2.json) · [Build and UI workflow](https://github.com/RadmirAmir/pocket-llama/actions/runs/39158492854).
 
 Frontend verification: 15 catalogue assertions, 44 studio checks, 53 scanner checks and EN/RU switching/persistence checks passed. Scanner checks include table grids, no line-overlay controls, text-only pages without refinement, preserved manual edits, and complete main-model terms before consent.
+
+## Published APK installation
+
+[Exact-byte installation workflow](https://github.com/RadmirAmir/pocket-llama/actions/runs/39158933948) passed on Android 16 (API 36), Google APIs x86_64 emulator with ARM64 translation:
+
+- Downloaded the published 0.9.2 APK and checked its pinned SHA-256.
+- Confirmed community/Surya capability, complete main-model terms, and no retired detector file, DEX class or notices.
+- Installed over the signed community 0.9.1 APK, checked version 0.9.2 / code 25 and launched the app successfully.
+- Performed a fresh installation of the same published APK and confirmed startup with a live app process.
+
+The [source build workflow](https://github.com/RadmirAmir/pocket-llama/actions/runs/39158492854) passed all host, frontend and Android jobs, including the community APK and Play bundle. The additional late-file packaging guard and all seven distribution-policy tests also passed in the [guard-check workflow's host job](https://github.com/RadmirAmir/pocket-llama/actions/runs/39159220979).
+
+These are emulator installation/startup checks. Physical-device inference, thermal behavior and Play internal-track acceptance retain the separate requirements in [the release guide](RELEASE.md).
