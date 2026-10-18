@@ -65,6 +65,7 @@ After installing the app and selecting a downloaded LLM, enable airplane mode. T
 | Chat is slow or the phone gets warm | Try 0.8B, shorter messages and the default context. Give a warm phone time to cool; larger models cost more time and power. |
 | No summary yet | Finish transcription, select a local LLM in Settings, then choose Create summary. |
 | OCR or transcript has mistakes | Improve light/audio, adjust crop or orientation, and correct important text manually. |
+| Video import stops at `video/runtime-id.txt` | Update community to 0.9.3 or newer, then open the same record and choose **Retry import**. This fixes the missing video bundle marker in 0.9.2. |
 | PIN forgotten | No cloud recovery exists. Clearing app data or uninstalling loses vault access; it does not recover your content. |
 
 ## Updates and existing installations

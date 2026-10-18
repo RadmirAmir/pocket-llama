@@ -20,3 +20,16 @@ The new runtime tests accept an actual APK and extract its video assets, so a de
 The same APK test on 0.9.2 fails because `assets/video/runtime-id.txt` is absent. A separate live-network YouTube probe obtained metadata but received HTML instead of audio; the downloader rejected that response. Controlled media tests establish the packaging fix and pipeline behavior, not access to every video or network.
 
 [Source build and UI workflow](https://github.com/RadmirAmir/pocket-llama/actions/runs/39165050827).
+
+## Published APK on Android 16
+
+[Installation and native video workflow](https://github.com/RadmirAmir/pocket-llama/actions/runs/39166114157) passed on the disposable Android 16 Google APIs emulator:
+
+- Downloaded the exact published APK and checked its SHA-256 and video bundle marker/launcher/tool against the source pins.
+- Successfully upgraded community 0.9.2 to 0.9.3 / code 26, then verified a fresh installation and startup.
+- Passed the real-loader host tests using assets extracted from the downloaded APK.
+- Passed native CPython/yt-dlp and QuickJS startup, runtime reuse and the production anonymous-memfd JS adapter.
+- Downloaded synthetic M4A through yt-dlp, verified encrypted byte parity/integrity, decoded it with Android MediaExtractor/MediaCodec to encrypted 16 kHz PCM and reopened it successfully.
+- Upgraded synthetic encrypted recording databases from schema 1 and 2 to the current schema 4; preserved titles, summaries, transcripts and Russian ASR defaults, cross-process job exclusion, interruption recovery and database encryption.
+
+The initial regression run passed its video pipeline but exposed a missing database-path method in the isolated test Context; that fixture binding is corrected. No installed user's database is opened by these tests. The native emulator uses the pinned x86_64 runtime for its ABI, while yt-dlp, launcher and marker come from the published ARM64 APK. Physical-phone inference and access to every live platform remain outside these controlled tests.
