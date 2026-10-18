@@ -41,6 +41,8 @@ def wait_text(fragment,timeout=90):
     raise AssertionError('Expected result not shown: '+fragment)
 
 EVIDENCE.mkdir(exist_ok=True)
+if adb('shell','getprop','ro.kernel.qemu').strip()!='1' and adb('shell','getprop','ro.boot.qemu').strip()!='1':
+    raise SystemExit('Refusing installation tests on a physical device')
 adb('uninstall','dev.pocketllama')
 print(adb('install','--no-streaming','artifacts/Pocket-community-installer-1.0.apk'),flush=True)
 adb('shell','appops','set','dev.pocketllama.installer','REQUEST_INSTALL_PACKAGES','allow')
