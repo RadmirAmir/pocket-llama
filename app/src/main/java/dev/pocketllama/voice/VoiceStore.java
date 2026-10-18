@@ -10,7 +10,7 @@ import java.util.*;
 
 /** SQLite WAL is both the cross-process control plane and the durable checkpoint log. */
 public final class VoiceStore extends SQLiteOpenHelper {
-    public VoiceStore(Context c){super(c.getApplicationContext(),dev.pocketllama.security.Vault.database(c).getAbsolutePath(),dev.pocketllama.security.Vault.databasePassword(c),null,3,0,dev.pocketllama.security.Vault.KEEP_DATABASE,dev.pocketllama.security.DatabaseSettings.HOOK,true);setWriteAheadLoggingEnabled(true);}
+    public VoiceStore(Context c){super(c.getApplicationContext(),dev.pocketllama.security.Vault.database(c).getAbsolutePath(),dev.pocketllama.security.Vault.databasePassword(c),null,4,0,dev.pocketllama.security.Vault.KEEP_DATABASE,dev.pocketllama.security.DatabaseSettings.HOOK,true);setWriteAheadLoggingEnabled(true);}
     @Override public void onConfigure(SQLiteDatabase db){db.setForeignKeyConstraintsEnabled(true);}
     @Override public void onCreate(SQLiteDatabase d){
         d.execSQL("CREATE TABLE meetings(id TEXT PRIMARY KEY,title TEXT NOT NULL,created INTEGER,samples INTEGER DEFAULT 0,state TEXT DEFAULT 'ready',detail TEXT DEFAULT '',progress REAL DEFAULT 0,heartbeat INTEGER DEFAULT 0,summary TEXT DEFAULT '',summary_key TEXT DEFAULT '',source_uri TEXT DEFAULT '',diarize INTEGER DEFAULT 1,expected INTEGER DEFAULT 0,vad_done INTEGER DEFAULT 0,speakers_done INTEGER DEFAULT 0,asr_done INTEGER DEFAULT 0)");
@@ -23,16 +23,30 @@ public final class VoiceStore extends SQLiteOpenHelper {
         d.execSQL("CREATE TABLE turns(mid TEXT REFERENCES meetings(id) ON DELETE CASCADE,idx INTEGER,start INTEGER,end INTEGER,speaker INTEGER,text TEXT,PRIMARY KEY(mid,idx))");
         d.execSQL("CREATE TABLE names(mid TEXT REFERENCES meetings(id) ON DELETE CASCADE,speaker INTEGER,name TEXT,PRIMARY KEY(mid,speaker))");
         d.execSQL("CREATE TABLE edits(mid TEXT REFERENCES meetings(id) ON DELETE CASCADE,idx INTEGER,speaker INTEGER,text TEXT,PRIMARY KEY(mid,idx))");
-        d.execSQL("CREATE TABLE notes(mid TEXT REFERENCES meetings(id) ON DELETE CASCADE,pass INTEGER,idx INTEGER,text TEXT,PRIMARY KEY(mid,pass,idx))");folded(d);videos(d);
+        d.execSQL("CREATE TABLE notes(mid TEXT REFERENCES meetings(id) ON DELETE CASCADE,pass INTEGER,idx INTEGER,text TEXT,PRIMARY KEY(mid,pass,idx))");folded(d);videos(d);languages(d);
     }
     private void folded(SQLiteDatabase d){
         d.execSQL("ALTER TABLE meetings ADD COLUMN title_fold TEXT DEFAULT ''");d.execSQL("ALTER TABLE turns ADD COLUMN text_fold TEXT DEFAULT ''");d.execSQL("ALTER TABLE edits ADD COLUMN text_fold TEXT DEFAULT ''");
         for(String table:new String[]{"meetings","turns","edits"}){String column=table.equals("meetings")?"title":"text";try(Cursor cursor=d.rawQuery("SELECT rowid,"+column+" FROM "+table,new String[0])){while(cursor.moveToNext()){ContentValues v=new ContentValues();v.put(column+"_fold",(cursor.isNull(1)?"":cursor.getString(1)).toLowerCase(Locale.ROOT));d.update(table,v,"rowid=?",new String[]{""+cursor.getLong(0)});}}}
     }
     private void videos(SQLiteDatabase d){for(String definition:new String[]{"video_url TEXT DEFAULT ''","video_platform TEXT DEFAULT ''","video_duration INTEGER DEFAULT 0","video_stage TEXT DEFAULT ''","auto_summary INTEGER DEFAULT 0"})d.execSQL("ALTER TABLE meetings ADD COLUMN "+definition);}
-    @Override public void onUpgrade(SQLiteDatabase d,int a,int b){if(a<1||b>3)throw new IllegalStateException("Unknown voice database version");if(a<2)folded(d);if(a<3)videos(d);}
+    private void languages(SQLiteDatabase d){d.execSQL("ALTER TABLE meetings ADD COLUMN asr_language TEXT NOT NULL DEFAULT 'ru'");}
+    @Override public void onUpgrade(SQLiteDatabase d,int a,int b){if(a<1||b>4)throw new IllegalStateException("Unknown voice database version");if(a<2)folded(d);if(a<3)videos(d);if(a<4)languages(d);}
     public static boolean busy(String state){return state.equals("recording")||state.equals("paused")||state.equals("preparing")||state.equals("processing")||state.equals("summarizing")||state.equals("downloading");}
-    public synchronized String create(String title,boolean diarize,int expected){String id=UUID.randomUUID().toString();ContentValues v=new ContentValues();v.put("id",id);v.put("title",title);v.put("title_fold",title.toLowerCase(Locale.ROOT));v.put("created",System.currentTimeMillis());v.put("diarize",diarize?1:0);v.put("expected",expected);getWritableDatabase().insertOrThrow("meetings",null,v);return id;}
+    public synchronized String create(String title,boolean diarize,int expected){return create(title,diarize,expected,"ru");}
+    public synchronized String create(String title,boolean diarize,int expected,String language){if(!language.equals("en")&&!language.equals("ru"))throw new IllegalArgumentException("Invalid speech language");String id=UUID.randomUUID().toString();ContentValues v=new ContentValues();v.put("id",id);v.put("title",title);v.put("title_fold",title.toLowerCase(Locale.ROOT));v.put("created",System.currentTimeMillis());v.put("diarize",diarize?1:0);v.put("expected",expected);v.put("asr_language",language);getWritableDatabase().insertOrThrow("meetings",null,v);return id;}
+    /** A fresh job follows the selected language; resumed chunks keep their original engine. */
+    public String recognitionLanguage(String id,String requested)throws Exception {
+        if(!requested.equals("en")&&!requested.equals("ru"))throw new IllegalArgumentException("Invalid speech language");
+        SQLiteDatabase database=getWritableDatabase();database.beginTransaction();
+        try {
+            JSONObject meeting=get(id);boolean partial;
+            try(Cursor parts=database.rawQuery("SELECT 1 FROM parts WHERE mid=? LIMIT 1",new String[]{id})){partial=parts.moveToFirst();}
+            String value=dev.pocketllama.core.SpeechLanguage.choose(requested,meeting.optString("asr_language","ru"),meeting.optInt("asr_done")!=0,partial);
+            if(!partial&&meeting.optInt("asr_done")==0){ContentValues update=new ContentValues();update.put("asr_language",requested);database.update("meetings",update,"id=?",new String[]{id});value=requested;}
+            database.setTransactionSuccessful();return value;
+        }finally{database.endTransaction();}
+    }
     public static File audio(Context c,String id){return dev.pocketllama.security.Vault.audio(c,id);}
     public JSONObject get(String id)throws JSONException{try(Cursor c=getReadableDatabase().rawQuery("SELECT * FROM meetings WHERE id=?",new String[]{id})){if(!c.moveToFirst())throw new IllegalArgumentException("Запись не найдена");return row(c);}}
     private static JSONObject row(Cursor c)throws JSONException{JSONObject j=new JSONObject();for(int i=0;i<c.getColumnCount();i++){if(c.getType(i)==Cursor.FIELD_TYPE_INTEGER)j.put(c.getColumnName(i),c.getLong(i));else if(c.getType(i)==Cursor.FIELD_TYPE_FLOAT)j.put(c.getColumnName(i),c.getDouble(i));else j.put(c.getColumnName(i),c.getString(i));}return j;}
@@ -50,7 +64,7 @@ public final class VoiceStore extends SQLiteOpenHelper {
     public void samples(String id,long samples){ContentValues v=new ContentValues();v.put("samples",samples);v.put("heartbeat",System.currentTimeMillis());update(id,v);}
     public void rename(String id,String title){ContentValues v=new ContentValues();v.put("title",title.substring(0,Math.min(120,title.length())));v.put("title_fold",title.substring(0,Math.min(120,title.length())).toLowerCase(Locale.ROOT));update(id,v);}
     public void name(String id,int speaker,String name){ContentValues v=new ContentValues();v.put("mid",id);v.put("speaker",speaker);v.put("name",name.substring(0,Math.min(80,name.length())));getWritableDatabase().insertWithOnConflict("names",null,v,SQLiteDatabase.CONFLICT_REPLACE);clearSummary(id);}
-    public String speaker(String id,int n){try(Cursor c=getReadableDatabase().rawQuery("SELECT name FROM names WHERE mid=? AND speaker=?",new String[]{id,""+n})){if(c.moveToFirst()&&!c.getString(0).isEmpty())return c.getString(0);}return n==0?"Спикер не определён":"Спикер "+n;}
+    public String speaker(String id,int n){try(Cursor c=getReadableDatabase().rawQuery("SELECT name FROM names WHERE mid=? AND speaker=?",new String[]{id,""+n})){if(c.moveToFirst()&&!c.getString(0).isEmpty())return c.getString(0);}return n==0?dev.pocketllama.I18n.t("Спикер не определён"):dev.pocketllama.I18n.t("Спикер ")+n;}
     public void clearSummary(String id){getWritableDatabase().delete("notes","mid=?",new String[]{id});ContentValues v=new ContentValues();v.put("summary","");update(id,v);}
     public void configure(String id,boolean diarize,int expected)throws Exception{
         JSONObject j=get(id);if(busy(j.getString("state")))throw new IOException("Задача уже выполняется");

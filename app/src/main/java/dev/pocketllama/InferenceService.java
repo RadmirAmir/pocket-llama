@@ -49,7 +49,7 @@ public final class InferenceService extends Service {
     @Override public void onCreate() {
         super.onCreate(); exists = true;
         NotificationManager nm = getSystemService(NotificationManager.class);
-        nm.createNotificationChannel(new NotificationChannel(CHANNEL, "Локальный LLM API", NotificationManager.IMPORTANCE_LOW));
+        nm.createNotificationChannel(new NotificationChannel(CHANNEL,dev.pocketllama.I18n.t("Локальный LLM API"), NotificationManager.IMPORTANCE_LOW));
     }
     @Override public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent == null || STOP.equals(intent.getAction())) {
@@ -296,9 +296,9 @@ public final class InferenceService extends Service {
     private Notification notification(String text) {
         PendingIntent open = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
         PendingIntent stop = PendingIntent.getService(this, 1, new Intent(this, InferenceService.class).setAction(STOP), PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-        return new Notification.Builder(this, CHANNEL).setSmallIcon(R.drawable.ic_llama).setContentTitle("Pocket Llama · локальный API")
-                .setContentText(text).setContentIntent(open).setVisibility(Notification.VISIBILITY_SECRET).setOngoing(true).setOnlyAlertOnce(true)
-                .addAction(new Notification.Action.Builder(null, "Остановить", stop).build()).build();
+        return new Notification.Builder(this, CHANNEL).setSmallIcon(R.drawable.ic_llama).setContentTitle(dev.pocketllama.I18n.t("Pocket Llama · локальный API"))
+                .setContentText(dev.pocketllama.I18n.status(text)).setContentIntent(open).setVisibility(Notification.VISIBILITY_SECRET).setOngoing(true).setOnlyAlertOnce(true)
+                .addAction(new Notification.Action.Builder(null,dev.pocketllama.I18n.t("Остановить"), stop).build()).build();
     }
     private void updateNotification() { getSystemService(NotificationManager.class).notify(1, notification(RuntimeState.status)); }
     private void releaseWakeLock() {

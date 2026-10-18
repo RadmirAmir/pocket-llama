@@ -26,7 +26,11 @@ public final class SpeechModels {
         public final String text;public final long startMs,endMs;
         public Word(String t,long s,long e){text=t;startMs=s;endMs=e;}
     }
-    public static final class Asr implements AutoCloseable {
+    public interface Recognizer extends AutoCloseable {
+        List<Word> recognize(float[] pcm,long offsetMs)throws Exception;
+        void cancel();
+    }
+    public static final class Asr implements Recognizer {
         private final OrtSession session;
         private final SignalFeatures frontend=new SignalFeatures(false);
         private final String[] tokens=new String[256];

@@ -44,5 +44,5 @@ val prepareDistribution by tasks.registering(Exec::class) {
 }
 tasks.named("preBuild") { dependsOn(prepareDistribution) }
 dependencies {
-    implementation(files("libs/opencv-4.12.0.jar", "libs/jsoup-1.21.2.jar", "libs/onnxruntime-android-1.22.0.jar", "libs/sqlcipher-android-4.19.1.jar", "libs/androidx-sqlite-2.7.0.jar", "libs/kotlin-stdlib-2.2.10.jar"))
+    implementation(files("libs/opencv-4.12.0.jar", "libs/jsoup-1.21.2.jar", "libs/onnxruntime-android-1.23.2.jar", "libs/sqlcipher-android-4.19.1.jar", "libs/androidx-sqlite-2.7.0.jar", "libs/kotlin-stdlib-2.2.10.jar"))
 }

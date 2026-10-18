@@ -25,3 +25,6 @@ html{overflow:hidden}body{overflow:hidden}#app{height:100%;max-width:760px;margi
 .catalogue-badge{font-size:.78rem;opacity:.8}.catalogue-warning{font-size:.82rem!important;opacity:.85}
 .catalogue-progress{padding:16px;border-radius:14px;background:var(--surface,#8881);margin:12px 0}.catalogue-progress p{font-size:.85rem}.catalogue-card .model-actions{flex-wrap:wrap}
 @media(max-width:360px){.catalogue-card{padding:14px}.catalogue-card .model-actions{gap:8px}.catalogue-card .model-actions button{font-size:.85rem}}
+.language-picker{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.language-picker button{min-height:48px;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);font:inherit;cursor:pointer}
+.language-picker button[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--bg)}

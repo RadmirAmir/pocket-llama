@@ -6,19 +6,19 @@
 
 <p align="center">Turn conversations into notes. Paper into text. Questions into a conversation.<br><b>All AI processing happens on your Android phone.</b></p>
 
-<p align="center"><a href="https://github.com/RadmirAmir/pocket-llama/releases/download/v0.8.0-rc.1/PocketLlama-0.8.0-community-arm64.apk"><b>↓ Download for Android</b></a> · <a href="docs/GETTING-STARTED.md">Get started</a> · <a href="docs/SECURITY.md">Privacy & security</a></p>
+<p align="center"><a href="https://github.com/RadmirAmir/pocket-llama/releases/download/v0.9.0-rc.1/PocketLlama-0.9.0-community-arm64.apk"><b>↓ Download for Android</b></a> · <a href="docs/GETTING-STARTED.md">Get started</a> · <a href="docs/SECURITY.md">Privacy & security</a></p>
 
 <p align="center">Android 10+ · ARM64 · Open source · No account · No ads</p>
 
 Your best ideas do not need a cloud account. Neither do your conversations, documents or questions. Pocket brings a recorder, speech recognition, a scanner and an AI chat into one encrypted space on your phone. Download a chat model once, then use the core tools in airplane mode.
 
-**Public preview: 0.8.0-rc.1.** Available here as an APK, approximately 271 MB. Google Play release is being prepared. The current interface and speech recognition are Russian; OCR reads Russian and English, and chat languages depend on your model.
+**Public preview: 0.9.0-rc.1.** Available here as an APK, approximately 641 MB. Google Play release is being prepared. Switch between **English and Russian in Settings**. English speech uses **Moonshine Streaming Medium**; Russian uses **GigaAM v3**. Both speech models and Russian/English OCR are included.
 
 ## Remember the conversation. Keep the original.
 
-Record a meeting, a lecture or a thought before it disappears. Pocket turns Russian speech into a searchable transcript, separates speakers and can build a short summary with links back to the relevant words. Tap a source to hear what was actually said.
+Record a meeting, a lecture or a thought before it disappears. Pocket turns English or Russian speech into a searchable transcript, separates speakers and can build a short summary with links back to the relevant words. Tap a source to hear what was actually said.
 
-**GigaAM v3 speech recognition is included.** Recording and transcription do not need an extra model download. Summaries use the local language model you choose.
+**Two speech models, already included:** Moonshine Streaming Medium for English and GigaAM v3 for Russian. Recording and transcription do not need an extra model download. Summaries use the local language model you choose.
 
 ## An assistant that fits your phone
 
@@ -35,13 +35,13 @@ Scan a receipt, a page of notes or a document. Adjust the edges, correct the per
 <table>
   <tr><th>Record</th><th>Chat</th><th>Scan</th></tr>
   <tr>
-    <td width="33%"><a href="docs/media/recorder.png"><img src="docs/media/recorder.png" alt="Pocket recording with a local summary and links to the transcript"></a></td>
-    <td width="33%"><a href="docs/media/chat.png"><img src="docs/media/chat.png" alt="Pocket local chat with a sample project planning conversation"></a></td>
-    <td width="33%"><a href="docs/media/scanner.png"><img src="docs/media/scanner.png" alt="Pocket encrypted document library with scan and PDF import controls"></a></td>
+    <td width="33%"><a href="docs/media/recorder-en.png"><img src="docs/media/recorder-en.png" alt="Pocket recording with a local summary and links to the transcript"></a></td>
+    <td width="33%"><a href="docs/media/chat-en.png"><img src="docs/media/chat-en.png" alt="Pocket local chat with a sample project planning conversation"></a></td>
+    <td width="33%"><a href="docs/media/scanner-en.png"><img src="docs/media/scanner-en.png" alt="Pocket encrypted document library with scan and PDF import controls"></a></td>
   </tr>
 </table>
 
-<sub>Actual app web interfaces rendered with illustrative demo content. The chat and summary examples are not model benchmarks. Native Android system screens are omitted.</sub>
+<sub>Actual English app interfaces rendered with illustrative demo content. The chat and summary examples are not model benchmarks. Native Android system screens are omitted.</sub>
 
 ## Private by design, with details you can inspect
 
@@ -58,8 +58,8 @@ Scan a receipt, a page of notes or a document. Adjust the edges, correct the per
 
 ## Start in a few steps
 
-1. **[Download the APK](https://github.com/RadmirAmir/pocket-llama/releases/download/v0.8.0-rc.1/PocketLlama-0.8.0-community-arm64.apk)** on an Android 10+ ARM64 phone. Allow installation from your browser when Android asks.
-2. **Create your six-digit PIN.** Recording, Russian transcription and OCR are already included.
+1. **[Download the APK](https://github.com/RadmirAmir/pocket-llama/releases/download/v0.9.0-rc.1/PocketLlama-0.9.0-community-arm64.apk)** on an Android 10+ ARM64 phone. Allow installation from your browser when Android asks.
+2. **Create your six-digit PIN.** Recording, English/Russian transcription and OCR are already included. In **Settings → Interface language**, choose **EN · English** or **RU · Русский**; new transcription jobs follow that language.
 3. **Open Settings → model catalog.** Start with Pocket's recommendation, download the model and choose **«Использовать»**. Chat and summaries can now run locally too.
 4. **Make it yours.** Record a thought, scan a page or open Chat. Try the core tools with airplane mode enabled after setup.
 
@@ -71,9 +71,9 @@ The public build targets **Android 10 or newer with a 64-bit ARM system**. It us
 
 | Practical starting point¹ | Local chat model | Download | Suggested free storage² |
 | --- | --- | --- | --- |
-| 6 GB RAM phone | Qwen 3.5 · 0.8B · Q5_K_M | 646 MB | 4 GB |
-| 8 GB RAM phone | Qwen 3.5 · 2B · Q5_K_M | 1.57 GB | 4 GB |
-| 12 GB RAM phone | Qwen 3.5 · 4B · Q4_K_M | 3.01 GB | 6 GB |
+| 6 GB RAM phone | Qwen 3.5 · 0.8B · Q5_K_M | 646 MB | 6 GB |
+| 8 GB RAM phone | Qwen 3.5 · 2B · Q5_K_M | 1.57 GB | 6 GB |
+| 12 GB RAM phone | Qwen 3.5 · 4B · Q4_K_M | 3.01 GB | 8 GB |
 
 ¹ Guidance for choosing a first model, not measured phone performance. Pocket checks the memory Android actually reports, currently available RAM and storage. A phone's marketed RAM can differ from usable memory. Smaller models are easier to run; speed and heat vary by device.
 
@@ -83,7 +83,7 @@ The public build targets **Android 10 or newer with a 64-bit ARM system**. It us
 
 ## A few things to know
 
-**Does it work without the internet?** Yes: recording, Russian transcription and OCR work with the included models. Chat and summaries work offline once a compatible LLM is downloaded or imported.
+**Does it work without the internet?** Yes: recording, English/Russian transcription and OCR work with the included models. Chat and summaries work offline once a compatible LLM is downloaded or imported.
 
 **Is this already on Google Play?** The APK preview is available now. The Play bundle and release workflow are prepared; store publication and phone validation remain.
 
@@ -95,8 +95,8 @@ The public build targets **Android 10 or newer with a 64-bit ARM system**. It us
 
 ## Build it. Inspect it. Improve it.
 
-Pocket's own code is **Apache-2.0**. The recorder uses GigaAM v3, Silero VAD and CAM++; the public scanner uses PaddleOCR; chat runs through llama.cpp. Dependencies and model weights retain their own licenses. The public preview excludes Surya and the restricted detector weights. [Licenses and inventory →](docs/LICENSING.md)
+Pocket's own code is **Apache-2.0**. The recorder uses GigaAM v3 (RU), Moonshine Streaming Medium (EN), Silero VAD and CAM++; the public scanner uses PaddleOCR; chat runs through llama.cpp. Dependencies and model weights retain their own licenses. The public preview excludes Surya and the restricted detector weights. [Licenses and inventory →](docs/LICENSING.md)
 
-[Build from source](docs/BUILDING.md) · [Contribute](CONTRIBUTING.md) · [Release guide](docs/RELEASE.md) · [What has been tested](docs/VALIDATION-0.8.0.md) · [Report a bug](https://github.com/RadmirAmir/pocket-llama/issues/new/choose)
+[Build from source](docs/BUILDING.md) · [Contribute](CONTRIBUTING.md) · [Release guide](docs/RELEASE.md) · [What has been tested](docs/VALIDATION-0.9.0.md) · [Report a bug](https://github.com/RadmirAmir/pocket-llama/issues/new/choose)
 
 If you want a useful AI that stays on your phone, **star Pocket** and help shape the next release. A helpful bug report includes your phone model, Android version, chosen LLM and steps to reproduce. Please keep private recordings, documents and conversations out of public issues.

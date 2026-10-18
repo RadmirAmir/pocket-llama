@@ -2,11 +2,11 @@
 
 [← Pocket](../README.md) · [Русский](SECURITY-RU.md)
 
-This page describes the implementation in the 0.8.0 public preview. It is a technical product explanation, not an independent security audit or the publisher's final legal privacy policy.
+This page describes the implementation in the 0.9.0 public preview. It is a technical product explanation, not an independent security audit or the publisher's final legal privacy policy.
 
 ## What stays on your phone
 
-Recording, GigaAM speech recognition, speaker grouping, PaddleOCR, local LLM chat and summaries run on the Android device. There is no cloud inference account, advertising SDK, automatic analytics or automatic crash-reporting integration. Recordings, scans, transcripts and conversations are not automatically uploaded.
+Recording, GigaAM (RU) / Moonshine Streaming Medium (EN) speech recognition, speaker grouping, PaddleOCR, local LLM chat and summaries run on the Android device. There is no cloud inference account, advertising SDK, automatic analytics or automatic crash-reporting integration. Recordings, scans, transcripts and conversations are not automatically uploaded.
 
 The public APK includes the speech and OCR assets. Chat and summaries need a compatible language model downloaded or imported once. After preparation, the core tools can run in airplane mode.
 

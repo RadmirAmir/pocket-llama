@@ -65,6 +65,8 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
     }
 
     public final class Bridge {
+        @JavascriptInterface public String language() { return I18n.language(); }
+        @JavascriptInterface public String translations() { return I18n.dictionary(); }
         @JavascriptInterface public void ready() {if(!dev.pocketllama.security.GateSession.isOpen())return;
             pageReady = true;
             io.execute(() -> {
@@ -81,14 +83,14 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
             startActivity(new Intent(ChatActivity.this,dev.pocketllama.voice.VoiceActivity.class).putExtra("screen","settings").addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_SINGLE_TOP)); finish();
         }); }
         @JavascriptInterface public void startModel() {if(!dev.pocketllama.security.GateSession.isOpen())return; runOnUiThread(() -> {
-            try { if(dev.pocketllama.voice.VoiceState.busy||dev.pocketllama.photo.PhotoStore.busy(ChatActivity.this))throw new IOException("Сначала завершите запись или обработку");store.load().validate();startForegroundService(new Intent(ChatActivity.this,InferenceService.class).setAction(InferenceService.START));refreshState(); }
+            try { if(dev.pocketllama.voice.VoiceState.busy||dev.pocketllama.photo.PhotoStore.busy(ChatActivity.this))throw new IOException(dev.pocketllama.I18n.t("Сначала завершите запись или обработку"));store.load().validate();startForegroundService(new Intent(ChatActivity.this,InferenceService.class).setAction(InferenceService.START));refreshState(); }
             catch(Exception e){fail(e);}
         }); }
         @JavascriptInterface public void pick(boolean imageOnly) {if(!dev.pocketllama.security.GateSession.isOpen())return;
             runOnUiThread(() -> {
                 if (generating.get()) return;
                 if (imageOnly && !vision) {
-                    emit("error", object("message", "Изображения пока недоступны. В настройках выберите vision-модель и совместимый mmproj, затем запустите API."));
+                    emit("error", object("message", dev.pocketllama.I18n.t("Изображения пока недоступны. В настройках выберите vision-модель и совместимый mmproj, затем запустите API.")));
                     return;
                 }
                 Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE)
@@ -104,15 +106,15 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
             if (text.length() > 1024 * 1024) return;
             runOnUiThread(() -> {
                 if(!dev.pocketllama.security.GateSession.isOpen())return;
-                ClipData clip=ClipData.newPlainText("Ответ модели",text);android.os.PersistableBundle extras=new android.os.PersistableBundle();extras.putBoolean("android.content.extra.IS_SENSITIVE",true);clip.getDescription().setExtras(extras);getSystemService(ClipboardManager.class).setPrimaryClip(clip);
+                ClipData clip=ClipData.newPlainText(dev.pocketllama.I18n.t("Ответ модели"),text);android.os.PersistableBundle extras=new android.os.PersistableBundle();extras.putBoolean("android.content.extra.IS_SENSITIVE",true);clip.getDescription().setExtras(extras);getSystemService(ClipboardManager.class).setPrimaryClip(clip);
             });
         }
         @JavascriptInterface public void newChat() {if(!dev.pocketllama.security.GateSession.isOpen())return;
             runOnUiThread(() -> {
                 if (generating.get()) return;
-                new AlertDialog.Builder(ChatActivity.this).setTitle("Начать новый диалог?")
-                        .setMessage("Текущая история и вложения будут очищены.")
-                        .setNegativeButton("Отмена", null).setPositiveButton("Новый диалог", (dialog, which) -> emit("reset", new JSONObject())).show();
+                new AlertDialog.Builder(ChatActivity.this).setTitle(dev.pocketllama.I18n.t("Начать новый диалог?"))
+                        .setMessage(dev.pocketllama.I18n.t("Текущая история и вложения будут очищены."))
+                        .setNegativeButton(dev.pocketllama.I18n.t("Отмена"), null).setPositiveButton(dev.pocketllama.I18n.t("Новый диалог"), (dialog, which) -> emit("reset", new JSONObject())).show();
             });
         }
         @JavascriptInterface public void stop() {
@@ -122,10 +124,10 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
         }
         @JavascriptInterface public void send(String id, String json) {if(!dev.pocketllama.security.GateSession.isOpen())return;
             if (id.length() > 100 || json.length() > 12 * 1024 * 1024) {
-                emit("failed", object("id", id, "message", "Слишком большой запрос")); return;
+                emit("failed", object("id", id, "message", dev.pocketllama.I18n.t("Слишком большой запрос"))); return;
             }
             if (!generating.compareAndSet(false, true)) {
-                emit("failed", object("id", id, "message", "Предыдущий ответ ещё завершается")); return;
+                emit("failed", object("id", id, "message", dev.pocketllama.I18n.t("Предыдущий ответ ещё завершается"))); return;
             }
             stopRequested.set(false);
             io.execute(() -> sendMessage(id, json));
@@ -146,7 +148,7 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
                         JSONObject caps = new ChatApi(config.port, store.apiKey()).capabilities();
                         state.put("ready", true).put("vision", caps.optBoolean("vision", false))
                                 .put("context", caps.optInt("context", config.contextPerSlot));
-                    } catch (Exception ignored) { state.put("status", "Соединение с API недоступно"); }
+                    } catch (Exception ignored) { state.put("status", dev.pocketllama.I18n.t("Соединение с API недоступно")); }
                 }
                 vision = state.optBoolean("vision", false);
                 emit("state", state);
@@ -160,17 +162,17 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
         final JSONObject[] outcome = new JSONObject[1];
         final String[] outcomeType = new String[]{"complete"};
         try {
-            if (dev.pocketllama.voice.VoiceState.busy||dev.pocketllama.photo.PhotoStore.busy(ChatActivity.this)) throw new IOException("Сначала завершите запись или конспект.");
-            if (!RuntimeState.ready) throw new IOException("API ещё не запущен. Откройте настройки модели и запустите сервер.");
+            if (dev.pocketllama.voice.VoiceState.busy||dev.pocketllama.photo.PhotoStore.busy(ChatActivity.this)) throw new IOException(dev.pocketllama.I18n.t("Сначала завершите запись или конспект."));
+            if (!RuntimeState.ready) throw new IOException(dev.pocketllama.I18n.t("API ещё не запущен. Откройте настройки модели и запустите сервер."));
             JSONObject input = new JSONObject(json);
             ServerConfig config = store.load();
             client = new ChatApi(config.port, store.apiKey());
             request = client;
-            if (stopRequested.get()) { client.cancel(); throw new IOException("Ответ остановлен"); }
+            if (stopRequested.get()) { client.cancel(); throw new IOException(dev.pocketllama.I18n.t("Ответ остановлен")); }
             JSONObject caps = client.capabilities();
             JSONObject body = ChatApi.request(input.getJSONArray("messages"), input.optBoolean("thinking", false),
                     input.optInt("max_tokens", 512), caps.optBoolean("vision", false),RuntimeState.chatProfile);
-            RuntimeState.log("Чат запрос: профиль="+RuntimeState.chatProfile.id+" · thinking="+input.optBoolean("thinking",false)
+            RuntimeState.log(dev.pocketllama.I18n.t("Чат запрос: профиль=")+RuntimeState.chatProfile.id+" · thinking="+input.optBoolean("thinking",false)
                     +" · min_p="+body.optDouble("min_p")+" · temperature="+body.optDouble("temperature")
                     +" · top_p="+body.optDouble("top_p")+" · top_k="+body.optInt("top_k")
                     +" · reasoning_budget="+body.optInt("reasoning_budget_tokens",-1)+" · max_tokens="+body.optInt("max_tokens"));
@@ -194,10 +196,10 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
             outcomeType[0] = "failed";
             String detail = useful(e);
             if (dev.pocketllama.core.BackendEnvironment.pipelineFailure(detail)) {
-                RuntimeState.log("Ошибка Vulkan в чате: " + detail);
-                detail = "Драйвер Vulkan не смог скомпилировать вычислительное ядро. "
-                        + "Остановите API в настройках. Попробуйте Vulkan с включённым режимом совместимости "
-                        + "или выберите CPU, затем запустите API и повторите сообщение.\n" + detail;
+                RuntimeState.log(dev.pocketllama.I18n.t("Ошибка Vulkan в чате: ") + detail);
+                detail = dev.pocketllama.I18n.t("Драйвер Vulkan не смог скомпилировать вычислительное ядро. ")
+                        + dev.pocketllama.I18n.t("Остановите API в настройках. Попробуйте Vulkan с включённым режимом совместимости ")
+                        + dev.pocketllama.I18n.t("или выберите CPU, затем запустите API и повторите сообщение.\n") + detail;
             }
             outcome[0] = object("id", id, "message", detail);
             }
@@ -205,7 +207,7 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
             if (client != null && outcome[0] != null) {
                 JSONObject metrics = client.statistics();
                 try { outcome[0].put("metrics", metrics); } catch (Exception ignored) { }
-                RuntimeState.log("Чат: " + outcomeType[0] + " · " + metrics.toString());
+                RuntimeState.log(dev.pocketllama.I18n.t("Чат: ") + outcomeType[0] + " · " + metrics.toString());
             }
             if (request == client) request = null;
             generating.set(false);
@@ -220,7 +222,7 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
         java.util.List<Uri> uris = new java.util.ArrayList<>();
         if (data.getClipData() != null) {
             ClipData clip = data.getClipData();
-            if (clip.getItemCount() > 4) { emit("error", object("message", "Можно выбрать до четырёх вложений за раз")); return; }
+            if (clip.getItemCount() > 4) { emit("error", object("message", dev.pocketllama.I18n.t("Можно выбрать до четырёх вложений за раз"))); return; }
             for (int i = 0; i < clip.getItemCount(); i++) uris.add(clip.getItemAt(i).getUri());
         } else if (data.getData() != null) uris.add(data.getData());
         emit("attachmentBusy", object("busy", true));
@@ -235,7 +237,7 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
     }
 
     private JSONObject attachment(Uri uri) throws Exception {
-        String name = "Вложение", mime = getContentResolver().getType(uri);
+        String name = dev.pocketllama.I18n.t("Вложение"), mime = getContentResolver().getType(uri);
         try (Cursor cursor = getContentResolver().query(uri, new String[]{OpenableColumns.DISPLAY_NAME}, null, null, null)) {
             if (cursor != null && cursor.moveToFirst() && !cursor.isNull(0)) name = cursor.getString(0);
         }
@@ -244,7 +246,7 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
         boolean image = (mime != null && mime.startsWith("image/")) || lower.matches(".*\\.(png|jpg|jpeg|webp|heic|heif|avif|gif|bmp)$");
         byte[] bytes;
         try (InputStream input = getContentResolver().openInputStream(uri)) {
-            if (input == null) throw new IOException("Не удалось открыть файл");
+            if (input == null) throw new IOException(dev.pocketllama.I18n.t("Не удалось открыть файл"));
             bytes = TextAttachment.readLimited(input, image ? 20 * 1024 * 1024 : TextAttachment.MAX_BYTES);
         }
         if (bytes.length >= 8) {
@@ -254,13 +256,13 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
         }
         JSONObject result = object("id", UUID.randomUUID().toString(), "name", name, "bytes", bytes.length);
         if (!image) return result.put("kind", "text").put("text", TextAttachment.decode(bytes));
-        if (!vision) throw new IOException("Запущенная модель не принимает картинки. Загрузите совместимый mmproj и перезапустите API.");
+        if (!vision) throw new IOException(dev.pocketllama.I18n.t("Запущенная модель не принимает картинки. Загрузите совместимый mmproj и перезапустите API."));
         Bitmap decoded = null, flattened = null;
         try {
             decoded = ImageDecoder.decodeBitmap(ImageDecoder.createSource(ByteBuffer.wrap(bytes)), (decoder, info, source) -> {
                 int width = info.getSize().getWidth(), height = info.getSize().getHeight();
                 if (width <= 0 || height <= 0 || (long) width * height > 500_000_000L)
-                    throw new IllegalArgumentException("Неподдерживаемый размер изображения");
+                    throw new IllegalArgumentException(dev.pocketllama.I18n.t("Неподдерживаемый размер изображения"));
                 double scale = Math.min(1.0, 1024.0 / Math.max(width, height));
                 decoder.setTargetSize(Math.max(1, (int)Math.round(width * scale)), Math.max(1, (int)Math.round(height * scale)));
                 decoder.setAllocator(ImageDecoder.ALLOCATOR_SOFTWARE);
@@ -268,7 +270,7 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
             flattened = Bitmap.createBitmap(decoded.getWidth(), decoded.getHeight(), Bitmap.Config.ARGB_8888);
             Canvas canvas = new Canvas(flattened); canvas.drawColor(Color.WHITE); canvas.drawBitmap(decoded, 0, 0, null);
             ByteArrayOutputStream encoded = new ByteArrayOutputStream();
-            if (!flattened.compress(Bitmap.CompressFormat.JPEG, 85, encoded)) throw new IOException("Не удалось подготовить изображение");
+            if (!flattened.compress(Bitmap.CompressFormat.JPEG, 85, encoded)) throw new IOException(dev.pocketllama.I18n.t("Не удалось подготовить изображение"));
             String url = "data:image/jpeg;base64," + Base64.encodeToString(encoded.toByteArray(), Base64.NO_WRAP);
             return result.put("kind", "image").put("data_url", url).put("width", flattened.getWidth()).put("height", flattened.getHeight());
         } finally {
@@ -291,16 +293,16 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
         });
     }
     private static String useful(Exception e) {
-        String message = e.getMessage();
-        if (message == null || message.isEmpty()) return "Ошибка обработки. Проверьте состояние модели.";
+        String message = dev.pocketllama.I18n.status(e.getMessage());
+        if (message == null || message.isEmpty()) return dev.pocketllama.I18n.t("Ошибка обработки. Проверьте состояние модели.");
         if (message.contains("ECONNREFUSED") || message.contains("Failed to connect") || message.contains("Connection refused"))
-            return "Сервер недоступен. Запустите API в настройках модели.";
+            return dev.pocketllama.I18n.t("Сервер недоступен. Запустите API в настройках модели.");
         return message;
     }
     private void fail(Exception e) { emit("error", object("message", useful(e))); }
 
     @Override public void onConfigurationChanged(android.content.res.Configuration c) { super.onConfigurationChanged(c);if(!secureInitialized())return;UiHost.colors(this,root,web);web.getSettings().setTextZoom(Math.round(100*c.fontScale)); }
-    @Override protected void onResume() { super.onResume();if(!secureInitialized()||!dev.pocketllama.security.GateSession.isOpen())return; handler.post(refresh); }
+    @Override protected void onResume() { super.onResume();if(!secureInitialized()||!dev.pocketllama.security.GateSession.isOpen())return; UiHost.syncLanguage(web);handler.post(refresh); }
     @Override protected void onPause() {if(!secureInitialized()){super.onPause();return;} handler.removeCallbacks(refresh); super.onPause(); }
     @Override protected void onDestroy() {
         destroyed = true; handler.removeCallbacks(refresh);

@@ -31,23 +31,23 @@ Source of truth: [model-catalog.json](../distribution/model-catalog.json). Worki
 
 ## Storage
 
-The public APK is approximately **271 MB**, including GigaAM v3 INT8, Silero VAD, CAM++ and PaddleOCR. Installation and local preparation need more space than the compressed download. Chat models are separate.
+The public APK is approximately **641 MB**, including GigaAM v3 INT8, Moonshine Streaming Medium with word alignment, Silero VAD, CAM++ and PaddleOCR. Installation and local preparation need more space than the compressed download. Chat models are separate.
 
-Plan on **4 GB free** for setup with the 0.8B or 2B model, or **6 GB** with 4B, then allow more for your recordings and scans. These are convenient planning allowances, not guaranteed upper bounds. The downloader checks for the remaining model bytes plus **256 MiB** of headroom; Android can also need room for installation and other work.
+Plan on **6 GB free** for setup with the 0.8B or 2B model, or **8 GB** with 4B, then allow more for your recordings and scans. These are convenient planning allowances, not guaranteed upper bounds. The downloader checks for the remaining model bytes plus **256 MiB** of headroom; Android can also need room for installation and other work.
 
 ## Languages and quality
 
 | Tool | Current scope |
 | --- | --- |
-| Interface | Russian |
-| Speech recognition | Russian, bundled GigaAM v3 |
+| Interface | English / Russian, switch in Settings |
+| Speech recognition | English: bundled Moonshine Streaming Medium; Russian: bundled GigaAM v3 |
 | OCR | Russian and English, bundled PaddleOCR |
 | Chat and summaries | Depends on the chosen LLM; Russian and English are practical starting languages for the supplied catalog |
 | Speaker labels | Approximate automatic grouping; names can be edited |
 
 Public scanner features include page capture, crop/perspective correction, photo/PDF import, text recognition, editing, search and searchable PDF export. Surya layout/table recognition is excluded from the public release pending redistribution rights.
 
-No published phone benchmark matrix is available yet. Automated host, UI and packaging checks are documented in [validation notes](VALIDATION-0.8.0.md); they do not establish battery life, real-time transcription or latency on a physical device. Start small and use the default CPU profile before tuning advanced settings.
+No published phone benchmark matrix is available yet. Automated host, UI and packaging checks are documented in [validation notes](VALIDATION-0.9.0.md); they do not establish battery life, real-time transcription or latency on a physical device. Start small and use the default CPU profile before tuning advanced settings.
 
 ## Русский
 
@@ -55,8 +55,8 @@ No published phone benchmark matrix is available yet. Automated host, UI and pac
 
 Для первого выбора ориентируйтесь на **6 ГБ ОЗУ → 0.8B**, **8 ГБ → 2B**, **12 ГБ → 4B**. Это рекомендации с запасом, а не результаты замеров. Каталог проверяет реальную память, которую сообщает Android: минимум **4 / 6 / 10 GiB** соответственно, плюс доступную память и совместимость. Рекламируемые гигабайты, занятая системой память и «расширение ОЗУ» могут отличаться от этих чисел. Оценка рабочего бюджета — **1 500 / 2 800 / 4 800 MiB**; это не измеренный пик потребления.
 
-Загрузки моделей: **646 МБ / 1,57 ГБ / 3,01 ГБ**. Контекст по умолчанию — **2 048 токенов**. Для установки приложения и одной модели удобно иметь **4 ГБ свободного места** для 0.8B/2B либо **6 ГБ** для 4B, затем дополнительное место для своих файлов. APK занимает около **271 МБ**, но установленное приложение и подготовленные модели больше сжатого файла. Проверка загрузчика — остаток файла плюс **256 MiB** запаса; это не полная оценка места для Android.
+Загрузки моделей: **646 МБ / 1,57 ГБ / 3,01 ГБ**. Контекст по умолчанию — **2 048 токенов**. Для установки приложения и одной модели удобно иметь **6 ГБ свободного места** для 0.8B/2B либо **8 ГБ** для 4B, затем дополнительное место для своих файлов. APK занимает около **641 МБ**, но установленное приложение и подготовленные модели больше сжатого файла. Проверка загрузчика — остаток файла плюс **256 MiB** запаса; это не полная оценка места для Android.
 
-Интерфейс и распознавание речи — русские, OCR — русский и английский. Языки чата и конспекта зависят от LLM. Разделение голосов приблизительное. Распознавание таблиц и разметка Surya в публичную сборку не входят.
+Интерфейс переключается EN/RU в настройках. Новые расшифровки на EN используют встроенную Moonshine Streaming Medium, на RU — GigaAM v3. OCR читает русский и английский. Незавершённая расшифровка продолжает прежнюю модель; для смены языка нужно запустить её заново. Автоматического определения языка и переключения моделей внутри одной записи нет. Языки чата и конспекта зависят от LLM. Разделение голосов приблизительное. Распознавание таблиц и разметка Surya в публичную сборку не входят.
 
 Скорость, нагрев и расход батареи зависят от телефона; сравнительных замеров на устройствах пока нет. Начните с небольшой модели и стандартных настроек CPU. [Инструкция на русском →](GETTING-STARTED-RU.md)

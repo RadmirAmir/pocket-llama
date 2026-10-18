@@ -25,7 +25,7 @@ An unsigned bundle is for structural validation. Upload requires the publisher's
 
 | Profile | Application ID | Model delivery |
 | --- | --- | --- |
-| `community` | `dev.pocketllama` | GigaAM v3 INT8, Silero VAD, CAM++ and PaddleOCR in the APK |
+| `community` | `dev.pocketllama` | GigaAM v3 INT8, Moonshine Streaming Medium, Silero VAD, CAM++ and PaddleOCR in the APK |
 | `play` | `dev.pocketllama` | The same models in install-time AI packs |
 | Personal | `dev.pocketllama.memoryfix` | Separate existing installation; restricted components require their own redistribution rights |
 
@@ -39,11 +39,11 @@ bash scripts/test-core.sh
 python3 scripts/release-check.py
 ```
 
-The [GitHub workflow](../.github/workflows/android.yml) restores pinned dependencies and checks the host, frontend and Android build. [Validation notes](VALIDATION-0.8.0.md) distinguish automated checks from the phone and Play-track checks still needed.
+The [GitHub workflow](../.github/workflows/android.yml) restores pinned dependencies and checks the host, frontend and Android build. [Validation notes](VALIDATION-0.9.0.md) distinguish automated checks from the phone and Play-track checks still needed.
 
 ## Documentation graphics
 
-The README images use actual web UI assets with synthetic, explicitly labeled demo content. They do not invoke a model or show private user data. Native screen-capture protection is not bypassed.
+The README images use the actual EN/RU web UI assets and the same dictionary as the APK with synthetic, explicitly labeled demo content. They do not invoke a model or show private user data. Native screen-capture protection is not bypassed.
 
 With Playwright and Chromium installed:
 

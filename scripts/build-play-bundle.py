@@ -22,7 +22,8 @@ def main():
      if name in seen:raise SystemExit('Asset appears in multiple modules: '+name)
      seen.add(name)
     if index>0 and (name.startswith('lib/') or name.endswith(('.dex','.so','.jar'))):raise SystemExit('Executable code is not permitted in AI packs')
- if 'assets/speech/gigaam.int8.onnx' not in seen or 'assets/ocr/rec.onnx' not in seen:raise SystemExit('Required install-time models missing')
+ required=['assets/speech/gigaam.int8.onnx','assets/ocr/rec.onnx','assets/moonshine/manifest.json','assets/moonshine/encoder.ort','assets/moonshine/decoder_kv.ort','assets/moonshine/decoder_kv_with_attention.ort','assets/moonshine/tokenizer.bin']
+ if any(name not in seen for name in required):raise SystemExit('Required RU / EN speech or OCR install-time models missing')
  if not stage['surya'] and any(n.startswith('assets/surya/') for n in seen):raise SystemExit('Restricted OCR weights in public profile')
  output=Path(a.output or ROOT/'artifacts'/('PocketLlama-'+config['versionName']+('-play.aab' if a.sign else '-play-unsigned.aab'))).resolve();output.parent.mkdir(parents=True,exist_ok=True)
  work=ROOT/'build/play-bundle';work.mkdir(parents=True,exist_ok=True);unsigned=work/'unsigned.aab'

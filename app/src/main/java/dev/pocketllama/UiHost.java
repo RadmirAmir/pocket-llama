@@ -18,11 +18,11 @@ import java.util.Set;
 public final class UiHost {
     public static final String ORIGIN = "https://pocket.local/assets/";
     private static final Set<String> ASSETS = new HashSet<>(Arrays.asList(
-        "studio.html", "studio.css", "studio.js", "photos.html", "photos.css", "photos.js", "design.css", "theme.js", "chat.html", "chat.css", "fonts/Manrope.ttf"));
+        "studio.html", "studio.css", "studio.js", "photos.html", "photos.css", "photos.js", "design.css", "theme.js", "i18n.js", "chat.html", "chat.css", "fonts/Manrope.ttf"));
     private UiHost() {}
     public static String appearance(Context c) { return c.getSharedPreferences("interface", Context.MODE_PRIVATE).getString("appearance", "auto"); }
     public static void appearance(Activity a, FrameLayout root, WebView web, String value) {
-        if (!Arrays.asList("auto", "light", "dark").contains(value)) throw new IllegalArgumentException("Неизвестная тема");
+        if (!Arrays.asList("auto", "light", "dark").contains(value)) throw new IllegalArgumentException(dev.pocketllama.I18n.t("Неизвестная тема"));
         a.getSharedPreferences("interface", Context.MODE_PRIVATE).edit().putString("appearance", value).apply();
         colors(a, root, web);
     }
@@ -39,7 +39,11 @@ public final class UiHost {
     }
     public static void attach(Activity a, FrameLayout root, WebView web) { attach(a,root,web,null); }
     public interface PrivateContent { WebResourceResponse load(String url); }
+    public static void syncLanguage(WebView web) {
+        if(web!=null&&!I18n.language().equals(web.getTag())){web.setTag(I18n.language());web.reload();}
+    }
     public static void attach(Activity a, FrameLayout root, WebView web, PrivateContent content) {
+        web.setTag(I18n.language());
         colors(a, root, web);
         if (Build.VERSION.SDK_INT >= 30) {
             a.getWindow().setDecorFitsSystemWindows(false);

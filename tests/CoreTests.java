@@ -60,6 +60,12 @@ public final class CoreTests {
         return f;
     }
     public static void main(String[] args) throws Exception {
+        check(SpeechLanguage.choose("en","ru",false,false).equals("en"),"Fresh transcription follows EN");
+        check(SpeechLanguage.choose("ru","en",false,false).equals("ru"),"Fresh transcription follows RU");
+        check(SpeechLanguage.choose("en","ru",false,true).equals("ru"),"Never mix Moonshine into committed GigaAM chunks");
+        check(SpeechLanguage.choose("ru","en",false,true).equals("en"),"Never mix GigaAM into committed Moonshine chunks");
+        check(SpeechLanguage.choose("en","ru",true,false).equals("ru"),"Completed transcript keeps its engine until an explicit restart");
+        try{SpeechLanguage.choose("fr","ru",false,false);throw new AssertionError("Unsupported speech language accepted");}catch(IllegalArgumentException expected){}
         File dir = new File(args[0]); dir.mkdirs();
         GgufMetadata parsed = GgufReader.read(fixture(dir,1,false));
         check(parsed.architecture().equals("qwen3"),"Architecture");

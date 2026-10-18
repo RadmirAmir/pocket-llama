@@ -1,22 +1,22 @@
 {
-  "version": "1.22.0",
-  "source": "https://repo.maven.apache.org/maven2/com/microsoft/onnxruntime/onnxruntime-android/1.22.0/onnxruntime-android-1.22.0.aar",
-  "aar_sha256": "04a4617a9c797cf49225595e45b5546081cb34c86ac817581141577d3b7dbfe2",
+  "version": "1.23.2",
+  "source": "https://repo.maven.apache.org/maven2/com/microsoft/onnxruntime/onnxruntime-android/1.23.2/onnxruntime-android-1.23.2.aar",
+  "aar_sha256": "82048d1f462218adae4ba76477089ab0ba76093d84f733540066db1a8ba6b827",
   "files": [
     {
-      "path": "app/libs/onnxruntime-android-1.22.0.jar",
-      "sha256": "32eaa4b185ab1935dc80ae034c8fbf8a140633268a7eaed98fc65fb25f337835",
-      "bytes": 110932
+      "path": "app/libs/onnxruntime-android-1.23.2.jar",
+      "sha256": "c21c4b520c66dda4c8d6e17e7a64f2b38314a83f8a29ecfa60900f876b758752",
+      "bytes": 111127
     },
     {
       "path": "app/src/main/jniLibs/arm64-v8a/libonnxruntime.so",
-      "sha256": "999ecfdb5b5a13e4097487773b6d71ce8a075408a237daab072e8f5e817bd78e",
-      "bytes": 18214224
+      "sha256": "e40f09d07dc53726b8bfbf48a7907673b8f86718a057655a62790a39874a7302",
+      "bytes": 19347616
     },
     {
       "path": "app/src/main/jniLibs/arm64-v8a/libonnxruntime4j_jni.so",
-      "sha256": "5614bd018cca9031c4dbcfc2a3bece42fae52861a92ff09c4bd2491bd93ac758",
-      "bytes": 100600
+      "sha256": "2cc3f16ab527959a81b572adebcfb71a25ea4b8547c9b92d705b423e9c822d39",
+      "bytes": 100648
     }
   ]
 }

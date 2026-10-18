@@ -41,6 +41,7 @@ jobs:
           node scripts/test-catalogue-ui.cjs
           node scripts/test-studio-ui.cjs
           node scripts/test-scanner-ui.cjs
+          node scripts/test-i18n-ui.cjs
   android:
     runs-on: ubuntu-latest
     steps:

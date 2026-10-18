@@ -23,7 +23,7 @@ def main():
   d=work/name
   if d.exists():shutil.rmtree(d)
   d.mkdir()
- jars=[ROOT/'app/libs'/n for n in ['onnxruntime-android-1.22.0.jar','opencv-4.12.0.jar','jsoup-1.21.2.jar']];android=sdk/'platforms/android-35/android.jar';src=ROOT/'app/src/main/java/dev/pocketllama'
+ jars=[ROOT/'app/libs'/n for n in ['onnxruntime-android-1.23.2.jar','opencv-4.12.0.jar','jsoup-1.21.2.jar']];android=sdk/'platforms/android-35/android.jar';src=ROOT/'app/src/main/java/dev/pocketllama'
  names=['PhotoStore','DocumentStore','PhotoImages','EncryptedFiles','ScanGeometry','ScanImages','DocumentEdges','SuryaAssets','SuryaDetector','SafeOcrHtml','SuryaProtocol','ScanExports','ScanPdf','ScanXlsx','OcrEngine','OcrRaster','OcrGeometry']
  files=[src/'photo'/(n+'.java') for n in names]+[src/'core/TextAttachment.java',ROOT/'tests/scanner-stubs/dev/pocketllama/photo/PhotoKey.java']+sorted((ROOT/'tests/android-scanner').glob('*.java'))
  run([jdk/'bin/javac','--release','11','-encoding','UTF-8','-cp',os.pathsep.join(map(str,[android]+jars)),'-d',work/'classes']+files)

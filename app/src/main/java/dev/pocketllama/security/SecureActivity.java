@@ -5,6 +5,7 @@ import android.view.*;
 import java.util.*;
 /** Native opaque gate covers every sensitive screen before any store or WebView is initialized. */
 public abstract class SecureActivity extends Activity {
+    @Override protected void attachBaseContext(android.content.Context base){dev.pocketllama.I18n.initialize(base);super.attachBaseContext(dev.pocketllama.I18n.wrap(base));}
     private boolean initialized,resumed;private Bundle restored;private final List<Runnable> deferred=new ArrayList<>();
     @Override public final void onCreate(Bundle state){super.onCreate(state);getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);restored=state;GateSession.register(this);}
     protected abstract void onSecureCreate(Bundle state);

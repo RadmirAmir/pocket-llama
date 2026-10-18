@@ -9,11 +9,15 @@ import java.security.MessageDigest;
 public final class SpeechAssets {
     private SpeechAssets(){}
     public static File prepare(Context c)throws Exception{
+        return prepare(c,true);
+    }
+    public static File prepare(Context c,boolean includeGigaAm)throws Exception{
         File dir=new File(c.getFilesDir(),"speech-models-v1");if(!dir.isDirectory()&&!dir.mkdirs())throw new IOException("Нет места для речевых моделей");
         JSONObject manifest;try(InputStream in=c.getAssets().open("speech/manifest.json")){manifest=new JSONObject(read(in));}
         JSONArray files=manifest.getJSONArray("files");
         // The caller owns ModelLease, so first-use extraction cannot race another speech job.
         for(int i=0;i<files.length();i++){JSONObject entry=files.getJSONObject(i);String name=entry.getString("name");if(!name.matches("[a-zA-Z0-9._-]+"))throw new IOException("Некорректный пакет моделей");
+            if(!includeGigaAm&&(name.equals("gigaam.int8.onnx")||name.equals("tokens.tsv")))continue;
             File target=new File(dir,name);if(target.length()==entry.getLong("bytes")&&new File(dir,name+".ok").isFile())continue;
             if(dir.getUsableSpace()<entry.getLong("bytes")+64*1024*1024L)throw new IOException("Недостаточно места для речевых моделей (нужно около 260 МБ)");
             File part=new File(dir,name+".part");MessageDigest md=MessageDigest.getInstance("SHA-256");long count=0;

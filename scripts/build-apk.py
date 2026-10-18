@@ -75,6 +75,11 @@ def main():
             path = ROOT / item['path']
             if not path.is_file() or path.stat().st_size != item['bytes'] or hashlib.sha256(path.read_bytes()).hexdigest() != item['sha256']:
                 parser.error('Security runtime mismatch: run python3 scripts/prepare-security.py: ' + item['path'])
+    for runtime_lock in ('speech-runtime.lock.json', 'moonshine-runtime.lock.json'):
+        for item in json.loads((ROOT / runtime_lock).read_text())['files']:
+            path = ROOT / item['path']
+            if not path.is_file() or path.stat().st_size != item['bytes'] or hashlib.sha256(path.read_bytes()).hexdigest() != item['sha256']:
+                parser.error('Speech runtime checksum mismatch: run python3 scripts/prepare-runtime.py: ' + item['path'])
     for item in json.loads((ROOT / 'video-runtime.manifest.json').read_text())['files']:
         path=ROOT/item['path']
         if not path.is_file() or path.stat().st_size!=item['bytes'] or hashlib.sha256(path.read_bytes()).hexdigest()!=item['sha256']:
@@ -101,7 +106,7 @@ def main():
     run(aapt, 'link', '-o', build / 'resources.ap_', '-I', android, '--manifest', manifest,
         '--java', build / 'generated', '--custom-package', 'dev.pocketllama', '--min-sdk-version', '29', '--target-sdk-version', '36',
         '--version-code', str(info['versionCode']), '--version-name', info['versionName'], build / 'resources.zip')
-    jars = [ROOT / 'app/libs/onnxruntime-android-1.22.0.jar', ROOT / 'app/libs/opencv-4.12.0.jar', ROOT / 'app/libs/jsoup-1.21.2.jar'] + [ROOT / item['path'] for artifact in json.loads((ROOT / 'security-runtime.lock.json').read_text())['artifacts'] for item in artifact['files'] if item['path'].endswith('.jar')]
+    jars = [ROOT / 'app/libs/onnxruntime-android-1.23.2.jar', ROOT / 'app/libs/opencv-4.12.0.jar', ROOT / 'app/libs/jsoup-1.21.2.jar'] + [ROOT / item['path'] for artifact in json.loads((ROOT / 'security-runtime.lock.json').read_text())['artifacts'] for item in artifact['files'] if item['path'].endswith('.jar')]
     classpath = os.pathsep.join([str(android), *map(str, jars)])
     java, javac = jdk / 'bin' / ('java'+suffix), jdk / 'bin' / ('javac'+suffix)
     sources = source_files(ROOT / 'app/src/main/java', '*.java') + source_files(build / 'generated', '*.java')

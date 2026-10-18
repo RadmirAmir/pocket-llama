@@ -14,7 +14,8 @@ def selected():
   if rel.as_posix().startswith('docs/internal/'):continue
   if any(x.startswith('.') for x in rel.parts) and rel.parts[0]!='.github' and rel.as_posix()!='.gitignore':continue
   if rel.parts[0] not in DIRS and rel.as_posix() not in FILES and not (len(rel.parts)==1 and (p.name.endswith('.lock.json') or p.name=='llama.lock')):continue
-  if p.suffix.lower() in {'.so','.onnx','.gguf','.apk','.aab','.apks','.zip','.part','.pem','.jks','.keystore','.p12','.pfx','.pyc'}:continue
+  if p.suffix.lower() in {'.so','.onnx','.ort','.gguf','.apk','.aab','.apks','.zip','.part','.pem','.jks','.keystore','.p12','.pfx','.pyc'}:continue
+  if rel.as_posix().startswith('app/src/main/assets/moonshine/') and rel.name!='manifest.json':continue
   if p.suffix=='.jar' and rel.as_posix()!='gradle/wrapper/gradle-wrapper.jar':continue
   if rel.as_posix().startswith('app/src/main/assets/video/') and rel.name!='launcher.py':continue
   if len(rel.parts)>2 and rel.parts[0].endswith('_pack') and 'assets' in rel.parts:continue

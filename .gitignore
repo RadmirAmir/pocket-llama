@@ -37,3 +37,6 @@ signing/
 
 # Private engineering history is retained in the maintainer snapshot only.
 docs/internal/
+*.ort
+app/src/main/assets/moonshine/*
+!app/src/main/assets/moonshine/manifest.json

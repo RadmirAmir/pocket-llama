@@ -22,7 +22,9 @@ public final class SummaryPipelineTests {
     public static void main(String[] args)throws Exception{
         HttpServer server=HttpServer.create(new InetSocketAddress("127.0.0.1",0),0);
         server.createContext("/",e->{try{
-            JSONObject body=new JSONObject(new String(e.getRequestBody().readAllBytes(),StandardCharsets.UTF_8));String path=e.getRequestURI().getPath();
+            String path=e.getRequestURI().getPath();
+            if(path.equals("/v1/models")&&e.getRequestMethod().equals("GET")){reply(e,"{\"data\":[]}","application/json");return;}
+            JSONObject body=new JSONObject(new String(e.getRequestBody().readAllBytes(),StandardCharsets.UTF_8));
             if(path.equals("/apply-template")){reply(e,new JSONObject().put("prompt",body.getJSONArray("messages").toString()).toString(),"application/json");return;}
             if(path.equals("/tokenize")){JSONArray tokens=new JSONArray();for(int i=0;i<(body.getString("content").length()+1)/2;i++)tokens.put(1);reply(e,new JSONObject().put("tokens",tokens).toString(),"application/json");return;}
             if(!path.equals("/v1/chat/completions"))throw new AssertionError(path);
@@ -50,7 +52,13 @@ public final class SummaryPipelineTests {
             if(requests!=count)throw new AssertionError("Cancel still made inference calls");
             Source video=new Source();video.data.add("[#1] В лекции приведены два аргумента.\n");String videoSummary=new LocalSummary(video,port,"test",2048,true).summarize(s->{});
             if(!videoSummary.contains("Ключевые тезисы")||!videoSummary.contains("Практические выводы")||videoSummary.contains("Ответственный:"))throw new AssertionError("Video is rendered as a meeting protocol");
-            System.out.println("PASS: video summary format");
+            Source english=new Source();english.data.add("[#1] Анна: запуск в пятницу.\n");
+            String englishSummary=new LocalSummary(english,port,"test",2048,false,true).summarize(s->{});
+            if(!englishSummary.contains("## Overview")||!englishSummary.contains("## Decisions")||!englishSummary.contains("Not recorded.")||!englishSummary.contains("[#1]"))throw new AssertionError("English summary labels or references lost");
+            Source englishVideo=new Source();englishVideo.data.add("[#1] Пример из лекции.\n");
+            String englishVideoSummary=new LocalSummary(englishVideo,port,"test",2048,true,true).summarize(s->{});
+            if(!englishVideoSummary.contains("## Key points")||!englishVideoSummary.contains("## Practical takeaways")||englishVideoSummary.contains("## Decisions"))throw new AssertionError("English video uses meeting labels");
+            System.out.println("PASS: Russian and English meeting/video summary formats");
             System.out.println("PASS: long summary budgets, hierarchical reduction, checkpoint reuse, citation rejection, cancellation; inference calls="+requests);
         }finally{server.stop(0);}
     }

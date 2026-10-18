@@ -18,7 +18,7 @@ def main():
    for f in lock['files']:
     dest=ROOT/f['path'];dest.parent.mkdir(parents=True,exist_ok=True);dest.write_bytes(z.read('classes.jar' if dest.suffix=='.jar' else 'jni/arm64-v8a/'+dest.name))
     if dest.stat().st_size!=f['bytes'] or digest(dest)!=f['sha256']:raise ValueError('ONNX Runtime extracted file mismatch')
- for script,args in [('prepare-security.py',[]),('prepare-ocr.py',[]),('prepare-speech.py',[]),('prepare-scanner.py',[] if a.personal else ['--public']),('prepare-video.py',[])]:
+ for script,args in [('prepare-security.py',[]),('prepare-ocr.py',[]),('prepare-speech.py',[]),('prepare-moonshine.py',[]),('prepare-scanner.py',[] if a.personal else ['--public']),('prepare-video.py',[])]:
   subprocess.run([sys.executable,str(ROOT/'scripts'/script),*args],cwd=ROOT,check=True)
  print('Runtime restored. Build llama with scripts/build-native.sh cpu before Gradle.')
 if __name__=='__main__':main()

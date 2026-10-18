@@ -22,7 +22,7 @@ def prepare(channel,with_surya=None,bundle_surya=True):
   raise SystemExit('Public Surya distribution requires documented rights for BOTH the VLM and the CC-BY-NC-SA detector. See docs/LICENSING.md.')
  assets=ROOT/'app/src/main/assets'
  allowed={}
- for group in ['speech','ocr']:
+ for group in ['speech','ocr','moonshine']:
   manifest=json.loads((assets/group/'manifest.json').read_text())
   allowed[group]={'manifest.json'}|{f['name'] for f in manifest['files']}
   for f in manifest['files']:checked(assets/group/f['name'],f['bytes'],f['sha256'])
@@ -40,19 +40,21 @@ def prepare(channel,with_surya=None,bundle_surya=True):
   if any(part.startswith('.') for part in rel.parts):continue
   if rel.parts[0] in allowed and rel.name not in allowed[rel.parts[0]]:continue
   if rel.parts[0]=='surya' and not with_surya:continue
-  if channel=='play' and rel.parts[0] in ['speech','ocr','surya']:continue
+  if channel=='play' and rel.parts[0] in ['speech','ocr','moonshine','surya']:continue
   copy(p,common/rel)
  for p in (ROOT/'notices').glob('*.txt'):copy(p,common/'notices'/p.name)
  runtime={'channel':channel,'suryaEnabled':with_surya,'catalogUrl':config['publisher']['catalogUrl'],'reportingUrl':config['publisher']['reportingUrl'],'privacyPolicyUrl':config['publisher']['privacyPolicyUrl'],'supportEmail':config['publisher']['supportEmail']}
  (common/'distribution.json').write_text(json.dumps(runtime,ensure_ascii=False,indent=2)+'\n')
  packs={}
  if channel=='play':
-  for group in ['speech','ocr']:
-   pack=ROOT/(group+'_pack')/'src/main/assets'
+  for pack_name in ['speech_pack','ocr_pack']:
+   pack=ROOT/pack_name/'src/main/assets'
    if pack.exists():shutil.rmtree(pack)
+  for group,pack_name in [('speech','speech_pack'),('moonshine','speech_pack'),('ocr','ocr_pack')]:
+   pack=ROOT/pack_name/'src/main/assets'
    for p in (assets/group).rglob('*'):
     if p.is_file() and p.name in allowed[group]:copy(p,pack/group/p.relative_to(assets/group))
-   packs[group+'_pack']=sum(p.stat().st_size for p in pack.rglob('*') if p.is_file())
+   packs[pack_name]=sum(p.stat().st_size for p in pack.rglob('*') if p.is_file())
  if with_surya and bundle_surya:
   if channel=='play':
    for f,pack_name in zip(scanner['surya']['models'],['surya_pack','surya_vision_pack']):

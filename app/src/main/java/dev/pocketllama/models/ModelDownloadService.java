@@ -35,7 +35,7 @@ public final class ModelDownloadService extends Service {
         if(!START.equals(intent.getAction())||!dev.pocketllama.security.GateSession.isOpen()){stopSelf();return START_NOT_STICKY;}
         if(!RUNNING.compareAndSet(false,true))return START_NOT_STICKY;
         id=intent.getStringExtra("id");done=0;total=0;error="";stage="Подготавливаем загрузку";state="downloading";paused=false;
-        getSystemService(NotificationManager.class).createNotificationChannel(new NotificationChannel("models","Загрузка моделей",NotificationManager.IMPORTANCE_LOW));
+        getSystemService(NotificationManager.class).createNotificationChannel(new NotificationChannel("models",dev.pocketllama.I18n.t("Загрузка моделей"),NotificationManager.IMPORTANCE_LOW));
         startForeground(480,notification());
         executor.execute(()->download());return START_NOT_STICKY;
     }
@@ -55,7 +55,7 @@ public final class ModelDownloadService extends Service {
     private Notification notification(){
         Intent open=new Intent(this,VoiceActivity.class).putExtra("screen","settings");PendingIntent content=PendingIntent.getActivity(this,480,open,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
         PendingIntent pause=PendingIntent.getService(this,481,new Intent(this,ModelDownloadService.class).setAction(PAUSE),PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
-        return new Notification.Builder(this,"models").setSmallIcon(android.R.drawable.stat_sys_download).setContentTitle("Pocket · модель").setContentText(stage+(total>0?" · "+done/1048576+" / "+total/1048576+" МБ":"")).setContentIntent(content).setOngoing(true).setOnlyAlertOnce(true).setProgress(100,total>0?(int)Math.min(100,done*100/total):0,total<=0||state.equals("verifying")).addAction(new Notification.Action.Builder(null,"Приостановить",pause).build()).build();
+        return new Notification.Builder(this,"models").setSmallIcon(android.R.drawable.stat_sys_download).setContentTitle(dev.pocketllama.I18n.t("Pocket · модель")).setContentText(dev.pocketllama.I18n.status(stage)+(total>0?" · "+done/1048576+" / "+total/1048576+" МБ":"")).setContentIntent(content).setOngoing(true).setOnlyAlertOnce(true).setProgress(100,total>0?(int)Math.min(100,done*100/total):0,total<=0||state.equals("verifying")).addAction(new Notification.Action.Builder(null,dev.pocketllama.I18n.t("Приостановить"),pause).build()).build();
     }
     @Override public void onDestroy(){paused=true;VerifiedDownload d=transfer;if(d!=null)d.cancel();executor.shutdownNow();if(wake!=null&&wake.isHeld())wake.release();super.onDestroy();}
     @Override public void onTimeout(int startId,int fgsType){paused=true;VerifiedDownload d=transfer;if(d!=null)d.cancel();stopSelf();}

@@ -11,8 +11,8 @@ def models(archive,prefix,personal,personal_compact=False):
  with zipfile.ZipFile(archive) as z:
   names=z.namelist();assert len(names)==len(set(names)),'Duplicate archive entry'
   expected=[]
-  for group in ['speech','ocr']:
-   module='' if prefix=='apk' else group+'_pack/'
+  for group in ['speech','moonshine','ocr']:
+   module='' if prefix=='apk' else ('speech_pack/' if group=='moonshine' else group+'_pack/')
    for item in json.loads((ROOT/'app/src/main/assets'/group/'manifest.json').read_text())['files']:
     expected.append((module+'assets/'+group+'/'+item['name'],item['bytes'],item['sha256']))
   if personal:
@@ -27,7 +27,7 @@ def models(archive,prefix,personal,personal_compact=False):
    with z.open(name) as source:assert digest(source)==sha,'Model checksum: '+name
   meta=json.loads(z.read(('' if prefix=='apk' else 'base/')+'assets/distribution.json'))
   assert meta['suryaEnabled']==personal
-  for asset in ['studio.js','photos.js','chat.html','model-catalog/catalog.signed.json','model-catalog/public-key.txt']:
+  for asset in ['studio.js','photos.js','chat.html','i18n.js','i18n-en.json','model-catalog/catalog.signed.json','model-catalog/public-key.txt']:
    assert z.read(('' if prefix=='apk' else 'base/')+'assets/'+asset)==(ROOT/'app/src/main/assets'/asset).read_bytes(),'Stale app asset: '+asset
   return {'modelsVerified':len(expected),'channel':meta['channel'],'suryaBundled':bool(personal and not personal_compact),'bytes':Path(archive).stat().st_size}
 def certificate(java,signer,path):
@@ -39,5 +39,5 @@ def main():
  report={'personal':models(personal,'apk',True,a.personal_compact),'community':models(community,'apk',False),'play':models(bundle,'bundle',False)}
  signer=Path(a.sdk)/'build-tools/36.0.0/lib/apksigner.jar';java=str(Path(a.jdk)/'bin/java');old=certificate(java,signer,Path(a.old_apk));new=certificate(java,signer,personal);assert old==new,'Legacy update certificate changed'
  report['legacyCertificateMatches']=True;report['legacyCertificateSha256']=new
- target=ROOT/'docs/artifact-validation-0.8.0.json';target.write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(report,indent=2))
+ target=ROOT/('docs/artifact-validation-'+v+'.json');target.write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(report,indent=2))
 if __name__=='__main__':main()

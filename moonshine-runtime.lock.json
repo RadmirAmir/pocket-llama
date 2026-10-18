@@ -1,0 +1,20 @@
+{
+  "version": "0.1.5",
+  "source": "https://repo.maven.apache.org/maven2/ai/moonshine/moonshine-voice/0.1.5/moonshine-voice-0.1.5.aar",
+  "aar_sha256": "ee2d95c21150683c743db8f3aef66281fd5408bcefc94be3ca1d2545ada1f571",
+  "onnxruntime": "1.23.2",
+  "files": [
+    {
+      "path": "app/src/main/jniLibs/arm64-v8a/libmoonshine.so",
+      "bytes": 11112456,
+      "sha256": "922eddb6a0316f94091f40c5304db152e1b33ac4ad36db97823157dd402e19e0"
+    },
+    {
+      "path": "app/src/main/jniLibs/arm64-v8a/libmoonshine-jni.so",
+      "bytes": 104520,
+      "sha256": "08f81c6f173df3929a5a4977db7fa8488358038dafdadd3ac0b17df233f2d357"
+    }
+  ],
+  "license": "MIT",
+  "javaSource": "https://repo.maven.apache.org/maven2/ai/moonshine/moonshine-voice/0.1.5/moonshine-voice-0.1.5-sources.jar"
+}

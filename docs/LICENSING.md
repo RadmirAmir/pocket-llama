@@ -6,6 +6,7 @@ Pocket's own code is Apache-2.0. Preserve all third-party notices. This document
 | --- | --- |
 | llama.cpp and ONNX Runtime | MIT; sources and pinned versions are in the lock files and build scripts |
 | GigaAM v3 and the selected ONNX conversion | MIT; preserve the model and converter notices |
+| Moonshine Voice 0.1.5 and English Streaming Medium | MIT; runtime, word-alignment decoder, model mirror revision and hashes are pinned in `moonshine-runtime.lock.json` and `moonshine-models.lock.json`; see `notices/MOONSHINE.txt` |
 | Silero VAD | MIT; preserve the bundled notice |
 | CAM++ / 3D-Speaker | Retains its upstream notice; the exact conversion is pinned in `speech-models.lock.json` |
 | PaddleOCR and OpenCV | Apache-2.0; preserve notices |
@@ -19,6 +20,9 @@ The Surya license includes restrictions on competing products, funding/revenue t
 `distribution/release.json` stores approval flags. The `evidenceFile` values must refer to actual permission documents outside the public repository. `prepare-distribution.py` refuses to stage a public Surya package without both approvals. The personal profile preserves the previously used model package; it must not be uploaded as the public release.
 
 Primary references:
+
+- https://github.com/moonshine-ai/moonshine
+- https://huggingface.co/moonshine-ai/moonshine-voice-assets
 
 - https://huggingface.co/ai-sage/GigaAM-v3
 - https://huggingface.co/vvpreo/gigaam-v3-onnx
