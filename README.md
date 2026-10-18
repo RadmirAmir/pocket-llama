@@ -1,47 +1,102 @@
-# Pocket
+<p align="center"><b>English</b> · <a href="README-RU.md">Русский</a></p>
 
-Private Android recorder, Russian speech transcription, document scanner and local LLM chat. Android 10+, ARM64. Processing runs on the device. Optional model downloads and explicitly requested video imports need a network connection.
+![Pocket. Your AI. Your phone. Your business. Record conversations, scan documents and think things through offline.](docs/media/hero-en.png)
 
-Version 0.8.0 prepares distribution and model management. It is a release candidate, not an already reviewed Google Play release.
+<h1 align="center">A personal AI. A private space.</h1>
 
-**[Download the Android preview APK](https://github.com/RadmirAmir/pocket-llama/releases/download/v0.8.0-rc.1/PocketLlama-0.8.0-community-arm64.apk)** · [Release notes, unsigned AAB and SHA-256 checksums](https://github.com/RadmirAmir/pocket-llama/releases/tag/v0.8.0-rc.1). Android 10+, ARM64. GigaAM and PaddleOCR are included; choose and download an LLM from the in-app catalog. The public preview installs alongside the personal app.
+<p align="center">Turn conversations into notes. Paper into text. Questions into a conversation.<br><b>All AI processing happens on your Android phone.</b></p>
 
-| Channel | Application ID | Included models |
-| --- | --- | --- |
-| Personal update | `dev.pocketllama.memoryfix` | GigaAM v3 INT8, Silero VAD, CAM++, PaddleOCR; optional Surya for the existing permitted personal use |
-| Community APK | `dev.pocketllama` | GigaAM v3 INT8, Silero VAD, CAM++, PaddleOCR |
-| Google Play AAB | `dev.pocketllama` | The community models, delivered in install-time AI packs |
+<p align="center"><a href="https://github.com/RadmirAmir/pocket-llama/releases/download/v0.8.0-rc.1/PocketLlama-0.8.0-community-arm64.apk"><b>↓ Download for Android</b></a> · <a href="docs/GETTING-STARTED.md">Get started</a> · <a href="docs/SECURITY.md">Privacy & security</a></p>
 
-The public profiles exclude the restricted Surya weights and the CC-BY-NC-SA detector. Including them requires documented redistribution rights for both components. See [licensing](docs/LICENSING.md).
+<p align="center">Android 10+ · ARM64 · Open source · No account · No ads</p>
 
-The supplied compact personal update retains the previous Surya detector and reuses existing VLM weights; a fresh Surya setup needs a separate download. GigaAM and PaddleOCR work offline immediately. A fully bundled personal build can also be made for a permitted use; see the release guide.
+Your best ideas do not need a cloud account. Neither do your conversations, documents or questions. Pocket brings a recorder, speech recognition, a scanner and an AI chat into one encrypted space on your phone. Download a chat model once, then use the core tools in airplane mode.
 
-The in-app catalog contains three pinned Qwen 3.5 files. Downloads support pause/resume, SHA-256 checks, atomic installation and a signed catalog. The catalog chooses a recommendation based on RAM and current free memory. This is a compatibility heuristic, not a phone benchmark. Custom GGUF import remains available.
+**Public preview: 0.8.0-rc.1.** Available here as an APK, approximately 271 MB. Google Play release is being prepared. The current interface and speech recognition are Russian; OCR reads Russian and English, and chat languages depend on your model.
 
-## Build
+## Remember the conversation. Keep the original.
 
-Use JDK 17, Python 3.11+, Android SDK platform 36, build-tools 36.0.0 and NDK r28.2.13676358. Native builds require CMake and Ninja.
+Record a meeting, a lecture or a thought before it disappears. Pocket turns Russian speech into a searchable transcript, separates speakers and can build a short summary with links back to the relevant words. Tap a source to hear what was actually said.
 
-```bash
-python3 -m pip install -r requirements-build.txt
-python3 scripts/prepare-runtime.py
-bash scripts/build-native.sh cpu
-./gradlew -Ppocket.channel=community assembleDebug
-python3 scripts/prepare-build-tools.py
-./gradlew -Ppocket.channel=play :app:buildReleasePreBundle :app:assetPackReleasePreBundleTask :app:lintVitalRelease
-python3 scripts/build-play-bundle.py --bundletool build/tools/bundletool.jar
-```
+**GigaAM v3 speech recognition is included.** Recording and transcription do not need an extra model download. Summaries use the local language model you choose.
 
-An unsigned release bundle is suitable for structural validation; a publisher keystore is required for upload. See [release instructions](docs/RELEASE.md), [privacy draft](docs/PRIVACY.md), [validation](docs/VALIDATION-0.8.0.md) and [Russian guide](README-RU.md).
+## An assistant that fits your phone
 
-```bash
-CHAT_JSON_JAR=/path/to/json.jar bash scripts/test-distribution.sh
-bash scripts/test-core.sh
-python3 scripts/release-check.py
-```
+Draft a message, work through an idea, or ask for a clearer explanation. Choose a small model from the built-in catalog instead of guessing which file to download. Pocket shows the size and memory requirements, supports pause and resume, and verifies the downloaded file. You can also import your own compatible GGUF.
 
-The GitHub workflow restores the locked dependencies and builds the Android artifacts. Large model files, native outputs and credentials are excluded from git. The Gradle wrapper distribution has a pinned SHA-256.
+**No cloud inference service. No account to create.** Your conversation is stored in the app's encrypted vault.
 
-## License
+## From paper to something you can use
 
-Pocket's own code is Apache-2.0. Dependencies, model weights and bundled runtimes retain their individual licenses; see `NOTICE`, `notices/` and [the component inventory](docs/LICENSING.md). Model licenses are not replaced by the app's source license.
+Scan a receipt, a page of notes or a document. Adjust the edges, correct the perspective, recognize the text, and find it again later. Add multiple pages, import photos or PDFs, edit the result, and export a searchable PDF.
+
+**PaddleOCR is included.** Russian and English text recognition runs locally from the first installation.
+
+<table>
+  <tr><th>Record</th><th>Chat</th><th>Scan</th></tr>
+  <tr>
+    <td width="33%"><a href="docs/media/recorder.png"><img src="docs/media/recorder.png" alt="Pocket recording with a local summary and links to the transcript"></a></td>
+    <td width="33%"><a href="docs/media/chat.png"><img src="docs/media/chat.png" alt="Pocket local chat with a sample project planning conversation"></a></td>
+    <td width="33%"><a href="docs/media/scanner.png"><img src="docs/media/scanner.png" alt="Pocket encrypted document library with scan and PDF import controls"></a></td>
+  </tr>
+</table>
+
+<sub>Actual app web interfaces rendered with illustrative demo content. The chat and summary examples are not model benchmarks. Native Android system screens are omitted.</sub>
+
+## Private by design, with details you can inspect
+
+| Your data | How Pocket handles it |
+| --- | --- |
+| Audio, scans and chat | Processed on your device; no automatic upload of personal content |
+| Saved content | Encrypted app-managed storage: AES-256-GCM files and a SQLCipher transcript database |
+| Encryption keys | Managed through Android Keystore; hardware protection depends on the device |
+| Access | Six-digit app PIN, automatic locking when the app backgrounds, Android screen-capture protection |
+| Tracking | No advertising SDK, automatic analytics or automatic crash-reporting integration |
+| Backups | Android app backup is disabled; there is no cloud account or PIN recovery |
+
+**Local AI does not mean the app never uses a network.** Model downloads, video imports by URL, opening external pages and anything you explicitly export can contact other services. An optional LAN model API is off by default. The source also supports voluntary, reviewed content reports; no report server is configured in this public preview. Your full vault is never automatically attached to a report. See the [security and network details](docs/SECURITY.md).
+
+## Start in a few steps
+
+1. **[Download the APK](https://github.com/RadmirAmir/pocket-llama/releases/download/v0.8.0-rc.1/PocketLlama-0.8.0-community-arm64.apk)** on an Android 10+ ARM64 phone. Allow installation from your browser when Android asks.
+2. **Create your six-digit PIN.** Recording, Russian transcription and OCR are already included.
+3. **Open Settings → model catalog.** Start with Pocket's recommendation, download the model and choose **«Использовать»**. Chat and summaries can now run locally too.
+4. **Make it yours.** Record a thought, scan a page or open Chat. Try the core tools with airplane mode enabled after setup.
+
+[Full user guide and troubleshooting →](docs/GETTING-STARTED.md)
+
+## Will it run on my phone?
+
+The public build targets **Android 10 or newer with a 64-bit ARM system**. It uses a portable CPU backend; no particular brand of NPU is required. Snapdragon, MediaTek, Exynos and Tensor devices are targets of this build, not a list of physically certified phones.
+
+| Practical starting point¹ | Local chat model | Download | Suggested free storage² |
+| --- | --- | --- | --- |
+| 6 GB RAM phone | Qwen 3.5 · 0.8B · Q5_K_M | 646 MB | 4 GB |
+| 8 GB RAM phone | Qwen 3.5 · 2B · Q5_K_M | 1.57 GB | 4 GB |
+| 12 GB RAM phone | Qwen 3.5 · 4B · Q4_K_M | 3.01 GB | 6 GB |
+
+¹ Guidance for choosing a first model, not measured phone performance. Pocket checks the memory Android actually reports, currently available RAM and storage. A phone's marketed RAM can differ from usable memory. Smaller models are easier to run; speed and heat vary by device.
+
+² A planning allowance for installation and one model, before your recordings and documents. Keep extra space for your content. [Exact catalog gates and platform support →](docs/COMPATIBILITY.md)
+
+**Available:** Android ARM64 preview. **Not currently released:** iOS, desktop, Android x86 or 32-bit Android builds.
+
+## A few things to know
+
+**Does it work without the internet?** Yes: recording, Russian transcription and OCR work with the included models. Chat and summaries work offline once a compatible LLM is downloaded or imported.
+
+**Is this already on Google Play?** The APK preview is available now. The Play bundle and release workflow are prepared; store publication and phone validation remain.
+
+**Can it make mistakes?** Yes. Check important names, numbers and summaries against the original. Speaker labels are approximate. The previews above illustrate the interface, not guaranteed output quality.
+
+**Can I recover a forgotten PIN?** There is no cloud recovery. Export important content while you have access. Uninstalling or clearing app data removes access to the vault. Exported files are outside Pocket's encryption.
+
+**Already using the personal build?** The public preview installs separately. Keep your existing app: vaults do not automatically migrate between package IDs. [Update details →](docs/GETTING-STARTED.md#updates-and-existing-installations)
+
+## Build it. Inspect it. Improve it.
+
+Pocket's own code is **Apache-2.0**. The recorder uses GigaAM v3, Silero VAD and CAM++; the public scanner uses PaddleOCR; chat runs through llama.cpp. Dependencies and model weights retain their own licenses. The public preview excludes Surya and the restricted detector weights. [Licenses and inventory →](docs/LICENSING.md)
+
+[Build from source](docs/BUILDING.md) · [Contribute](CONTRIBUTING.md) · [Release guide](docs/RELEASE.md) · [What has been tested](docs/VALIDATION-0.8.0.md) · [Report a bug](https://github.com/RadmirAmir/pocket-llama/issues/new/choose)
+
+If you want a useful AI that stays on your phone, **star Pocket** and help shape the next release. A helpful bug report includes your phone model, Android version, chosen LLM and steps to reproduce. Please keep private recordings, documents and conversations out of public issues.

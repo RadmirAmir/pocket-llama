@@ -1,0 +1,17 @@
+name: Feature idea / Идея
+description: What would make Pocket more useful? / Что сделает Pocket полезнее?
+title: "[Idea]: "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do? / Какую задачу хотите решить?
+      description: Describe the situation and the result you want. Keep private content out of the example.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your suggestion / Ваше предложение
+    validations:
+      required: true

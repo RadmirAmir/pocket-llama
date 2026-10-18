@@ -1,0 +1,35 @@
+name: Bug report / Ошибка
+description: Help reproduce a problem with a harmless example / Опишите проблему на безопасном примере
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for trying Pocket. Please do not attach private recordings, documents, chats, PINs or tokens.
+        Спасибо за помощь. Не прикладывайте личные записи, документы, переписку, PIN и токены.
+  - type: input
+    id: phone
+    attributes:
+      label: Phone and Android / Телефон и Android
+      placeholder: "Device model, Android version, physical RAM"
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Pocket version and install source / Версия и источник установки
+      placeholder: "0.8.0-rc.1, release APK / self-built"
+    validations:
+      required: true
+  - type: input
+    id: model
+    attributes:
+      label: LLM and backend, if relevant / Модель и движок, если относится к проблеме
+      placeholder: "Qwen 3.5 2B Q5_K_M, CPU, 2048 context"
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps and actual result / Шаги и фактический результат
+      description: Include what you expected. Use synthetic content / Добавьте ожидаемый результат. Используйте вымышленные данные.
+    validations:
+      required: true
