@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.10.0 — encrypted notes and local search
+
+- New Notes entry in the main navigation, with titles, text previews and recent edits.
+- Native autosave with ordered draft snapshots, background/back flush and visible save/retry status.
+- Literal title/body search, Russian case and е/ё handling, bounded result snippets and pagination.
+- Pinning, plain-text checklists, searchable trash, restore and confirmed permanent deletion.
+- Separate SQLCipher notes database under the existing vault key, PIN and secure local WebView origin; no model, account or network needed.
+- RU/EN interface; user text is preserved verbatim. Added draft race tests, bilingual UI coverage and native persistence/search/encryption checks.
+
 ## 0.9.3 — restore video import in the community APK
 
 - Fixed the missing `video/runtime-id.txt` in the 0.9.2 community APK. The generated runtime inventory now includes the marker and production launcher, alongside Python, yt-dlp and native executables.

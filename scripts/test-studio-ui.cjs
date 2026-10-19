@@ -50,6 +50,7 @@ function fixture(){const now=new Date('2026-10-15T12:40:00').getTime();return {i
  try{
   await page.goto('http://127.0.0.1:'+server.address().port+'/studio.html');await page.locator('.meeting-row').first().waitFor();await page.evaluate(()=>document.fonts.ready);
  await page.locator('#navPhotos').click();check((await page.evaluate(()=>qa.calls)).some(c=>c.action==='photos'),'photo module navigation');
+ await page.locator('#navNotes').click();check((await page.evaluate(()=>qa.calls)).some(c=>c.action==='notes'),'notes module navigation');
   check(await page.locator('.meeting-row').count()===4,'library rows');
   check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'mobile page fits');
   await page.screenshot({path:out+'/library-light.png'});await a11y('library');
@@ -94,6 +95,7 @@ function fixture(){const now=new Date('2026-10-15T12:40:00').getTime();return {i
   await page.getByRole('button',{name:'Добавить видео',exact:true}).click();await page.locator('#videoSource:not([hidden])').waitFor();check(await page.evaluate(()=>qa.calls.some(c=>c.action==='importVideo'&&!c.args.summarize&&c.args.url.includes('rutube'))),'transcription-only share import');
   fs.writeFileSync(out+'/accessibility.json',JSON.stringify(accessibility,null,2));check(accessibility.every(r=>r.violations.length===0),'accessibility violations: '+JSON.stringify(accessibility.filter(r=>r.violations.length)));
   check(errors.length===0,'no JavaScript errors: '+errors.join('; '));
+  await require('./test-notes-ui.cjs')();
   console.log('Studio UI checks passed:',checks);
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);process.exit(1);});

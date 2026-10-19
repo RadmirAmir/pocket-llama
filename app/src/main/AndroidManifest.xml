@@ -28,6 +28,7 @@
         <activity android:name="dev.pocketllama.voice.VoiceActivity" android:exported="true" android:launchMode="singleTop" android:configChanges="orientation|screenSize|keyboardHidden|uiMode|fontScale|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize">
             <intent-filter><action android:name="android.intent.action.SEND" /><category android:name="android.intent.category.DEFAULT" /><data android:mimeType="text/plain" /></intent-filter>
         </activity>
+        <activity android:name="dev.pocketllama.notes.NotesActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden|uiMode|fontScale|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustResize" />
         <activity android:name="dev.pocketllama.photo.PhotoActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
         <activity android:name="dev.pocketllama.photo.PhotoCameraActivity" android:exported="false" android:screenOrientation="portrait" />
         <service android:name="dev.pocketllama.photo.OcrService" android:process=":ocr" android:exported="false" android:stopWithTask="false" android:foregroundServiceType="specialUse">

@@ -1,6 +1,6 @@
 (function(){
 'use strict';
-var bridge=window.Studio||window.Pocket||window.Photos,language='ru',english={};
+var bridge=window.Studio||window.Pocket||window.Photos||window.Notes,language='ru',english={};
 try{if(bridge&&bridge.language)language=bridge.language()==='en'?'en':'ru';if(language==='en'&&bridge.translations)english=JSON.parse(bridge.translations());}catch(e){language='ru';}
 function t(source){return language==='en'&&Object.prototype.hasOwnProperty.call(english,source)?english[source]:source;}
 var phrases=Object.keys(english).filter(function(k){return k.length>=5;}).sort(function(a,b){return b.length-a.length;});

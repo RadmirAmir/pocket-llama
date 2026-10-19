@@ -18,7 +18,7 @@ import java.util.Set;
 public final class UiHost {
     public static final String ORIGIN = "https://pocket.local/assets/";
     private static final Set<String> ASSETS = new HashSet<>(Arrays.asList(
-        "studio.html", "studio.css", "studio.js", "photos.html", "photos.css", "photos.js", "design.css", "theme.js", "i18n.js", "chat.html", "chat.css", "fonts/Manrope.ttf"));
+        "notes.html", "notes.css", "notes.js", "studio.html", "studio.css", "studio.js", "photos.html", "photos.css", "photos.js", "design.css", "theme.js", "i18n.js", "chat.html", "chat.css", "fonts/Manrope.ttf"));
     private UiHost() {}
     public static String appearance(Context c) { return c.getSharedPreferences("interface", Context.MODE_PRIVATE).getString("appearance", "auto"); }
     public static void appearance(Activity a, FrameLayout root, WebView web, String value) {

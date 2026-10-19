@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'none'; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
+<title>Pocket — заметки</title><script src="i18n.js"></script><script src="theme.js"></script><link rel="stylesheet" href="design.css"><link rel="stylesheet" href="notes.css"><script src="notes.js" defer></script></head>
+<body><div id="notesApp">
+<section id="listScreen" class="notes-screen" aria-label="Заметки">
+ <header class="notes-top"><button id="exitNotes" class="back-button"><span data-icon="back"></span>Pocket.</button><button id="trashToggle" class="text-button"><span data-icon="trash"></span><span id="trashLabel">Корзина</span></button></header>
+ <main class="notes-library"><div class="eyebrow" id="listEyebrow">Мысли под рукой</div><h1 id="listTitle">Ваши заметки<span>.</span></h1><p id="listIntro" class="intro">Идеи, планы и всё, что хочется сохранить.</p>
+ <label class="notes-search"><span data-icon="search"></span><input id="noteSearch" type="search" maxlength="200" placeholder="Найти в заметках" aria-label="Поиск по заголовкам и тексту" autocomplete="off" spellcheck="false"><button id="clearSearch" class="icon-button" aria-label="Очистить поиск" hidden>×</button></label>
+ <p id="listStatus" class="muted" role="status"></p><div id="noteList"></div><button id="moreNotes" class="secondary full" hidden>Показать ещё</button><button id="retryList" class="secondary full" hidden>Повторить</button>
+ <p class="storage-label"><span data-icon="lock"></span>Зашифровано на телефоне</p></main>
+ <footer class="notes-dock"><button id="newNote" class="primary full"><span data-icon="edit"></span>Новая заметка<span data-icon="plus"></span></button></footer>
+</section>
+<section id="editorScreen" class="notes-screen" aria-label="Редактор заметки" hidden>
+ <header class="notes-top"><button id="editorBack" class="back-button"><span data-icon="back"></span>Заметки</button><div class="editor-actions"><button id="pinNote" class="icon-button" aria-label="Закрепить заметку" aria-pressed="false"><span data-icon="pin"></span></button><button id="noteMenu" class="icon-button" aria-label="Действия с заметкой"><span data-icon="more"></span></button></div></header>
+ <div id="saveError" class="save-error" role="alert" hidden><span id="saveErrorText"></span><button id="retrySave" class="text-button">Повторить сохранение</button></div>
+ <main class="note-editor"><div class="editor-meta"><time id="noteDate"></time><span id="pinnedLabel" hidden><span data-icon="pin"></span>Закреплено</span></div><label class="sr-only" for="noteTitle">Заголовок</label><textarea id="noteTitle" class="note-title" rows="1" maxlength="200" placeholder="Заголовок" autocomplete="off" autocorrect="off" spellcheck="false"></textarea><label class="sr-only" for="noteBody">Текст заметки</label><textarea id="noteBody" class="note-body" maxlength="200000" placeholder="Начните писать…" autocomplete="off" autocorrect="off" spellcheck="false"></textarea><span id="noteLimit" class="muted" hidden>Лимит заметки — 200 000 символов</span></main>
+ <footer class="editor-footer"><button id="checklist" class="text-button"><span data-icon="check"></span>Список</button><span id="saveStatus" class="save-status" role="status">Сохранено</span><button id="doneEditing" class="text-button">Готово</button></footer>
+</section>
+<section id="trashDetail" class="notes-screen" aria-label="Удалённая заметка" hidden><header class="notes-top"><button id="trashBack" class="back-button"><span data-icon="back"></span>Корзина</button></header><main class="trash-reader"><div class="eyebrow">В корзине</div><h1 id="trashTitle"></h1><p id="trashBody"></p><div class="trash-actions"><button id="restoreNote" class="primary">Восстановить</button><button id="deleteForever" class="text-button">Удалить навсегда</button></div></main></section>
+</div>
+<dialog id="noteDialog" aria-labelledby="dialogTitle"><h2 id="dialogTitle"></h2><p id="dialogText"></p><div id="dialogActions"></div><button id="closeDialog" class="text-button full">Отмена</button></dialog>
+<div id="noteToast" class="note-toast" role="status" hidden></div></body></html>

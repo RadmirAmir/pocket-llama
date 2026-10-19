@@ -28,3 +28,6 @@ html{overflow:hidden}body{overflow:hidden}#app{height:100%;max-width:760px;margi
 .language-picker{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .language-picker button{min-height:48px;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);font:inherit;cursor:pointer}
 .language-picker button[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--bg)}
+
+/* Five primary destinations stay readable on narrow phones and larger text. */
+.bottom-nav{padding-left:8px;padding-right:8px}.bottom-nav button>span{max-width:100%;overflow-wrap:anywhere;line-height:1.35}

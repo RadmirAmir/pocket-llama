@@ -53,7 +53,7 @@ public final class VoiceActivity extends dev.pocketllama.security.SecureActivity
             if (destroyed || request == null || request.length()>80 || payload == null || payload.length()>100000) return;
             try {
                 JSONObject args = new JSONObject(payload);
-                if (Arrays.asList("record","pauseRecord","stopRecord","process","summarize","cancel","play","seek","speed","importAudio","importVideo","openVideo","export","photos","chat","theme","language","importModel","startServer","stopServer","copy","copyApiKey","security","lock","licenses","downloadModel","pauseModelDownload","catalogueSource").contains(action)) {
+                if (Arrays.asList("record","pauseRecord","stopRecord","process","summarize","cancel","play","seek","speed","importAudio","importVideo","openVideo","export","photos","notes","chat","theme","language","importModel","startServer","stopServer","copy","copyApiKey","security","lock","licenses","downloadModel","pauseModelDownload","catalogueSource").contains(action)) {
                     main.post(() -> { try { ui(request, action, args); } catch(Exception e) { reject(request,e); } });
                 } else io.execute(() -> { try { reply(request, data(action,args)); } catch(Exception e) { reject(request,e); } });
             } catch (Exception e) { reject(request,e); }
@@ -178,6 +178,7 @@ public final class VoiceActivity extends dev.pocketllama.security.SecureActivity
                 final String format=exportFormat;
                 new android.app.AlertDialog.Builder(this).setTitle(dev.pocketllama.I18n.t("Экспортировать копию?")).setMessage(dev.pocketllama.I18n.t("Файл будет сохранён без шифрования Pocket в выбранную вами папку. Доступ к этой копии зависит от места сохранения.")).setNegativeButton(dev.pocketllama.I18n.t("Отмена"),null).setPositiveButton(dev.pocketllama.I18n.t("Выбрать папку"),(dialog,which)->{if(!dev.pocketllama.security.GateSession.isOpen())return;exportId=id;exportFormat=format;startActivityForResult(new Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType(format.equals("wav")?"audio/wav":format.equals("json")?"application/json":"text/plain").putExtra(Intent.EXTRA_TITLE,filename+"."+format),11);}).show(); break;
             }
+            case "notes": startActivity(new Intent(this,dev.pocketllama.notes.NotesActivity.class)); break;
             case "photos": startActivity(new Intent(this,dev.pocketllama.photo.PhotoActivity.class)); break;
             case "licenses": {
                 String[] names=getAssets().list("notices");StringBuilder text=new StringBuilder();if(names!=null){Arrays.sort(names);for(String name:names){try(InputStream input=getAssets().open("notices/"+name)){byte[] raw=new byte[65536];int n; text.append("\n\n===== ").append(name).append(" =====\n");while((n=input.read(raw))!=-1){text.append(new String(raw,0,n,java.nio.charset.StandardCharsets.UTF_8));if(text.length()>1000000)throw new IOException(dev.pocketllama.I18n.t("Слишком большой файл лицензий"));}}}}

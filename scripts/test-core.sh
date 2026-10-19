@@ -5,3 +5,6 @@ test_dir="$project_dir/build/core-tests"
 mkdir -p "$test_dir/classes" "$test_dir/fixtures"
 javac -d "$test_dir/classes" "$project_dir"/app/src/main/java/dev/pocketllama/core/*.java "$project_dir/tests/CoreTests.java"
 java -cp "$test_dir/classes" CoreTests "$test_dir/fixtures"
+
+javac --release 11 -d "$test_dir/classes" "$project_dir"/app/src/main/java/dev/pocketllama/notes/{NoteDraft,NoteText}.java "$project_dir/tests/NoteDraftTests.java"
+java -cp "$test_dir/classes" NoteDraftTests
