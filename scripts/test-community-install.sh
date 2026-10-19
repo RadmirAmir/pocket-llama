@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # This test resets only the public package in a disposable emulator.
+# Published 0.10.2 is checked as an in-place update from 0.10.1.
 set -euo pipefail
 if [ "$(adb shell getprop ro.kernel.qemu | tr -d '\r')" != 1 ] && [ "$(adb shell getprop ro.boot.qemu | tr -d '\r')" != 1 ]; then
     echo 'Refusing destructive installation tests on a physical device' >&2
