@@ -4,9 +4,9 @@
 
 ## Install and protect your space
 
-Download **[PocketLlama-0.10.1-community-arm64.apk](https://github.com/RadmirAmir/pocket-llama/releases/download/v0.10.1-rc.2/PocketLlama-0.10.1-community-arm64.apk)** from this repository's release. You need Android 10+ with a 64-bit ARM system. The APK is approximately 641 MB; both speech models and OCR account for most of the size.
+Download **[PocketLlama-0.10.2-community-arm64.apk](https://github.com/RadmirAmir/pocket-llama/releases/download/v0.10.2-rc.1/PocketLlama-0.10.2-community-arm64.apk)** from this repository's release. You need Android 10+ with a 64-bit ARM system. The APK is approximately 641 MB; both speech models and OCR account for most of the size.
 
-Open it on your phone and allow installation from the browser or file manager when Android asks. You can turn that installation permission off again afterward. The `.aab` file is for Play publishers and cannot be installed directly like an APK. The release includes [SHA-256 checksums](https://github.com/RadmirAmir/pocket-llama/releases/download/v0.10.1-rc.2/SHA256SUMS.txt).
+Open it on your phone and allow installation from the browser or file manager when Android asks. You can turn that installation permission off again afterward. The `.aab` file is for Play publishers and cannot be installed directly like an APK. The release includes [SHA-256 checksums](https://github.com/RadmirAmir/pocket-llama/releases/download/v0.10.2-rc.1/SHA256SUMS.txt).
 
 On first launch, create and repeat a **six-digit PIN**. It controls access to your recordings, notes, scans and chat. Remember it: there is no account-based recovery. Microphone and camera permissions are used for the corresponding tools; grant them when you want to record or scan.
 
@@ -22,7 +22,7 @@ Open **Notes → New note**. Enter a title and text; wait for **Saved** or use *
 
 1. On **Recordings**, start a recording. Pause or finish it using the recording controls.
 2. Open the saved recording and choose **Transcribe recording**. Moonshine Streaming Medium (EN) and GigaAM v3 (RU) are included; no speech model download is needed. The first use prepares the installed assets locally.
-3. Open **Transcript** to read the timestamped text. You can correct words and speaker names. Speaker detection is approximate.
+3. Open **Transcript** to read the timestamped text. You can correct words and speaker names. Speaker detection is approximate. The **Copy** button copies the complete transcript, with speaker names, timestamps and your corrections.
 4. Once a language model is selected, choose **Create summary** in **Summary**. The summary has source references you can tap to check against the audio.
 5. Use the recording menu → **Save to file** for Markdown, SRT subtitles, JSON or WAV.
 

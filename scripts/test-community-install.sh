@@ -9,14 +9,14 @@ mkdir -p build/install install-evidence
 adb shell getprop > install-evidence/device-properties.txt
 adb logcat -c
 trap 'adb logcat -d > install-evidence/logcat.txt' EXIT
-curl --fail --location --retry 3 --output build/install/community-0.10.0.apk https://github.com/RadmirAmir/pocket-llama/releases/download/v0.10.0-rc.1/PocketLlama-0.10.0-community-arm64.apk
 curl --fail --location --retry 3 --output build/install/community-0.10.1.apk https://github.com/RadmirAmir/pocket-llama/releases/download/v0.10.1-rc.2/PocketLlama-0.10.1-community-arm64.apk
-echo 'b34a7b66b39b2e371c348e3efc4f470bbfad47516bf1b83eebba2ed331b9123b  build/install/community-0.10.0.apk' | sha256sum --check
+curl --fail --location --retry 3 --output build/install/community-0.10.2.apk https://github.com/RadmirAmir/pocket-llama/releases/download/v0.10.2-rc.1/PocketLlama-0.10.2-community-arm64.apk
 echo '4566700bd37d6651013c607648dddc4f0ec154d0a03bb187043ffd766ff5b91b  build/install/community-0.10.1.apk' | sha256sum --check
+echo '8a070a2f260c220fbe78892f59e7054ad97bff8406b53907ca51bfee99f5e23c  build/install/community-0.10.2.apk' | sha256sum --check
 python3 - <<'PY'
 from pathlib import Path
 import hashlib,json,zipfile,importlib.util
-with zipfile.ZipFile('build/install/community-0.10.1.apk') as apk:
+with zipfile.ZipFile('build/install/community-0.10.2.apk') as apk:
     spec=importlib.util.spec_from_file_location('artifact_check','scripts/validate-distribution-artifacts.py')
     check=importlib.util.module_from_spec(spec);spec.loader.exec_module(check)
     check.apk_resources(apk)
@@ -24,6 +24,7 @@ with zipfile.ZipFile('build/install/community-0.10.1.apk') as apk:
     for name in ['notes.html','notes.js','notes.css','studio.html','studio.js','studio.css','i18n.js','i18n-en.json','theme.js']:
         assert apk.read('assets/'+name)==Path('app/src/main/assets',name).read_bytes(), 'Stale asset: '+name
     dex=b''.join(apk.read(n) for n in names if n.endswith('.dex'))
+    assert b'copyTranscript' in dex, 'Transcript copy method missing from native executable'
     for cls in ['NotesActivity','NoteStore','NoteText','NoteDraft']:
         assert ('Ldev/pocketllama/notes/'+cls+';').encode() in dex, cls
     profile=json.loads(apk.read('assets/distribution.json'))
@@ -43,26 +44,26 @@ print('Published community contains the complete pinned video program bundle')
 PY
 # Reset only after the emulator guard, including reruns of the native fixture tests.
 adb uninstall dev.pocketllama >/dev/null 2>&1 || true
-adb install --no-streaming --no-incremental build/install/community-0.10.0.apk > install-evidence/baseline-0.10.0.txt 2>&1
-adb shell am start -W -n dev.pocketllama/dev.pocketllama.MainActivity > install-evidence/startup-baseline-0.10.0.txt
-adb install --no-streaming --no-incremental -r build/install/community-0.10.1.apk > install-evidence/upgrade-0.10.0-to-0.10.1.txt 2>&1
-cat install-evidence/upgrade-0.10.0-to-0.10.1.txt
-adb shell am start -W -n dev.pocketllama/dev.pocketllama.MainActivity > install-evidence/startup-upgrade-0.10.1.txt
+adb install --no-streaming --no-incremental build/install/community-0.10.1.apk > install-evidence/baseline-0.10.1.txt 2>&1
+adb shell am start -W -n dev.pocketllama/dev.pocketllama.MainActivity > install-evidence/startup-baseline-0.10.1.txt
+adb install --no-streaming --no-incremental -r build/install/community-0.10.2.apk > install-evidence/upgrade-0.10.1-to-0.10.2.txt 2>&1
+cat install-evidence/upgrade-0.10.1-to-0.10.2.txt
+adb shell am start -W -n dev.pocketllama/dev.pocketllama.MainActivity > install-evidence/startup-upgrade-0.10.2.txt
 sleep 3
 adb shell pidof dev.pocketllama
-adb shell dumpsys package dev.pocketllama > install-evidence/package-0.10.1.txt
+adb shell dumpsys package dev.pocketllama > install-evidence/package-0.10.2.txt
 python3 - <<'PY'
 from pathlib import Path
 import re
-package=Path('install-evidence/package-0.10.1.txt').read_text()
-assert re.search(r'versionCode=28(?:\s|$)',package)
-assert re.search(r'versionName=0\.10\.1(?:\s|$)',package)
-print('Installed community version 0.10.1 / code 28 verified')
+package=Path('install-evidence/package-0.10.2.txt').read_text()
+assert re.search(r'versionCode=29(?:\s|$)',package)
+assert re.search(r'versionName=0\.10\.2(?:\s|$)',package)
+print('Installed community version 0.10.2 / code 29 verified')
 PY
 adb uninstall dev.pocketllama
-adb install --no-streaming --no-incremental build/install/community-0.10.1.apk > install-evidence/fresh-0.10.1.txt 2>&1
-cat install-evidence/fresh-0.10.1.txt
-adb shell am start -W -n dev.pocketllama/dev.pocketllama.MainActivity > install-evidence/startup-fresh-0.10.1.txt
+adb install --no-streaming --no-incremental build/install/community-0.10.2.apk > install-evidence/fresh-0.10.2.txt 2>&1
+cat install-evidence/fresh-0.10.2.txt
+adb shell am start -W -n dev.pocketllama/dev.pocketllama.MainActivity > install-evidence/startup-fresh-0.10.2.txt
 sleep 3
 adb shell pidof dev.pocketllama
 
@@ -70,5 +71,5 @@ adb shell pidof dev.pocketllama
 python3 scripts/prepare-test-deps.py
 python3 scripts/prepare-security.py
 python3 scripts/prepare-video.py
-CHAT_JSON_JAR="$PWD/build/test-deps/json.jar" python3 scripts/test-video-runtime.py --apk build/install/community-0.10.1.apk --fixture tests/fixtures/video-tone.m4a | tee install-evidence/video-host.txt
-python3 scripts/test-video-android.py --sdk "$ANDROID_HOME" --jdk "$JAVA_HOME" --apk build/install/community-0.10.1.apk --fixture tests/fixtures/video-tone.m4a | tee install-evidence/video-android.txt
+CHAT_JSON_JAR="$PWD/build/test-deps/json.jar" python3 scripts/test-video-runtime.py --apk build/install/community-0.10.2.apk --fixture tests/fixtures/video-tone.m4a | tee install-evidence/video-host.txt
+python3 scripts/test-video-android.py --sdk "$ANDROID_HOME" --jdk "$JAVA_HOME" --apk build/install/community-0.10.2.apk --fixture tests/fixtures/video-tone.m4a | tee install-evidence/video-android.txt
