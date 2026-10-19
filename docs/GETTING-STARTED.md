@@ -4,15 +4,19 @@
 
 ## Install and protect your space
 
-Download **[PocketLlama-0.9.3-community-arm64.apk](https://github.com/RadmirAmir/pocket-llama/releases/download/v0.9.3-rc.1/PocketLlama-0.9.3-community-arm64.apk)** from this repository's release. You need Android 10+ with a 64-bit ARM system. The APK is approximately 641 MB; both speech models and OCR account for most of the size.
+Download **[PocketLlama-0.10.0-community-arm64.apk](https://github.com/RadmirAmir/pocket-llama/releases/download/v0.10.0-rc.1/PocketLlama-0.10.0-community-arm64.apk)** from this repository's release. You need Android 10+ with a 64-bit ARM system. The APK is approximately 641 MB; both speech models and OCR account for most of the size.
 
-Open it on your phone and allow installation from the browser or file manager when Android asks. You can turn that installation permission off again afterward. The `.aab` file is for Play publishers and cannot be installed directly like an APK. The release includes [SHA-256 checksums](https://github.com/RadmirAmir/pocket-llama/releases/download/v0.9.3-rc.1/SHA256SUMS.txt).
+Open it on your phone and allow installation from the browser or file manager when Android asks. You can turn that installation permission off again afterward. The `.aab` file is for Play publishers and cannot be installed directly like an APK. The release includes [SHA-256 checksums](https://github.com/RadmirAmir/pocket-llama/releases/download/v0.10.0-rc.1/SHA256SUMS.txt).
 
-On first launch, create and repeat a **six-digit PIN**. It controls access to your recordings, scans and chat. Remember it: there is no account-based recovery. Microphone and camera permissions are used for the corresponding tools; grant them when you want to record or scan.
+On first launch, create and repeat a **six-digit PIN**. It controls access to your recordings, notes, scans and chat. Remember it: there is no account-based recovery. Microphone and camera permissions are used for the corresponding tools; grant them when you want to record or scan.
 
 Switch the interface and the default speech engine in **Settings → Interface language**: **EN · English** selects Moonshine Streaming Medium; **RU · Русский** selects GigaAM v3. Both models are bundled and run offline. New jobs follow your selection; a resumed transcript keeps its original engine. To change an unfinished transcript to another language, use **Transcribe again** in transcription settings. Existing text is never automatically translated.
 
-The main tabs are **Recordings**, **Scanner**, **Chat** and **Settings**.
+The main tabs are **Recordings**, **Scanner**, **Notes**, **Chat** and **Settings**.
+
+## Write a note and find it later
+
+Open **Notes → New note**. Enter a title and text; wait for **Saved** or use **Done**. Search works across titles and text. Use the pin button for important notes and Checklist for plain-text checkboxes. Deleted notes stay in Trash until you explicitly delete them permanently. Notes need no model or internet. [Full notes guide →](NOTES.md)
 
 ## Record → transcribe → remember
 

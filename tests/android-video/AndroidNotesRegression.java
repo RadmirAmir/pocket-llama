@@ -47,7 +47,7 @@ public final class AndroidNotesRegression {
             String secret="SENSITIVE_NOTE_BODY_42";note=store.get(id);store.save(id,note.getLong("revision"),"SENSITIVE_NOTE_TITLE_42",secret);
             for(File file:Vault.root(c).listFiles())if(file.getName().startsWith("notes.db")){
                 String bytes=new String(Files.readAllBytes(file.toPath()),StandardCharsets.ISO_8859_1);
-                check(!bytes.startsWith("SQLite format 3")&&!bytes.contains(secret)&&!bytes.contains("SENSITIVE_NOTE_TITLE_42"),"notes database and sidecars are encrypted: "+file.getName());
+                check(!bytes.startsWith("SQLite format 3")&&!bytes.contains(secret)&&!bytes.contains("SENSITIVE_NOTE_TITLE_42"),"no plaintext note text in database/sidecar: "+file.getName());
             }
         }
         try(NoteStore store=new NoteStore(c)){

@@ -17,6 +17,7 @@ The public APK includes the speech and OCR assets. Chat and summaries need a com
 | Audio files | Authenticated chunked AES-256-GCM encryption with per-file keys wrapped by the vault key |
 | Photos, document records, chat and app-managed private files | Encrypted local files using AES-GCM |
 | Transcripts and recording metadata | SQLCipher database with a protected database secret |
+| Personal notes, titles and search fields | Separate SQLCipher database, using the same protected vault secret; no external search service |
 | Keys | Android Keystore; hardware backing depends on the device |
 | App access | Six-digit PIN with retry delays; the PIN is a separate access control, not the encryption key itself |
 | Backgrounding | The app locks when it backgrounds; an active recording or processing service can continue |
