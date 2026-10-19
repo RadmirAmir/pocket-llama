@@ -18,7 +18,14 @@ The signed APK contains 16 verified model files and all 6 video runtime files. I
 - SHA-256: `b34a7b66b39b2e371c348e3efc4f470bbfad47516bf1b83eebba2ed331b9123b`.
 - Certificate SHA-256: `ef3cea40110c13d179cc7e1f1e570aeb2f870cb7d46f16273eb5d733cf9b2ed0`.
 
-The fresh-install/upgrade and native Notes tests are pending; their result will be recorded below. The native tests use synthetic vault keys and a disposable Android emulator, without opening a real user vault.
+[Android installation and native regression run](https://github.com/RadmirAmir/pocket-llama/actions/runs/39273838783) passed for the published APK, using source `ebb5a80597c464b2f8f618f221180f65ccdb380c`:
+
+- Fresh install/startup and community 0.9.3 → 0.10.0 upgrade on the API 36 Google APIs x86_64 emulator with ARM64 app translation; installed version 27 verified.
+- 21 real SQLCipher Notes checks: original text, Russian/Unicode search, literal SQL punctuation, matching snippets, pins, pagination, stale-edit protection, trash exclusion/search/restore, permanent-delete guard, no plaintext titles/body in database/sidecars, and reopening with the same key.
+- 8 real-loader host checks using program assets extracted from the exact APK.
+- 34 Android video/migration checks, retaining the native loader, encrypted download/decoding and older recording data.
+
+The native database tests use synthetic vault keys and a disposable Android emulator, without opening a real user vault. The x86_64 fixture uses the pinned x86_64 native libraries; the signed app and model checks cover the actual published ARM64 bytes. This proves store behavior and installed-package compatibility; it does not exercise every Notes edit through a physical phone keyboard.
 
 ## Scope
 
