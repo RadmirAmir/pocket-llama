@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.10.2 — copy audio transcripts
+
+- Copy the complete audio transcript directly from its tab, including edited text, speaker names and timestamps.
+- Copying includes unloaded pages and ignores the search filter. RU/EN labels and sensitive Android clipboard handling are preserved.
+
 ## 0.10.1 — single-line navigation labels
 
 - Keep the five bottom-navigation captions on one line in RU/EN.

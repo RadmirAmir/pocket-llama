@@ -4,10 +4,26 @@ import android.database.Cursor;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
+import java.util.HashMap;
+import java.util.Map;
 import org.json.*;
 
 public final class VoiceExport {
     private VoiceExport(){}
+    public static String transcript(VoiceStore store,String id)throws Exception{
+        StringBuilder result=new StringBuilder();Map<Integer,String> names=new HashMap<>();
+        try(Cursor c=store.turns(id)){while(c.moveToNext()){
+            String text=c.getString(4);if(text==null||text.trim().isEmpty())continue;
+            int speaker=c.getInt(3);String name=names.get(speaker);
+            if(name==null){name=store.speaker(id,speaker);names.put(speaker,name);}
+            String heading="["+VoiceStore.time(c.getLong(1))+"] "+name+"\n";
+            if((long)result.length()+heading.length()+text.length()+2>200000)
+                throw new IOException(dev.pocketllama.I18n.t("Расшифровка слишком большая для буфера. Сохраните её в файл"));
+            if(result.length()>0)result.append("\n\n");result.append(heading).append(text);
+        }}
+        if(result.length()==0)throw new IOException(dev.pocketllama.I18n.t("В расшифровке пока нет текста"));
+        return result.toString();
+    }
     public static void write(Context context,VoiceStore store,String id,String format,OutputStream output)throws Exception{
         if(format.equals("wav")){try(PcmFile audio=new PcmFile(VoiceStore.audio(context,id),false,dev.pocketllama.security.Vault.key(context))){output.write(audio.wavHeader());byte[] bytes=new byte[65536];long position=0;int n;while((n=audio.readBytes(position,bytes,0,bytes.length))>0){output.write(bytes,0,n);position+=n;}java.util.Arrays.fill(bytes,(byte)0);}return;}
         JSONObject meeting=store.get(id);Writer w=new BufferedWriter(new OutputStreamWriter(output,StandardCharsets.UTF_8));

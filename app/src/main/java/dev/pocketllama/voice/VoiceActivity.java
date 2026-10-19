@@ -53,7 +53,9 @@ public final class VoiceActivity extends dev.pocketllama.security.SecureActivity
             if (destroyed || request == null || request.length()>80 || payload == null || payload.length()>100000) return;
             try {
                 JSONObject args = new JSONObject(payload);
-                if (Arrays.asList("record","pauseRecord","stopRecord","process","summarize","cancel","play","seek","speed","importAudio","importVideo","openVideo","export","photos","notes","chat","theme","language","importModel","startServer","stopServer","copy","copyApiKey","security","lock","licenses","downloadModel","pauseModelDownload","catalogueSource").contains(action)) {
+                if (action.equals("copyTranscript")) {
+                    copyTranscript(request,args.optString("id"));
+                } else if (Arrays.asList("record","pauseRecord","stopRecord","process","summarize","cancel","play","seek","speed","importAudio","importVideo","openVideo","export","photos","notes","chat","theme","language","importModel","startServer","stopServer","copy","copyApiKey","security","lock","licenses","downloadModel","pauseModelDownload","catalogueSource").contains(action)) {
                     main.post(() -> { try { ui(request, action, args); } catch(Exception e) { reject(request,e); } });
                 } else io.execute(() -> { try { reply(request, data(action,args)); } catch(Exception e) { reject(request,e); } });
             } catch (Exception e) { reject(request,e); }
@@ -206,13 +208,31 @@ public final class VoiceActivity extends dev.pocketllama.security.SecureActivity
                 if(store.anyBusy()||dev.pocketllama.photo.PhotoStore.busy(this)||VoiceState.busy||importing)throw new IOException(dev.pocketllama.I18n.t("Сначала завершите текущую задачу"));
                 config.load().validate(); startForegroundService(new Intent(this,InferenceService.class).setAction(InferenceService.START)); break;
             case "stopServer": startService(new Intent(this,InferenceService.class).setAction(InferenceService.STOP)); break;
-            case "copy": {ClipData clip=ClipData.newPlainText("Pocket Llama",a.optString("text"));PersistableBundle extras=new PersistableBundle();extras.putBoolean("android.content.extra.IS_SENSITIVE",true);clip.getDescription().setExtras(extras);getSystemService(ClipboardManager.class).setPrimaryClip(clip);break;}
+            case "copy": copyText(a.optString("text"));break;
             case "copyApiKey": {
                 ClipData clip=ClipData.newPlainText("API key",config.apiKey()); PersistableBundle extras=new PersistableBundle(); extras.putBoolean("android.content.extra.IS_SENSITIVE",true);clip.getDescription().setExtras(extras);getSystemService(ClipboardManager.class).setPrimaryClip(clip); break;
             }
             default: throw new IOException(dev.pocketllama.I18n.t("Неизвестное действие"));
         }
         reply(request,object("ok",true));
+    }
+    private void copyTranscript(String request,String id) {
+        long epoch=dev.pocketllama.security.GateSession.epoch();
+        io.execute(()->{try{
+            dev.pocketllama.security.GateSession.requireOpen();
+            String text=VoiceExport.transcript(store,id);
+            main.post(()->{try{
+                dev.pocketllama.security.GateSession.requireOpen();
+                if(destroyed||!resumed||epoch!=dev.pocketllama.security.GateSession.epoch())
+                    throw new IOException(dev.pocketllama.I18n.t("Введите код входа"));
+                copyText(text);reply(request,object("ok",true));
+            }catch(Exception e){reject(request,e);}});
+        }catch(Exception e){reject(request,e);}});
+    }
+    private void copyText(String text) {
+        ClipData clip=ClipData.newPlainText("Pocket Llama",text);
+        PersistableBundle extras=new PersistableBundle();extras.putBoolean("android.content.extra.IS_SENSITIVE",true);
+        clip.getDescription().setExtras(extras);getSystemService(ClipboardManager.class).setPrimaryClip(clip);
     }
     private void beginRecord(String request) throws Exception {
         if(store.anyBusy()||dev.pocketllama.photo.PhotoStore.busy(this)||VoiceState.busy||importing) throw new IOException(dev.pocketllama.I18n.t("Сначала завершите текущую задачу"));
