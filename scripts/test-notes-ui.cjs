@@ -56,13 +56,13 @@ module.exports=async function notesUI(){
    check((await page.locator('#noteBody').inputValue()).includes('\n☐ Второй пункт'),'checklist continues on Enter');
    await page.locator('#noteBody').evaluate(n=>n.setSelectionRange(0,0));await page.locator('#checklist').click();check((await page.locator('#noteBody').inputValue()).startsWith('☑ '),'checklist action toggles current item');
    await page.locator('#noteBody').fill(body);await page.locator('#editorBack').click();await page.locator('.notes-group').filter({hasText:ui('Закреплённые')}).waitFor();
-   await page.reload();await page.locator('.note-card').waitFor();await page.locator('.note-card').click();check(await page.locator('#noteBody').inputValue()===body,'reopened note preserves body');
+   await page.reload();await page.locator('.note-card').waitFor();await page.locator('.note-card').click();await page.locator('#editorScreen').waitFor({state:'visible'});check(await page.locator('#noteBody').inputValue()===body,'reopened note preserves body');
    await page.evaluate(()=>qa.failSave=true);await page.locator('#noteBody').fill('Несохранённая правка');await page.locator('#saveError').waitFor({state:'visible'});await page.locator('#editorBack').click();
    check(await page.locator('#editorScreen').isVisible()&&await page.locator('#noteBody').inputValue()==='Несохранённая правка','failed save keeps editor and typed content open');
    await page.evaluate(()=>qa.failSave=false);await page.locator('#retrySave').click();await page.locator('#saveError').waitFor({state:'hidden'});check(await page.evaluate(()=>qa.notes[0].body==='Несохранённая правка'),'failed write can be retried');
    await page.locator('#noteBody').fill(body);await page.locator('#noteMenu').click();await page.getByRole('button',{name:ui('В корзину'),exact:true}).click();await page.locator('.notes-empty').waitFor();
    await page.locator('#trashToggle').click();await page.locator('.note-card').waitFor();await page.locator('.note-card').click();await page.locator('#restoreNote').click();await page.locator('.note-card').waitFor();check(await page.locator('#listTitle').innerText()===ui('Ваши заметки')+'.','restore returns note to active list');
-   await page.locator('.note-card').click();check(await page.locator('#noteBody').inputValue()===body,'trash restore preserves text');
+   await page.locator('.note-card').click();await page.locator('#editorScreen').waitFor({state:'visible'});check(await page.locator('#noteBody').inputValue()===body,'trash restore preserves text');
    await page.locator('#editorBack').click();await page.locator('.note-card').waitFor();
    await page.screenshot({path:out+'/list-'+language+'.png'});
    await page.evaluate(()=>PocketTheme.set('dark'));await page.screenshot({path:out+'/list-'+language+'-dark.png'});
