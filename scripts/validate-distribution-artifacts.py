@@ -10,7 +10,7 @@ def digest(stream):
  while b:=stream.read(1024*1024):h.update(b)
  return h.hexdigest()
 def apk_resources(archive):
- """Android 11+ requires an uncompressed, four-byte-aligned resource table."""
+ """Apps targeting Android 11+ need an uncompressed, aligned resource table."""
  info=archive.getinfo('resources.arsc')
  assert info.compress_type==zipfile.ZIP_STORED,'Compressed resources.arsc: Android cannot install this APK'
  with open(archive.filename,'rb') as stream:
