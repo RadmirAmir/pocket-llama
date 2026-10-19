@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Verify the actual deliverables, model bytes, channels and legacy update certificate."""
 from pathlib import Path
-import argparse,hashlib,json,re,subprocess,zipfile,sys
+import argparse,hashlib,json,re,struct,subprocess,zipfile,sys
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 import video_bundle
 ROOT=Path(__file__).resolve().parents[1]
@@ -9,9 +9,18 @@ def digest(stream):
  h=hashlib.sha256()
  while b:=stream.read(1024*1024):h.update(b)
  return h.hexdigest()
+def apk_resources(archive):
+ """Android 11+ requires an uncompressed, four-byte-aligned resource table."""
+ info=archive.getinfo('resources.arsc')
+ assert info.compress_type==zipfile.ZIP_STORED,'Compressed resources.arsc: Android cannot install this APK'
+ with open(archive.filename,'rb') as stream:
+  stream.seek(info.header_offset+26)
+  name_size,extra_size=struct.unpack('<HH',stream.read(4))
+ assert (info.header_offset+30+name_size+extra_size)%4==0,'Unaligned resources.arsc'
 def models(archive,prefix,personal,personal_compact=False):
  with zipfile.ZipFile(archive) as z:
   names=z.namelist();assert len(names)==len(set(names)),'Duplicate archive entry'
+  if prefix=='apk':apk_resources(z)
   video_count=video_bundle.validate_archive(z,video_bundle.inventory(ROOT),'' if prefix=='apk' else 'base/')
   meta=json.loads(z.read(('' if prefix=='apk' else 'base/')+'assets/distribution.json'))
   config=json.loads((ROOT/'distribution/release.json').read_text())
