@@ -101,9 +101,9 @@ $('closeDialog').onclick=closeDialog;
 $('checklist').onclick=function(){var b=$('noteBody');if(!note||busy)return;var start=b.selectionStart,end=b.selectionEnd,line=b.value.lastIndexOf('\n',start-1)+1;
  var match=/^(☐|☑) /.exec(b.value.slice(line));
  if(match){b.setRangeText(match[1]==='☐'?'☑':'☐',line,line+1,'preserve');}
- else{var prefix=start===line?'☐ ':'\n☐ ';b.setRangeText(prefix,start,end,'end');}
+ else{var prefix=start===line?'☐ ':'\n☐ ';if(b.value.length-(end-start)+prefix.length>200000){toast(t('Лимит заметки — 200 000 символов'));return;}b.setRangeText(prefix,start,end,'end');}
  b.focus();stage();};
-$('noteBody').addEventListener('keydown',function(e){if(e.key!=='Enter'||e.isComposing||e.shiftKey||this.selectionStart!==this.selectionEnd)return;var at=this.selectionStart,line=this.value.lastIndexOf('\n',at-1)+1,text=this.value.slice(line,at);if(!/^[☐☑] /.test(text))return;e.preventDefault();if(text.length===2)this.setRangeText('',line,at,'end');else this.setRangeText('\n☐ ',at,at,'end');stage();});
+$('noteBody').addEventListener('keydown',function(e){if(e.key!=='Enter'||e.isComposing||e.shiftKey||this.selectionStart!==this.selectionEnd)return;var at=this.selectionStart,line=this.value.lastIndexOf('\n',at-1)+1,text=this.value.slice(line,at);if(!/^[☐☑] /.test(text))return;e.preventDefault();if(text.length===2)this.setRangeText('',line,at,'end');else{if(this.value.length+3>200000){toast(t('Лимит заметки — 200 000 символов'));return;}this.setRangeText('\n☐ ',at,at,'end');}stage();});
 document.addEventListener('keydown',function(e){if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();transition(flush);}if(e.key==='Escape'&&!$('noteDialog').open)window.NoteBack();});
 heading();if(native)native.ready();else{$('listStatus').textContent=t('Откройте приложение Pocket Llama на телефоне.');}
 })();
