@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.10.1 — single-line navigation labels
+
+- Keep the five bottom-navigation captions on one line in RU/EN.
+- Let longer labels such as «Настройки» use more space, remove excess button padding and retain full-size touch targets.
+- Use a compact caption size on the narrowest screens. No data or model changes.
+
 ## 0.10.0 — encrypted notes and local search
 
 - New Notes entry in the main navigation, with titles, text previews and recent edits.

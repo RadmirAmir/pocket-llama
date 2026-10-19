@@ -29,5 +29,8 @@ html{overflow:hidden}body{overflow:hidden}#app{height:100%;max-width:760px;margi
 .language-picker button{min-height:48px;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);font:inherit;cursor:pointer}
 .language-picker button[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--bg)}
 
-/* Five primary destinations stay readable on narrow phones and larger text. */
-.bottom-nav{padding-left:8px;padding-right:8px}.bottom-nav button>span{max-width:100%;overflow-wrap:anywhere;line-height:1.35}
+/* Give longer captions their natural width while keeping every tab on one line. */
+.bottom-nav{padding-left:4px;padding-right:4px}
+.bottom-nav button{flex:1 1 auto;min-width:44px;padding-left:0;padding-right:0}
+.bottom-nav button>span{max-width:100%;white-space:nowrap;overflow-wrap:normal;overflow:hidden;text-overflow:ellipsis;line-height:1.35}
+@media(max-width:340px){.bottom-nav button{font-size:.625rem}}
