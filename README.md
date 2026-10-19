@@ -2,31 +2,35 @@
 
 ![Pocket. Your AI. Your phone. Your business. Record conversations, scan documents and think things through offline.](docs/media/hero-en.png)
 
-<h1 align="center">A personal AI. A private space.</h1>
+<h1 align="center">Pocket — Offline AI for Android</h1>
 
-<p align="center">Turn conversations into notes. Paper into text. Questions into a conversation.<br><b>All AI processing happens on your Android phone.</b></p>
+<p align="center">Speech-to-text, meeting summaries, document OCR and local LLM chat.<br><b>All AI processing happens on your Android phone.</b></p>
 
 <p align="center"><a href="https://github.com/RadmirAmir/pocket-llama/releases/download/v0.9.3-rc.1/PocketLlama-0.9.3-community-arm64.apk"><b>↓ Download for Android</b></a> · <a href="docs/GETTING-STARTED.md">Get started</a> · <a href="docs/SECURITY.md">Privacy & security</a></p>
 
 <p align="center">Android 10+ · ARM64 · Open source · No account · No ads</p>
 
-Your best ideas do not need a cloud account. Neither do your conversations, documents or questions. Pocket brings a recorder, speech recognition, a scanner and an AI chat into one encrypted space on your phone. Download a chat model once, then use the core tools in airplane mode.
+<p align="center">Find Pocket useful? <b>Support the project with a star on GitHub.</b></p>
+
+Pocket is a free, open-source Android app for offline speech recognition (speech-to-text), meeting transcription and summaries, document scanning with OCR, and local LLM chat powered by llama.cpp. Record meetings, lectures or voice notes in English or Russian, recognize text from photos and PDFs, and keep your saved content in an encrypted vault on your phone.
+
+**Ready after installation:** recording, English/Russian transcription and OCR. **For chat and summaries:** download or import a compatible GGUF language model once, then use it offline.
 
 **Public preview: 0.9.3-rc.1.** Available here as an APK, approximately 641 MB. Google Play release is being prepared. Switch between **English and Russian in Settings**. English speech uses **Moonshine Streaming Medium**; Russian uses **GigaAM v3**. Both speech models and Russian/English OCR are included. **Optional Surya OCR 2:** optional local text, layout and table recognition, with a one-time 1.47 GB model download after accepting its terms.
 
-## Remember the conversation. Keep the original.
+## Offline speech-to-text and meeting summaries
 
 Record a meeting, a lecture or a thought before it disappears. Pocket turns English or Russian speech into a searchable transcript, separates speakers and can build a short summary with links back to the relevant words. Tap a source to hear what was actually said.
 
 **Two speech models, already included:** Moonshine Streaming Medium for English and GigaAM v3 for Russian. Recording and transcription do not need an extra model download. Summaries use the local language model you choose.
 
-## An assistant that fits your phone
+## Local LLM chat with GGUF models
 
 Draft a message, work through an idea, or ask for a clearer explanation. Choose a small model from the built-in catalog instead of guessing which file to download. Pocket shows the size and memory requirements, supports pause and resume, and verifies the downloaded file. You can also import your own compatible GGUF.
 
 **No cloud inference service. No account to create.** Your conversation is stored in the app's encrypted vault.
 
-## From paper to something you can use
+## Document scanner and offline OCR
 
 Scan a receipt, a page of notes or a document. Adjust the edges, correct the perspective, recognize the text, and find it again later. Add multiple pages, import photos or PDFs, edit the result, and export a searchable PDF.
 
@@ -43,7 +47,7 @@ Scan a receipt, a page of notes or a document. Adjust the edges, correct the per
 
 <sub>Actual English app interfaces rendered with illustrative demo content. The chat and summary examples are not model benchmarks. Native Android system screens are omitted.</sub>
 
-## Private by design, with details you can inspect
+## Privacy and encrypted local storage
 
 | Your data | How Pocket handles it |
 | --- | --- |
@@ -56,7 +60,7 @@ Scan a receipt, a page of notes or a document. Adjust the edges, correct the per
 
 **Local AI does not mean the app never uses a network.** Model downloads, video imports by URL, opening external pages and anything you explicitly export can contact other services. An optional LAN model API is off by default. The source also supports voluntary, reviewed content reports; no report server is configured in this public preview. Your full vault is never automatically attached to a report. See the [security and network details](docs/SECURITY.md).
 
-## Start in a few steps
+## Download and get started
 
 1. **[Download the APK](https://github.com/RadmirAmir/pocket-llama/releases/download/v0.9.3-rc.1/PocketLlama-0.9.3-community-arm64.apk)** on an Android 10+ ARM64 phone. Allow installation from your browser when Android asks.
 2. **Create your six-digit PIN.** Recording, English/Russian transcription and OCR are already included. In **Settings → Interface language**, choose **EN · English** or **RU · Русский**; new transcription jobs follow that language.
@@ -65,7 +69,7 @@ Scan a receipt, a page of notes or a document. Adjust the edges, correct the per
 
 [Full user guide and troubleshooting →](docs/GETTING-STARTED.md)
 
-## Will it run on my phone?
+## Android compatibility and memory requirements
 
 The public build targets **Android 10 or newer with a 64-bit ARM system**. It uses a portable CPU backend; no particular brand of NPU is required. Snapdragon, MediaTek, Exynos and Tensor devices are targets of this build, not a list of physically certified phones.
 
@@ -81,7 +85,7 @@ The public build targets **Android 10 or newer with a 64-bit ARM system**. It us
 
 **Available:** Android ARM64 preview. **Not currently released:** iOS, desktop, Android x86 or 32-bit Android builds.
 
-## A few things to know
+## Frequently asked questions
 
 **Does it work without the internet?** Yes: recording, English/Russian transcription and OCR work with the included models. Chat and summaries work offline once a compatible LLM is downloaded or imported.
 
@@ -93,7 +97,7 @@ The public build targets **Android 10 or newer with a 64-bit ARM system**. It us
 
 **Already using the personal build?** The public preview installs separately. Keep your existing app: vaults do not automatically migrate between package IDs. [Update details →](docs/GETTING-STARTED.md#updates-and-existing-installations)
 
-## Build it. Inspect it. Improve it.
+## Build from source and contribute
 
 Pocket's own code is **Apache-2.0**. The recorder uses GigaAM v3 (RU), Moonshine Streaming Medium (EN), Silero VAD and CAM++; the scanner includes PaddleOCR and optional Surya OCR 2; chat runs through llama.cpp. Dependencies and model weights retain their own licenses. Surya models and output retain their separate license terms. The separate CC BY-NC-SA line detector has been removed. The app is free, with no ads or paid features. [Licenses and inventory →](docs/LICENSING.md)
 
