@@ -60,7 +60,7 @@ Scan a receipt, a page of notes or a document. Adjust the edges, correct the per
 | Your data | How Pocket handles it |
 | --- | --- |
 | Audio, scans and chat | Processed on your device; no automatic upload of personal content |
-| Saved content | Encrypted app-managed storage: AES-256-GCM files and a SQLCipher transcript and notes databases |
+| Saved content | Encrypted app-managed storage: AES-256-GCM files and SQLCipher databases for transcripts, notes and the search index |
 | Encryption keys | Managed through Android Keystore; hardware protection depends on the device |
 | Access | Six-digit app PIN, automatic locking when the app backgrounds, Android screen-capture protection |
 | Tracking | No advertising SDK, automatic analytics or automatic crash-reporting integration |
