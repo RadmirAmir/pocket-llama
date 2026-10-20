@@ -14,5 +14,16 @@
   "sha256": "fe9e47e9ea489a27549a9b760af29df70c7f4303df852273775d8bf2f40c0464",
   "nativeLibrariesUnchanged": 14,
   "exactApkVideoHostChecks": 8,
-  "exactApkAndroidInstallation": "pending"
+  "exactApkAndroidInstallation": "passed",
+  "freshInstallationVerified": true,
+  "upgradesVerified": [
+    "0.10.2",
+    "0.11.0-rc.2"
+  ],
+  "signedApkKnowledgeChecks": 6,
+  "androidNotesChecks": 21,
+  "androidKnowledgeChecks": 20,
+  "androidVideoMigrationChecks": 34,
+  "androidInstallWorkflow": "https://github.com/RadmirAmir/pocket-llama/actions/runs/39439605986",
+  "sourceWorkflow": "https://github.com/RadmirAmir/pocket-llama/actions/runs/39439605902"
 }

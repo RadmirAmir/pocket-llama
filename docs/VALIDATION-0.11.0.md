@@ -1,5 +1,7 @@
 # Personal knowledge preview validation — 0.11.0
 
+**Current signed release: [RC.3](VALIDATION-0.11.0-rc3.md).** It includes title-only note indexing, version code 31, fresh installation and upgrades from 0.10.2/RC.2. The RC.2 record below is retained as historical evidence.
+
 Verified RC.2 checks on 2026-10-20:
 
 - All Android Java sources compile against API 36 / Java 11.
@@ -23,8 +25,6 @@ Source fingerprints use a canonical field order, so document-page revalidation i
 
 Additional local chat transport regression: 70 HTTP assertions passed. Published APK SHA-256: `5154a6f203b8d1ba264966049b08e5ea3f304e4b2ba3a44e28a06f8697a99d07`. Package and certificate match the previous community release.
 
-## Unreleased title-only note fix
+## Signed title-only note follow-up
 
-The source now indexes a note title when the body is empty, with a native SQLCipher retrieval/revalidation regression. The signed RC.2 APK predates this follow-up. Its signing/build execution server lost its connection, so a new signed APK could not be produced in this session. The published RC.2 remains the verified downloadable artifact; its limitations are documented in [RAG setup](RAG.md).
-
-The follow-up source passed [all host, frontend and Android build/lint jobs](https://github.com/RadmirAmir/pocket-llama/actions/runs/39417923547). Its [Android native fixture run](https://github.com/RadmirAmir/pocket-llama/actions/runs/39417923550) passed 20 SQLCipher knowledge checks, including retrieval and revalidation of a title-only note. That run also installs the existing signed RC.2 and runs source-level fixtures; it does not make the unreleased title fix part of RC.2. A fresh signed artifact is still required for that last change.
+The title-only note fix is included in the signed RC.3 APK. See [RC.3 validation](VALIDATION-0.11.0-rc3.md) for the exact artifact hash, Android installation/upgrade results, six checks executing its own RAG bytecode and 20 real SQLCipher knowledge checks.

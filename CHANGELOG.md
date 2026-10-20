@@ -1,8 +1,9 @@
 # Changelog
 
-## Unreleased
+## 0.11.0-rc.3 — title-only notes in personal knowledge
 
-- Include notes containing only a title in personal knowledge search. This source fix is not yet in the signed 0.11.0-rc.2 APK.
+- Include notes containing only a title in the signed community APK, with version code 31 for in-place upgrades from RC.2 and earlier community releases.
+- Verify the RAG reader directly from the signed APK DEX in Android acceptance, alongside SQLCipher retrieval and existing notes/video checks.
 
 ## 0.11.0 — personal knowledge for local chat
 
