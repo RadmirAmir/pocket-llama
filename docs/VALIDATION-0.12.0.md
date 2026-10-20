@@ -33,13 +33,25 @@ failures that host-only Python tests do not expose.
 
 ## Android acceptance
 
-The source CI exercises the bundled Bionic CPython, lxml, msgspec, real
-SearXNG parsing, in-memory caches and lock cancellation on an Android
-emulator. The signed-release workflow downloads the exact staged APK,
-checks its hash, package, version and old certificate, then tests fresh
-installation, startup and an in-place upgrade from RC.3. It also runs the
-notes, SQLCipher knowledge and video regressions using the candidate.
+[Native Android verification](https://github.com/RadmirAmir/pocket-llama/actions/runs/39482462923/job/118834249895)
+passed the actual bundled Bionic CPython, lxml, msgspec, real SearXNG parsing,
+in-memory caches and bounded cancellation when access is revoked. Its
+diagnostic Activity runs once across configuration changes and waits for
+asynchronous process retirement. These diagnostic-only corrections do not
+change the published APK.
 
-Run links and outcomes will be recorded after these jobs finish. Live
-provider availability and end-to-end search performance on a physical
-ARM64 phone remain separate from deterministic runtime checks.
+[Exact published-APK acceptance on Android 16](https://github.com/RadmirAmir/pocket-llama/actions/runs/39481658866)
+passed the downloaded SHA-256 above, package, version, previous certificate,
+ZIP alignment, complete model set and current search/RAG assets. Fresh
+installation, startup and an in-place upgrade from 0.11.0 RC.3 all passed.
+The same job passed six checks loading the signed APK's own knowledge DEX,
+21 notes persistence/search/encryption checks, 20 real SQLCipher knowledge
+checks, and 34 video/migration checks.
+
+Every job in the [source workflow](https://github.com/RadmirAmir/pocket-llama/actions/runs/39482462923)
+passed: host, RU/EN frontend, native Android search, the complete community
+source build, and Play bundle/lint with install-time model packs.
+The APK is published as [v0.12.0-rc.1](https://github.com/RadmirAmir/pocket-llama/releases/tag/v0.12.0-rc.1)
+and its bytes have not changed after publication. Live provider availability
+and end-to-end search performance on a physical ARM64 phone remain separate
+from deterministic runtime checks.
