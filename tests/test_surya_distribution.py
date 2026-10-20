@@ -31,6 +31,9 @@ class SuryaDistributionTests(unittest.TestCase):
             (root / 'notices').mkdir()
             (root / 'notices/Surya-community.txt').write_text('Main model terms')
             assets = root / 'app/src/main/assets'
+            (assets / 'rag').mkdir(parents=True)
+            (assets / 'rag/model.json').write_bytes((ROOT / 'app/src/main/assets/rag/model.json').read_bytes())
+            (root / 'rag-model.lock.json').write_bytes((ROOT / 'rag-model.lock.json').read_bytes())
             for group in ['speech', 'moonshine', 'ocr']:
                 (assets / group).mkdir(parents=True)
                 (assets / group / 'manifest.json').write_text('{"files": []}')

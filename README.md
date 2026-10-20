@@ -6,7 +6,7 @@
 
 <p align="center">Speech-to-text, meeting summaries, private notes, document OCR and local LLM chat.<br><b>All AI processing happens on your Android phone.</b></p>
 
-<p align="center"><a href="https://github.com/RadmirAmir/pocket-llama/releases/download/v0.11.0-rc.1/PocketLlama-0.11.0-community-arm64.apk"><b>↓ Download for Android</b></a> · <a href="docs/GETTING-STARTED.md">Get started</a> · <a href="docs/SECURITY.md">Privacy & security</a></p>
+<p align="center"><a href="https://github.com/RadmirAmir/pocket-llama/releases/download/v0.11.0-rc.2/PocketLlama-0.11.0-community-arm64.apk"><b>↓ Download for Android</b></a> · <a href="docs/GETTING-STARTED.md">Get started</a> · <a href="docs/SECURITY.md">Privacy & security</a></p>
 
 <p align="center">Android 10+ · ARM64 · Open source · No account · No ads</p>
 
@@ -16,7 +16,7 @@ Pocket is a free, open-source Android app for offline speech recognition (speech
 
 **Ready after installation:** notes, recording, English/Russian transcription and OCR. **For chat and summaries:** download or import a compatible GGUF language model once, then use it offline.
 
-**Public preview: 0.11.0-rc.1.** Available here as an APK, approximately 641 MB. Google Play release is being prepared. Switch between **English and Russian in Settings**. English speech uses **Moonshine Streaming Medium**; Russian uses **GigaAM v3**. Both speech models and Russian/English OCR are included. **Optional Surya OCR 2:** optional local text, layout and table recognition, with a one-time 1.47 GB model download after accepting its terms.
+**Public preview: 0.11.0-rc.2.** Available here as an APK, approximately 641 MB. Google Play release is being prepared. Switch between **English and Russian in Settings**. English speech uses **Moonshine Streaming Medium**; Russian uses **GigaAM v3**. Both speech models and Russian/English OCR are included. **Optional Surya OCR 2:** optional local text, layout and table recognition, with a one-time 1.47 GB model download after accepting its terms.
 
 ## Offline speech-to-text and meeting summaries
 
@@ -70,7 +70,7 @@ Scan a receipt, a page of notes or a document. Adjust the edges, correct the per
 
 ## Download and get started
 
-1. **[Download the APK](https://github.com/RadmirAmir/pocket-llama/releases/download/v0.11.0-rc.1/PocketLlama-0.11.0-community-arm64.apk)** on an Android 10+ ARM64 phone. Allow installation from your browser when Android asks.
+1. **[Download the APK](https://github.com/RadmirAmir/pocket-llama/releases/download/v0.11.0-rc.2/PocketLlama-0.11.0-community-arm64.apk)** on an Android 10+ ARM64 phone. Allow installation from your browser when Android asks.
 2. **Create your six-digit PIN.** Recording, English/Russian transcription and OCR are already included. In **Settings → Interface language**, choose **EN · English** or **RU · Русский**; new transcription jobs follow that language.
 3. **Open Settings → model catalog.** Start with Pocket's recommendation, download the model and choose **Use**. Chat and summaries can now run locally too.
 4. **Make it yours.** Write a note, record a thought, scan a page or open Chat. Try the core tools with airplane mode enabled after setup.

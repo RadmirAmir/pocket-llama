@@ -26,6 +26,8 @@ public final class AndroidKnowledgeRegression {
         File data=new File(parent.getNoBackupFilesDir(),"knowledge-fixture");data.mkdirs();
         Context c=new ContextWrapper(parent){@Override public Context getApplicationContext(){return this;}@Override public File getNoBackupFilesDir(){return data;}};
         String noteId,meetingId,pageId;Embeddings embed=new Embeddings();RagSources reader=new RagSources(c,()->{});
+        JSONObject locA=new JSONObject().put("document","doc").put("page",2).put("pageId","page"),locB=new JSONObject().put("pageId","page").put("page",2).put("document","doc");
+        check(RagSources.text("ocr","page","","Title","Same text",locA).fingerprint().equals(RagSources.text("ocr","page","","Title","Same text",locB).fingerprint()),"source fingerprint is independent of JSON field order");
         try(NoteStore notes=new NoteStore(c);VoiceStore voice=new VoiceStore(c)) {
             for(int i=0;i<130;i++){JSONObject n=notes.create();notes.save(n.getString("id"),n.getLong("revision"),"Note "+i,"Material "+i+" café Ёжик 😀");}
             JSONObject n=notes.create();noteId=n.getString("id");notes.save(noteId,n.getLong("revision"),"Private note","STALE_PRIVATE text never leave device");

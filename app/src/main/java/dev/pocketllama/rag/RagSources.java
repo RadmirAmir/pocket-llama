@@ -22,7 +22,7 @@ public final class RagSources {
         public final String key,kind,id,title;
         public final List<Piece> pieces;
         public Source(String kind,String id,String suffix,String title,List<Piece> pieces){this.kind=kind;this.id=id;this.key=kind+":"+id+suffix;this.title=title;this.pieces=pieces;}
-        public String fingerprint(){StringBuilder s=new StringBuilder(RagText.VERSION).append('\n').append(title);for(Piece p:pieces)s.append('\n').append(p.location).append('\n').append(p.text);return RagText.hash(s.toString());}
+        public String fingerprint(){StringBuilder s=new StringBuilder(new JSONArray().put(RagText.VERSION).put(title).toString());for(Piece p:pieces){JSONArray canonical=new JSONArray();for(String key:new String[]{"section","document","page","pageId","start","end","offset","endOffset"})canonical.put(p.location.opt(key));canonical.put(p.text);s.append('\n').append(canonical);}return RagText.hash(s.toString());}
     }
     private final Context context;
     private final Check check;

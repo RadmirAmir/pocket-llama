@@ -13,4 +13,6 @@ No physical-phone retrieval speed or end-to-end answer accuracy is claimed. The 
 
 ## Published candidate artifact
 
-APK: 640863630 bytes. SHA-256: `82df8edbf229553ec4e960c275baa585a5d035480095e0d0c685dc7fc2e3c0e9`. All 16 bundled model files and 6 video program files passed their pinned checks. RAG metadata, model terms and native classes are present; embedding weights remain a separate download. Resource-table storage/alignment, 16 KiB ZIP alignment and the existing signing certificate were checked. See [artifact report](artifact-validation-0.11.0.json).
+APK: 640863630 bytes. SHA-256: `5154a6f203b8d1ba264966049b08e5ea3f304e4b2ba3a44e28a06f8697a99d07`. All 16 bundled model files and 6 video program files passed their pinned checks. RAG metadata, model terms and native classes are present; embedding weights remain a separate download. Resource-table storage/alignment, 16 KiB ZIP alignment and the existing signing certificate were checked. See [artifact report](artifact-validation-0.11.0.json).
+
+Source fingerprints use a canonical field order, so document-page revalidation is independent of JSON construction order. A native regression covers this. The earlier RC.1 candidate is withdrawn; use RC.2.
