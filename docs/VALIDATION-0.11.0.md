@@ -26,3 +26,5 @@ Additional local chat transport regression: 70 HTTP assertions passed. Published
 ## Unreleased title-only note fix
 
 The source now indexes a note title when the body is empty, with a native SQLCipher retrieval/revalidation regression. The signed RC.2 APK predates this follow-up. Its signing/build execution server lost its connection, so a new signed APK could not be produced in this session. The published RC.2 remains the verified downloadable artifact; its limitations are documented in [RAG setup](RAG.md).
+
+The follow-up source passed [all host, frontend and Android build/lint jobs](https://github.com/RadmirAmir/pocket-llama/actions/runs/39417923547). Its [Android native fixture run](https://github.com/RadmirAmir/pocket-llama/actions/runs/39417923550) passed 20 SQLCipher knowledge checks, including retrieval and revalidation of a title-only note. That run also installs the existing signed RC.2 and runs source-level fixtures; it does not make the unreleased title fix part of RC.2. A fresh signed artifact is still required for that last change.
