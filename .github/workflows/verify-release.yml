@@ -35,11 +35,16 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           CANDIDATE_TAG: ${{ inputs.candidate_tag || 'v0.12.0-rc.1' }}
-          CANDIDATE_SHA256: ${{ inputs.candidate_sha256 || '994bf8740457df1184b4bf3b3fd7791e1c7af7b88bf17877f30891ca689faede' }}
+          CANDIDATE_SHA256: ${{ inputs.candidate_sha256 || 'fd5e7679f750e523c86bca3535eeefeaecf8b35cc1484dabfe85ef54c0136afa' }}
         run: |
           [[ "$CANDIDATE_TAG" =~ ^v[0-9][0-9A-Za-z.-]*$ ]]
           [[ "$CANDIDATE_SHA256" =~ ^[a-f0-9]{64}$ ]]
           mkdir -p build/release-candidate
+          # Read-only tokens can download the APK once the draft is published.
+          for attempt in $(seq 1 60); do
+            if gh release view "$CANDIDATE_TAG" >/dev/null 2>&1; then break; fi
+            sleep 10
+          done
           gh release download "$CANDIDATE_TAG" --pattern 'PocketLlama-*-community-arm64.apk' --dir build/release-candidate
           mv build/release-candidate/*.apk build/release-candidate/candidate.apk
           printf '%s  %s\n' "$CANDIDATE_SHA256" build/release-candidate/candidate.apk | sha256sum --check
