@@ -1,5 +1,8 @@
 name: Verify signed community release
 on:
+  push:
+    paths:
+      - '.github/workflows/verify-release.yml'
   workflow_dispatch:
     inputs:
       candidate_tag:
@@ -31,8 +34,8 @@ jobs:
       - name: Download and verify the signed candidate before publication
         env:
           GH_TOKEN: ${{ github.token }}
-          CANDIDATE_TAG: ${{ inputs.candidate_tag }}
-          CANDIDATE_SHA256: ${{ inputs.candidate_sha256 }}
+          CANDIDATE_TAG: ${{ inputs.candidate_tag || 'v0.12.0-rc.1' }}
+          CANDIDATE_SHA256: ${{ inputs.candidate_sha256 || '994bf8740457df1184b4bf3b3fd7791e1c7af7b88bf17877f30891ca689faede' }}
         run: |
           [[ "$CANDIDATE_TAG" =~ ^v[0-9][0-9A-Za-z.-]*$ ]]
           [[ "$CANDIDATE_SHA256" =~ ^[a-f0-9]{64}$ ]]
