@@ -17,11 +17,11 @@ def main():
   d=build/name
   if d.exists():shutil.rmtree(d)
   d.mkdir()
- jars=[ROOT/'app/libs'/n for n in ['sqlcipher-android-4.19.1.jar','androidx-sqlite-2.7.0.jar','kotlin-stdlib-2.2.10.jar','onnxruntime-android-1.23.2.jar']]
+ jars=[ROOT/'app/libs'/n for n in ['sqlcipher-android-4.19.1.jar','androidx-sqlite-2.7.0.jar','kotlin-stdlib-2.2.10.jar']]
  source=ROOT/'app/src/main/java/dev/pocketllama'
  files=[source/n for n in ['I18n.java','core/SpeechLanguage.java','notes/NoteStore.java','notes/NoteText.java','security/ChunkedFile.java','security/DatabaseSettings.java','voice/VoiceStore.java','voice/VoiceState.java','voice/PcmFile.java','voice/SincResampler.java','voice/AudioImporter.java','video/VideoUrl.java','video/VideoRuntime.java','video/VideoDownloader.java','video/EncryptedMediaSource.java']]+sorted((ROOT/'tests/android-video').glob('*.java'))
  files += [source/'rag'/(name+'.java') for name in ['RagText','RagMcp','RagStore','RagSources']]
- files += [source/'photo'/(name+'.java') for name in ['PhotoStore','DocumentStore','PhotoKey','EncryptedFiles','ScanGeometry','OcrEngine','OcrRaster','OcrGeometry']]
+ files += [source/'photo'/(name+'.java') for name in ['PhotoStore','DocumentStore','PhotoKey','EncryptedFiles','ScanGeometry']]
  run([jdk/'bin/javac','--release','11','-cp',os.pathsep.join(map(str,[android]+jars)),'-d',build/'classes']+files)
  run([jdk/'bin/java','-cp',tools/'lib/d8.jar','com.android.tools.r8.D8','--release','--min-api','29','--lib',android,'--output',build/'dex']+sorted((build/'classes').rglob('*.class'))+jars)
  archive=build/'regression.jar'
