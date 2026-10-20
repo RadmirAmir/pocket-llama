@@ -42,8 +42,16 @@ def main():
 <activity android:name=".AndroidSearchProbe" android:exported="true"/></application></manifest>''')
     run(tools / 'aapt2', 'link', '-o', work / 'base.apk', '-I', android, '--manifest', manifest, '--min-sdk-version', '29', '--target-sdk-version', '36')
     java = ROOT / 'app/src/main/java/dev/pocketllama'
+    # Synthetic fixture queries only: retain child stderr in the diagnostic APK.
+    # The shipped bridge continues to discard provider messages containing URLs.
+    diagnostic_bridge = work / 'diagnostic/WebSearch.java'
+    diagnostic_bridge.parent.mkdir(exist_ok=True)
+    bridge = (java / 'search/WebSearch.java').read_text()
+    quiet = 'while(in.read(b)!=-1){}'
+    assert bridge.count(quiet) == 1
+    diagnostic_bridge.write_text(bridge.replace(quiet, 'int n;while((n=in.read(b))!=-1){android.util.Log.e("PocketSearchRuntime",new String(b,0,n,StandardCharsets.UTF_8));}'))
     sources = [*sorted((java / 'core').glob('*.java')), java / 'ChatApi.java',
-               java / 'video/VideoRuntime.java', *sorted((java / 'search').glob('*.java')),
+               java / 'video/VideoRuntime.java', *sorted(p for p in (java / 'search').glob('*.java') if p.name != 'WebSearch.java'), diagnostic_bridge,
                ROOT / 'tests/android-search/AndroidSearchProbe.java']
     run('javac', '--release', '11', '-encoding', 'UTF-8', '-cp', android, '-d', classes, *sources)
     run('java', '-cp', tools / 'lib/d8.jar', 'com.android.tools.r8.D8', '--min-api', '29', '--lib', android, '--output', dex, *sorted(classes.rglob('*.class')))
