@@ -24,6 +24,11 @@ app/src/main/assets/surya/bundled/
 app/src/main/assets/video/python.zip
 app/src/main/assets/video/yt-dlp
 app/src/main/assets/video/runtime-id.txt
+app/src/main/assets/search/python.zip
+app/src/main/assets/search/runtime-id.txt
+app/src/main/assets/search/settings.json
+search-runtime.manifest.json
+video-runtime.manifest.json
 *_pack/src/main/assets/
 # Signing and publishing credentials always live outside the repository.
 signing/

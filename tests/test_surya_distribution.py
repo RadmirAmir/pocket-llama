@@ -46,7 +46,7 @@ class SuryaDistributionTests(unittest.TestCase):
                 (root / '.cache/surya' / name).write_bytes(b'fixture')
                 models.append({'name': name, 'bytes': 7, 'sha256': 'unused fixture hash'})
             (root / 'scanner-runtime.lock.json').write_text(json.dumps({'surya': {'models': models}}))
-            with patch.object(delivery, 'ROOT', root), patch.object(delivery, 'checked'), patch.object(delivery.video_bundle, 'inventory', return_value=[]):
+            with patch.object(delivery, 'ROOT', root), patch.object(delivery, 'checked'), patch.object(delivery.video_bundle, 'inventory', return_value=[]), patch.object(delivery.search_bundle, 'inventory', return_value=[]):
                 for channel in ['community', 'play', 'personal']:
                     stage = delivery.prepare(channel)
                     names = [p.relative_to(stage).as_posix() for p in stage.rglob('*') if p.is_file()]

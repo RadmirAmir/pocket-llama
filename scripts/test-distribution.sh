@@ -18,3 +18,4 @@ javac --release 17 -d "$test_dir" \
 java -cp "$test_dir" LegacyScannerCacheTests
 
 python3 -m unittest discover -s "$project_dir/tests" -p test_video_distribution.py
+python3 -m unittest discover -s "$project_dir/tests" -p test_search_distribution.py

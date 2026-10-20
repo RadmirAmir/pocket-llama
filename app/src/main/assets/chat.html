@@ -22,7 +22,7 @@
 <div id="empty">
 <div class="eyebrow">Личное пространство для мыслей</div>
 <h1>Давайте<br>разберёмся.</h1>
-<p class="intro">Разложите сложное по полочкам. Обсудите идею, документ или фотографию — всё остаётся на телефоне.</p>
+<p class="intro">Разложите сложное по полочкам. Обсудите идею, документ или фотографию. Модель работает на телефоне. Интернет-поиск включается отдельно.</p>
 <div class="suggestions">
 <button class="suggestion" data-prompt="Объясни простыми словами: ">Объяснить понятно<small>Сложная тема, решение или идея</small></button>
 <button class="suggestion" data-prompt="Сделай краткое резюме приложенного файла и выдели главное.">Разобрать документ<small>Текст, Markdown, таблица CSV или код</small></button>
@@ -34,6 +34,7 @@
 <div id="notice" role="alert"></div>
 <footer class="composer">
 <button id="ragBadge" class="rag-badge" hidden aria-label="Настроить базу знаний">База знаний подключена</button>
+<button id="webBadge" class="rag-badge web-badge" hidden aria-label="Настроить интернет-поиск">Интернет-поиск включён</button>
 <div id="pending"></div>
 <div class="input-box">
 <textarea id="input" rows="2" maxlength="60000" placeholder="Напишите сообщение…" aria-label="Сообщение"></textarea>
@@ -60,6 +61,11 @@
 <p class="knowledge-hint">EmbeddingGemma Q8 · 329 МБ. Первая индексация может занять время. Модель чата ненадолго выгружается на время смыслового поиска.</p>
 <div class="knowledge-actions"><button id="ragDownload">Скачать модель</button><button id="ragBuild">Обновить индекс</button><button id="ragClear">Удалить индекс</button><button id="ragCancel" hidden>Остановить</button></div>
 </div>
+<div class="knowledge-card">
+<label class="knowledge-toggle"><span><b>Интернет-поиск</b><small>SearXNG · внутри приложения</small></span><input id="webEnabled" type="checkbox" aria-describedby="webDescription"></label>
+<p id="webDescription">Поиск по текущему вопросу через Google, Brave и DuckDuckGo. Текст вопроса, включая личные данные в нём, и ваш IP-адрес доступны поисковикам. История, вложения и база знаний не передаются.</p>
+<p class="knowledge-hint">Перед включением Pocket запросит подтверждение. Источники появятся под ответом. Новый диалог начинает работу без интернета.</p>
+</div>
 <p class="knowledge-hint">Инструмент выключен по умолчанию. Новый диалог начинает работу без доступа к базе знаний. Индекс хранится в зашифрованном виде.</p>
 </dialog>
 <script>
@@ -70,6 +76,7 @@ var $=function(id){return document.getElementById(id);};
 var native=window.Pocket||null;
 var messages=[],pending=[],state={ready:false,vision:false,model:'',context:0},busy=false,attachmentBusy=false,currentId=null;
 var saveTimer=0,drawTimer=0,autoScroll=true,streamArticle=null,streamRenderedContent=null;
+var webConnected=false;
 var ragState={modelReady:false,working:false,sources:0,passages:0};
 var FENCE=String.fromCharCode(96).repeat(3);
 function node(tag,cls,text){var n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;}
@@ -86,7 +93,8 @@ function boldText(parent,text){
  var pieces=text.split(/(\*\*[^*\n]+\*\*)/g);
  pieces.forEach(function(piece){if(piece.slice(0,2)==='**'&&piece.slice(-2)==='**')parent.appendChild(node('strong','',piece.slice(2,-2)));else parent.appendChild(document.createTextNode(piece));});
 }
-function inline(parent,text,sources){String(text).split(/(\[S\d{1,2}\])/g).forEach(function(part){var found=(sources||[]).find(function(s){return '['+s.citation+']'===part;});if(found){var b=node('button','citation',part);b.disabled=busy;b.title=found.title||_t('Открыть источник');b.onclick=function(){bridge('openRagSource',JSON.stringify(found));};parent.appendChild(b);}else boldText(parent,part);});}
+function allSources(message){return (message.rag&&message.rag.sources||[]).concat(message.web&&message.web.sources||[]);}
+function inline(parent,text,sources){String(text).split(/(\[[SW]\d{1,2}\])/g).forEach(function(part){var found=(sources||[]).find(function(s){return '['+s.citation+']'===part;});if(found){var b=node('button','citation',part);b.disabled=busy;b.title=found.title||_t('Открыть источник');b.onclick=function(){if(found.url)bridge('openWebSource',found.url);else bridge('openRagSource',JSON.stringify(found));};parent.appendChild(b);}else boldText(parent,part);});}
 function rich(parent,text,sources){
  var blocks=String(text||'').split(FENCE);
  blocks.forEach(function(block,index){
@@ -116,7 +124,7 @@ function streamNote(message){
  if(message.content)stage=_t('Пишет ответ');
  else if(message.reasoning)stage=_t('Модель размышляет');
  else if(message.progress&&Number(message.progress.total)>0){var p=message.progress;stage=_t('Обработка запроса: ')+Math.min(Number(p.total),Number(p.processed||0)+Number(p.cache||0))+' / '+p.total+_t(' ток.');}
- else stage=message.ragStage||_t('Ожидание модели');
+ else stage=message.webStage||message.ragStage||_t('Ожидание модели');
  var text=stage+' · '+seconds(elapsed),rate=metricText(message.metrics);
  if(rate)text+=' · '+rate;
  if(elapsed>20000&&Date.now()-(message.lastUpdate||message.created)>20000)text+=_t(' · давно без обновлений, можно остановить');
@@ -126,7 +134,7 @@ function updateStreaming(){
  if(!busy||!streamArticle)return;
  var m=messages[messages.length-1];if(!m||m.id!==currentId)return;
  var prose=streamArticle.querySelector('.prose');
- if(streamRenderedContent!==m.content){prose.replaceChildren();if(m.content)rich(prose,m.content,m.rag&&m.rag.sources);else prose.appendChild(node('span','thinking-dots','● ● ●'));streamRenderedContent=m.content;}
+ if(streamRenderedContent!==m.content){prose.replaceChildren();if(m.content)rich(prose,m.content,allSources(m));else prose.appendChild(node('span','thinking-dots','● ● ●'));streamRenderedContent=m.content;}
  if(m.reasoning){
   var details=streamArticle.querySelector('.reasoning');
   if(!details){details=node('details','reasoning');details.appendChild(node('summary','',_t('Размышление модели')));details.appendChild(node('div','reasoning-body'));streamArticle.querySelector('.bubble').prepend(details);}
@@ -145,9 +153,10 @@ function draw(){
   var bubble=node('div','bubble');
   if(message.role==='assistant'&&message.reasoning){var details=node('details','reasoning');details.appendChild(node('summary','',_t('Размышление модели')));details.appendChild(node('div','reasoning-body',message.reasoning));bubble.appendChild(details);}
   var prose=node('div','prose');var text=message.role==='user'?message.view_text:message.content;
-  if(text)rich(prose,text,message.rag&&message.rag.sources);else if(message.state==='streaming')prose.appendChild(node('span','thinking-dots','● ● ●'));
+  if(text)rich(prose,text,allSources(message));else if(message.state==='streaming')prose.appendChild(node('span','thinking-dots','● ● ●'));
   bubble.appendChild(prose);
   if(message.role==='assistant'&&message.rag)bubble.appendChild(sourceCards(message.rag));
+  if(message.role==='assistant'&&message.web)bubble.appendChild(webSourceCards(message.web));
   if(message.files&&message.files.length){var files=node('div','message-files'),urls=attachmentUrls(message),imageIndex=0;message.files.forEach(function(file){files.appendChild(fileCard(file,file.kind==='image'?urls[imageIndex++]:null));});bubble.appendChild(files);}
   article.appendChild(bubble);
   if(message.role==='assistant'){
@@ -172,7 +181,7 @@ function controls(){
  $('file').disabled=locked; $('image').disabled=locked||!state.vision;
  $('new').disabled=locked;$('thinking').disabled=locked;$('maxTokens').disabled=locked;$('input').disabled=busy;
  $('send').disabled=attachmentBusy||(!busy&&(ragState.working||!state.ready||(!$('input').value.trim()&&pending.length===0)));
- $('tools').disabled=busy||attachmentBusy;$('ragBadge').disabled=busy;$('ragBadge').hidden=!$('ragEnabled').checked;
+ $('tools').disabled=busy||attachmentBusy;$('webEnabled').disabled=busy;$('webBadge').disabled=busy;$('webBadge').hidden=!webConnected;document.querySelector('.footnote').textContent=webConnected?_t('ЗАПРОСЫ В ИНТЕРНЕТ'):_t('ТОЛЬКО У ВАС');$('ragBadge').disabled=busy;$('ragBadge').hidden=!$('ragEnabled').checked;
  $('send').classList.toggle('stop',busy);
  $('send').setAttribute('aria-label',busy?_t('Остановить ответ'):_t('Отправить'));
  $('send').innerHTML=busy?'<svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>':'<svg viewBox="0 0 24 24"><path d="M12 19V5m-6 6 6-6 6 6"/></svg>';
@@ -182,6 +191,15 @@ function sourceCards(result){
  var details=node('details','rag-sources'),sources=Array.isArray(result.sources)?result.sources:[],summary=node('summary','',_t('База знаний')+' · '+sources.length+_t(' источников'));details.appendChild(summary);
  if(!sources.length)details.appendChild(node('p','knowledge-hint',_t('Подходящих фрагментов не найдено.')));
  sources.forEach(function(source){var card=node('div','rag-source'),button=node('button','source-open','['+source.citation+'] '+(source.title||_t('Без названия'))),loc=source.location||{},kind=source.kind==='note'?_t('Заметка'):source.kind==='ocr'?_t('Документ'):_t('Расшифровка');button.disabled=busy;button.onclick=function(){bridge('openRagSource',JSON.stringify(source));};card.appendChild(button);var location=loc.start!==undefined?sourceTime(loc.start):loc.page?_t('Страница ')+loc.page:loc.section==='summary'?_t('Конспект'):'';card.appendChild(node('small','',kind+(location?' · '+location:'')));card.appendChild(node('p','',source.text||''));details.appendChild(card);});
+ if(result.contextLimited)details.appendChild(node('p','knowledge-hint',_t('Часть источников не поместилась в контекст модели.')));return details;
+}
+function webSourceCards(result){
+ var details=node('details','rag-sources web-sources'),sources=Array.isArray(result.sources)?result.sources:[];
+ details.appendChild(node('summary','',_t('Интернет')+' · '+sources.length+_t(' источников')));
+ details.appendChild(node('p','knowledge-hint',_t('Поисковый запрос: ')+(result.query||'')));
+ if(!sources.length)details.appendChild(node('p','knowledge-hint',_t('Подходящих фрагментов не найдено.')));
+ sources.forEach(function(source){var card=node('div','rag-source'),button=node('button','source-open','['+source.citation+'] '+(source.title||source.url));button.onclick=function(){bridge('openWebSource',source.url);};card.appendChild(button);card.appendChild(node('small','',source.url||''));card.appendChild(node('p','',source.text||''));details.appendChild(card);});
+ if(result.failedEngines&&result.failedEngines.length)details.appendChild(node('p','knowledge-hint',_t('Часть поисковиков недоступна: ')+result.failedEngines.join(', ')));
  if(result.contextLimited)details.appendChild(node('p','knowledge-hint',_t('Часть источников не поместилась в контекст модели.')));return details;
 }
 function renderRag(){
@@ -205,18 +223,18 @@ function startRequest(){
  if(!state.ready){notice(_t('Сначала запустите модель кнопкой вверху.'));return;}
  if(requestMessages().length>62){notice(_t('История слишком длинная. Начните новый диалог.'));return;}
  var lastUser=messages.filter(function(m){return m.role==='user';}).slice(-1)[0],query=lastUser?String(lastUser.view_text||''):'';
- if($('ragEnabled').checked&&(!query.trim()||query.length>1000)){notice(_t('Для поиска нужен вопрос длиной до 1000 символов'));return;}
+ if(($('ragEnabled').checked||webConnected)&&(!query.trim()||query.length>1000)){notice(_t('Для поиска нужен вопрос длиной до 1000 символов'));return;}
  currentId='reply-'+Date.now()+'-'+Math.random().toString(16).slice(2);
  messages.push({id:currentId,role:'assistant',content:'',reasoning:'',state:'streaming',created:Date.now()});
  busy=true;autoScroll=true;notice('');draw();persist();
- var payload={messages:requestMessages(),thinking:$('thinking').checked,max_tokens:Number($('maxTokens').value),rag:$('ragEnabled').checked};if(payload.rag)payload.rag_query=query;
+ var payload={messages:requestMessages(),thinking:$('thinking').checked,max_tokens:Number($('maxTokens').value),rag:$('ragEnabled').checked};if(payload.rag)payload.rag_query=query;payload.web=webConnected;if(payload.web)payload.web_query=query;
  bridge('send',currentId,JSON.stringify(payload));
 }
 function send(){
  if(busy){bridge('stop');notice(_t('Останавливаю ответ…'));return;}
  if(attachmentBusy||!state.ready)return;
  var text=$('input').value.trim();
- if($('ragEnabled').checked&&text.length>1000){notice(_t('Для поиска нужен вопрос длиной до 1000 символов'));return;}
+ if(($('ragEnabled').checked||webConnected)&&(!text||text.length>1000)){notice(_t('Для поиска нужен вопрос длиной до 1000 символов'));return;}
  if(!text&&pending.length===0)return;
  if(messages.length>=60){notice(_t('История слишком длинная. Начните новый диалог.'));return;}
  if(pending.some(function(f){return f.kind==='image';})&&!state.vision){notice(_t('Для фото нужен запущенный сервер с поддержкой изображений.'));return;}
@@ -243,7 +261,7 @@ window.PocketEvents=function(event){
   pending=Array.isArray(data.pending)?data.pending.slice(0,4):[];
   $('input').value=typeof data.draft==='string'?data.draft:'';
   $('thinking').checked=!!data.thinking;
-  $('ragEnabled').checked=data.ragConnected===true;
+  $('ragEnabled').checked=data.ragConnected===true;webConnected=false;$('webEnabled').checked=false;
   if([256,512,1024,2048].indexOf(data.maxTokens)>=0)$('maxTokens').value=String(data.maxTokens);
   resize();draw();
  }else if(event.type==='state'){
@@ -255,6 +273,9 @@ window.PocketEvents=function(event){
   $('capability').textContent=data.ready?'· '+(data.vision?_t('Текст + фото'):_t('Текст'))+' · '+data.context+_t(' ток.'):'';
   document.querySelector('.pill').textContent=data.backend==='cpu'?'CPU'+(data.cpu_profile?' · '+data.cpu_profile:''):String(data.backend||_t('На телефоне')).toUpperCase();
   controls();
+ }else if(event.type==='webState'){webConnected=data.enabled===true;$('webEnabled').checked=webConnected;controls();
+ }else if(event.type==='webProgress'&&data.id===currentId){var m=messages[messages.length-1];m.webStage=data.detail||'';m.webQuery=data.query||'';m.lastUpdate=Date.now();scheduleDraw();
+ }else if(event.type==='webSources'&&data.id===currentId){var m=messages[messages.length-1];m.web=data.result;m.webStage='';draw();scheduleSave();
  }else if(event.type==='ragState'){
   Object.keys(data).forEach(function(k){ragState[k]=data[k];});if(!data.working){ragState.detail='';delete ragState.total;delete ragState.done;}if(data.error)notice(window.PocketI18n.status(data.error));renderRag();
  }else if(event.type==='ragProgress'&&data.id===currentId){var m=messages[messages.length-1];m.ragStage=data.detail||'';m.lastUpdate=Date.now();scheduleDraw();
@@ -277,7 +298,7 @@ window.PocketEvents=function(event){
   var m=messages[messages.length-1];m.state='error';m.note=window.PocketI18n.status(data.message)||_t('Не удалось получить ответ');if(data.metrics)m.metrics=data.metrics;
   busy=false;currentId=null;notice('');draw();persist();
  }else if(event.type==='error'){notice(window.PocketI18n.status(data.message)||_t('Ошибка'));}
- else if(event.type==='reset'){messages=[];pending=[];$('input').value='';$('ragEnabled').checked=false;currentId=null;notice('');resize();draw();persist();}
+ else if(event.type==='reset'){messages=[];pending=[];$('input').value='';$('ragEnabled').checked=false;webConnected=false;$('webEnabled').checked=false;if(native&&typeof native.setWebSearch==='function')bridge('setWebSearch',false);currentId=null;notice('');resize();draw();persist();}
 };
 $('feed').addEventListener('scroll',function(){autoScroll=$('feed').scrollHeight-$('feed').scrollTop-$('feed').clientHeight<100;},{passive:true});
 $('input').addEventListener('input',function(){resize();controls();scheduleSave();});
@@ -285,7 +306,8 @@ $('input').addEventListener('keydown',function(e){if(e.key==='Enter'&&(e.ctrlKey
 $('send').onclick=send;
 $('file').onclick=function(){bridge('pick',false);};
 $('image').onclick=function(){bridge('pick',true);};
-$('tools').onclick=openTools;$('ragBadge').onclick=openTools;$('closeTools').onclick=function(){$('toolsPanel').close();};
+$('tools').onclick=openTools;$('ragBadge').onclick=openTools;$('webBadge').onclick=openTools;
+$('webEnabled').onchange=function(){var desired=this.checked;this.checked=webConnected;bridge('setWebSearch',desired);};$('closeTools').onclick=function(){$('toolsPanel').close();};
 $('ragEnabled').onchange=function(){persist();renderRag();};
 ['Download','Build','Clear','Cancel'].forEach(function(action){$('rag'+action).onclick=function(){bridge('rag',action.toLowerCase());};});
 $('new').onclick=function(){bridge('newChat');};

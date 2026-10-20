@@ -1,0 +1,19 @@
+Pocket embeds SearXNG as a separate, short-lived local Python process.
+SearXNG and the server adapter are licensed under AGPL-3.0-or-later.
+
+Upstream source: https://github.com/searxng/searxng
+Exact revision: 15b0c8ef3ab02a86131040e5eabc0d5b82bb9470 (2026-09-04)
+The bundled assets/search/python.zip contains the SearXNG Python source,
+searx/LICENSE and SOURCES.json with immutable source URLs and checksums.
+The adapter source is assets/search/server.py, also provided in this repository.
+The full AGPL license is in SearXNG-AGPL-3.0.txt.
+
+Build recipes, Android integration and configuration:
+https://github.com/RadmirAmir/pocket-llama
+See docs/SEARCH.md, scripts/prepare-search.py and search-runtime.lock.json.
+
+The bundle also contains Flask, Werkzeug, Jinja, MarkupSafe, Babel, flask-babel,
+HTTPX and related HTTP packages, msgspec, lxml, libxml2, libxslt, PyYAML,
+markdown-it-py, Pygments, typer and their dependencies. Their own licenses
+and notices are retained with the packages or as LICENSE files in python.zip.
+Exact versions and source locations are recorded in SOURCES.json.

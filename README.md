@@ -66,6 +66,8 @@ Scan a receipt, a page of notes or a document. Adjust the edges, correct the per
 | Tracking | No advertising SDK, automatic analytics or automatic crash-reporting integration |
 | Backups | Android app backup is disabled; there is no cloud account or PIN recovery |
 
+**Optional built-in web search:** chat Tools can connect SearXNG running inside the app. After a native confirmation, only the current question goes to Google, Brave and DuckDuckGo; Internet sources appear under the answer. Search starts off in every new chat. [Details →](docs/SEARCH.md)
+
 **Local AI does not mean the app never uses a network.** Model downloads, video imports by URL, opening external pages and anything you explicitly export can contact other services. An optional LAN model API is off by default. The source also supports voluntary, reviewed content reports; no report server is configured in this public preview. Your full vault is never automatically attached to a report. See the [security and network details](docs/SECURITY.md).
 
 ## Download and get started

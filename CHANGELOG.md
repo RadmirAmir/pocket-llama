@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.12.0 — built-in SearXNG web search
+
+- Connect Web search in Chat tools, with a native confirmation explaining that the current question and your public IP reach Internet search engines.
+- Run the real SearXNG engine inside Pocket using the bundled Android Python runtime. No external SearXNG server, account or companion app is needed.
+- Show Internet citations, source snippets and partial-provider failures. Keep chat history, attachments and personal-knowledge passages out of outgoing queries.
+- Support Web search together with the existing encrypted personal-knowledge tool. Search starts off for a new chat and stops when cancelled, disconnected or locked.
+- Ship the complete community update with the existing package and signing identity, version code 32, GigaAM, Moonshine and PaddleOCR. Preserve notes, recordings, scans, chats, optional Surya and RAG.
+
 ## 0.11.0-rc.3 — title-only notes in personal knowledge
 
 - Include notes containing only a title in the signed community APK, with version code 31 for in-place upgrades from RC.2 and earlier community releases.

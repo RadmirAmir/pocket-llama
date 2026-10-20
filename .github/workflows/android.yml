@@ -16,7 +16,7 @@ jobs:
           java-version: '17'
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
       - name: Prepare host test dependency
         run: python3 scripts/prepare-test-deps.py
       - name: Core and distribution checks
@@ -27,6 +27,11 @@ jobs:
           bash scripts/test-voice-core.sh
           bash scripts/test-distribution.sh
           python3 scripts/release-check.py
+          bash scripts/test-search-core.sh
+      - name: Embedded SearXNG protocol and privacy checks
+        run: |
+          python3 scripts/prepare-search-host.py
+          python3 tests/test_search_server.py "$(cat build/search-host-source.txt)"
   frontend:
     runs-on: ubuntu-latest
     steps:
@@ -42,6 +47,7 @@ jobs:
           node scripts/test-studio-ui.cjs
           node scripts/test-scanner-ui.cjs
           node scripts/test-i18n-ui.cjs
+          node scripts/test-search-ui.cjs
   android:
     runs-on: ubuntu-latest
     steps:
@@ -60,6 +66,8 @@ jobs:
         run: |
           sdkmanager 'platforms;android-36' 'build-tools;36.0.0' 'ndk;28.2.13676358'
           python3 -m pip install -r requirements-build.txt
+      - name: Select pinned native compiler
+        run: echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/28.2.13676358" >> "$GITHUB_ENV"
       - name: Restore pinned runtimes and models
         run: python3 scripts/prepare-runtime.py
       - name: Build portable ARM64 CPU runtime
@@ -77,6 +85,49 @@ jobs:
           path: |
             app/build/outputs/apk/debug/*.apk
             artifacts/*.aab
+  search-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+      - name: Build the native search probe
+        run: |
+          sdkmanager 'platforms;android-36' 'build-tools;36.0.0' 'ndk;28.2.13676358'
+          export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/28.2.13676358"
+          python3 scripts/prepare-video.py
+          python3 scripts/prepare-search.py --abi x86_64
+          python3 scripts/build-search-test.py
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Actual Android CPython, native parsers and cancellation
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_7_pro
+          ram-size: 3072M
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
+          script: bash scripts/test-search-android.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: search-runtime-evidence
+          path: build/search-android/evidence/
 
 # This workflow builds previews only. Production signing keys, publisher settings,
 # device acceptance and store submission are intentionally publisher-controlled.
