@@ -102,6 +102,22 @@ public final class ChatApi {
         if(!thinking) body.put("reasoning_effort","none");
         return body;
     }
+    /** Count the actual selected model's templated text, rather than guessing from characters. */
+    public int tokens(JSONObject body)throws Exception {
+        JSONObject formatted=json("/apply-template",body);
+        Object prompt=formatted.get("prompt");
+        if(!(prompt instanceof String))throw new IOException("Для поиска по базе знаний отправьте текстовое сообщение без фотографий");
+        return json("/tokenize",new JSONObject().put("content",prompt).put("add_special",true).put("parse_special",true)).getJSONArray("tokens").length();
+    }
+    private JSONObject json(String path,JSONObject body)throws Exception {
+        HttpURLConnection c=open(path,15000);active=c;
+        try {
+            if(cancelled.get())throw new IOException("Ответ остановлен");byte[] bytes=body.toString().getBytes(StandardCharsets.UTF_8);
+            c.setRequestMethod("POST");c.setDoOutput(true);c.setRequestProperty("Content-Type","application/json; charset=utf-8");c.setFixedLengthStreamingMode(bytes.length);
+            try(OutputStream out=c.getOutputStream()){out.write(bytes);}if(c.getResponseCode()!=200)throw new LoopbackHttp.HttpFailure(c.getResponseCode(),error(c));
+            return new JSONObject(read(c.getInputStream(),12*1024*1024));
+        }finally{if(active==c)active=null;c.disconnect();}
+    }
     public void stream(JSONObject body, Listener listener) throws Exception {
         startedAt = System.nanoTime(); firstOutputAt = firstTextAt = 0; timings = new JSONObject();
         HttpURLConnection connection = open("/v1/chat/completions", streamIdleTimeoutMs);

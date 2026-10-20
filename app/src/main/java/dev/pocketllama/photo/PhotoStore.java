@@ -58,6 +58,7 @@ public final class PhotoStore {
         rows.sort((a,b)->Long.compare(b.optLong("created"),a.optLong("created")));int total=rows.size();JSONArray result=new JSONArray();for(int i=0;i<Math.min(total,Math.max(1,Math.min(1000,limit)));i++)result.put(rows.get(i));
         return new JSONObject().put("items",result).put("total",total).put("more",total>result.length()).put("unreadable",unreadable);
     });}
+    public List<String> idsForLocalIndex()throws Exception {return locked(()->{List<String> ids=new ArrayList<>();File[] dirs=root.listFiles(File::isDirectory);if(dirs!=null)for(File d:dirs)if(d.getName().matches("[a-f0-9-]{36}"))ids.add(d.getName());return ids;});}
     public void rename(String id,String title)throws Exception {change(id,j->{String t=title.trim();if(t.isEmpty()||t.length()>160)throw new IOException("Название: от 1 до 160 символов");j.put("title",t);});}
     public void edit(String id,String text)throws Exception {change(id,j->{idle(j);if(text.length()>250000)throw new IOException("Слишком большой текст");j.put("text",text).put("edited",true);});}
     public void resetRecognition(String id)throws Exception {change(id,j->{idle(j);invalidate(j);});}

@@ -40,6 +40,7 @@ public final class VoiceActivity extends dev.pocketllama.security.SecureActivity
     @Override protected void onSecureCreate(Bundle state) {
          store = new VoiceStore(this); config = new ConfigStore(this);
         if (state != null) { selection=state.getString("selection", ""); exportId=state.getString("exportId", ""); exportFormat=state.getString("exportFormat", "md"); }
+        else {String source=getIntent().getStringExtra("id");if(source!=null&&source.matches("[a-f0-9-]{36}"))selection=source;}
         root = new FrameLayout(this); web = new WebView(this); root.addView(web, new FrameLayout.LayoutParams(-1,-1)); setContentView(root);
         UiHost.attach(this, root, web); web.addJavascriptInterface(new Bridge(), "Studio"); web.loadUrl(UiHost.ORIGIN + "studio.html");
     }
@@ -47,7 +48,7 @@ public final class VoiceActivity extends dev.pocketllama.security.SecureActivity
         @JavascriptInterface public String language() { return I18n.language(); }
         @JavascriptInterface public String translations() { return I18n.dictionary(); }
         @JavascriptInterface public String appearance() { return UiHost.appearance(VoiceActivity.this); }
-        @JavascriptInterface public void ready() {if(!dev.pocketllama.security.GateSession.isOpen())return; ready = true; io.execute(() -> { try { store.recover(VoiceActivity.this, SummaryService.speechAlive(VoiceActivity.this)); store.getWritableDatabase();sqlFold=true; } catch (Exception e) { error(e); } emit("boot", object("selection", !VoiceState.id.isEmpty()?VoiceState.id:selection, "screen", getIntent().getStringExtra("screen"))); main.post(()->consumeSharedLink()); }); }
+        @JavascriptInterface public void ready() {if(!dev.pocketllama.security.GateSession.isOpen())return; ready = true; io.execute(() -> { try { store.recover(VoiceActivity.this, SummaryService.speechAlive(VoiceActivity.this)); store.getWritableDatabase();sqlFold=true; } catch (Exception e) { error(e); } emit("boot", object("selection",getIntent().hasExtra("sourceStart")?selection:!VoiceState.id.isEmpty()?VoiceState.id:selection, "screen", getIntent().getStringExtra("screen"),"knowledgeSource",getIntent().hasExtra("sourceStart"),"sourceStart",getIntent().getLongExtra("sourceStart",0),"sourceSummary",getIntent().getBooleanExtra("sourceSummary",false))); main.post(()->consumeSharedLink()); }); }
         @JavascriptInterface public void call(String request, String action, String payload) {
             if(!dev.pocketllama.security.GateSession.isOpen()){reject(request,new java.io.IOException(dev.pocketllama.I18n.t("Введите код входа")));return;}
             if (destroyed || request == null || request.length()>80 || payload == null || payload.length()>100000) return;
@@ -79,6 +80,11 @@ public final class VoiceActivity extends dev.pocketllama.security.SecureActivity
                 JSONArray names=new JSONArray(); for(int n=0;n<=12;n++) names.put(store.speaker(id,n)); j.put("names",names); return j;
             }
             case "turns": return turns(id,a.optString("query"),a.optInt("offset"));
+            case "sourceTurns": {
+                long start=Math.max(0,a.optLong("start"));int before;
+                try(Cursor c=store.getReadableDatabase().rawQuery("SELECT count(*) FROM turns WHERE mid=? AND end<?",new String[]{id,""+start})){before=c.moveToFirst()?c.getInt(0):0;}
+                return turns(id,"",Math.max(0,(before/100)*100));
+            }
             case "source": {
                 try(Cursor c=store.getReadableDatabase().rawQuery("SELECT t.start,COALESCE(e.speaker,t.speaker),COALESCE(e.text,t.text) FROM turns t LEFT JOIN edits e ON e.mid=t.mid AND e.idx=t.idx WHERE t.mid=? AND t.idx=?",new String[]{id,""+a.getInt("index")})) {
                     if(!c.moveToFirst()) throw new IOException(dev.pocketllama.I18n.t("Реплика не найдена")); return object("start",c.getLong(0),"name",store.speaker(id,c.getInt(1)),"text",c.getString(2));
@@ -130,7 +136,7 @@ public final class VoiceActivity extends dev.pocketllama.security.SecureActivity
         String id=a.optString("id");
         switch(action) {
             case "record":
-                if(store.anyBusy()||dev.pocketllama.photo.PhotoStore.busy(this)||VoiceState.busy||importing) throw new IOException(dev.pocketllama.I18n.t("Сначала завершите текущую задачу"));
+                if(dev.pocketllama.rag.RagManager.busy()||store.anyBusy()||dev.pocketllama.photo.PhotoStore.busy(this)||VoiceState.busy||importing) throw new IOException(dev.pocketllama.I18n.t("Сначала завершите текущую задачу"));
                 ArrayList<String> permissions=new ArrayList<>();
                 if(checkSelfPermission(Manifest.permission.RECORD_AUDIO)!=PackageManager.PERMISSION_GRANTED)permissions.add(Manifest.permission.RECORD_AUDIO);
                 if(Build.VERSION.SDK_INT>=33&&!getSharedPreferences("interface",MODE_PRIVATE).getBoolean("notificationsAsked",false)&&checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)!=PackageManager.PERMISSION_GRANTED){permissions.add(Manifest.permission.POST_NOTIFICATIONS);getSharedPreferences("interface",MODE_PRIVATE).edit().putBoolean("notificationsAsked",true).apply();}
@@ -139,7 +145,7 @@ public final class VoiceActivity extends dev.pocketllama.security.SecureActivity
             case "pauseRecord": command(RecorderService.class,RecorderService.PAUSE,id); break;
             case "stopRecord": command(RecorderService.class,RecorderService.STOP,id); break;
             case "process": {
-                if(store.anyBusy()||dev.pocketllama.photo.PhotoStore.busy(this)||VoiceState.busy||importing) throw new IOException(dev.pocketllama.I18n.t("Сначала завершите текущую задачу"));
+                if(dev.pocketllama.rag.RagManager.busy()||store.anyBusy()||dev.pocketllama.photo.PhotoStore.busy(this)||VoiceState.busy||importing) throw new IOException(dev.pocketllama.I18n.t("Сначала завершите текущую задачу"));
                 if(a.optBoolean("restart"))store.restartRecognition(id);
                 store.configure(id,a.optBoolean("diarize",true),bounded(a.optInt("expected"),0,12));
                 store.recognitionLanguage(id,I18n.language());

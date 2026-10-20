@@ -1,0 +1,68 @@
+{
+  "modelSha256": "a0f7b4e13c397a6e1b32c2de75b1f65a14c92ec524d5f674d94a4290a1c4969b",
+  "runtimeCommit": "1b70350c92563449576bcbbf552994b1d1ed847d",
+  "platform": "Linux x86_64 host CPU, 3 threads; not Android performance",
+  "documents": 12,
+  "queries": 9,
+  "top1": 9,
+  "top3": 9,
+  "loadSeconds": 1.01,
+  "medianQueryMs": 39.77,
+  "peakChildRssKiB": 385560,
+  "results": [
+    {
+      "query": "На какую дату назначен старт Атласа?",
+      "expected": 0,
+      "rank": 1,
+      "cosine": 0.6797
+    },
+    {
+      "query": "How much is invoice 773311 and when must it be paid?",
+      "expected": 1,
+      "rank": 1,
+      "cosine": 0.7978
+    },
+    {
+      "query": "Во сколько отправляется поезд Aurora?",
+      "expected": 2,
+      "rank": 1,
+      "cosine": 0.6503
+    },
+    {
+      "query": "When should I water the tomatoes?",
+      "expected": 3,
+      "rank": 1,
+      "cosine": 0.7267
+    },
+    {
+      "query": "Когда теперь покупаем бумагу для офиса?",
+      "expected": 4,
+      "rank": 1,
+      "cosine": 0.6448
+    },
+    {
+      "query": "What reading is due for astronomy class?",
+      "expected": 5,
+      "rank": 1,
+      "cosine": 0.6904
+    },
+    {
+      "query": "Сколько дрожжей положить в хлеб?",
+      "expected": 6,
+      "rank": 1,
+      "cosine": 0.7161
+    },
+    {
+      "query": "Где и когда встречаются участники похода в воскресенье?",
+      "expected": 7,
+      "rank": 1,
+      "cosine": 0.6708
+    },
+    {
+      "query": "Which budget was set aside for advertising in spring?",
+      "expected": 11,
+      "rank": 1,
+      "cosine": 0.6979
+    }
+  ]
+}

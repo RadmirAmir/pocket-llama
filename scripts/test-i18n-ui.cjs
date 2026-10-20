@@ -36,6 +36,6 @@ const models=JSON.parse(fs.readFileSync(path.resolve(__dirname,'../distribution/
   await page.goto(url+'/photos.html');await page.getByRole('button',{name:'Scan a document',exact:true}).waitFor();assert((await page.locator('.photo-card').innerText()).includes('Ваши документы'),'Document title must not be translated');
   await page.goto(url+'/studio.html');await page.locator('[data-language=ru]').click();await page.waitForFunction(()=>document.documentElement.lang==='ru');await page.getByText('Язык интерфейса',{exact:true}).waitFor();assert.equal(await page.locator('[data-language=ru]').getAttribute('aria-pressed'),'true');
   await page.reload();await page.getByText('Язык интерфейса',{exact:true}).waitFor();assert.equal(await page.locator('html').getAttribute('lang'),'ru');
-  assert.deepEqual(errors,[]);console.log('PASS: EN/RU switch, reload persistence, active model/download preservation, English chat prompt, original user content and partial ASR language');
+  assert.deepEqual(errors,[]);await require('./test-rag-ui.cjs').run();console.log('PASS: EN/RU switch, reload persistence, active model/download preservation, English chat prompt, original user content and partial ASR language');
  }catch(error){console.error('Visible UI:',(await page.locator('body').innerText()).slice(0,6000));console.error('Page errors:',errors);throw error;}finally{await browser.close();await new Promise(r=>server.close(r));}
 })().catch(e=>{console.error(e);process.exitCode=1;});

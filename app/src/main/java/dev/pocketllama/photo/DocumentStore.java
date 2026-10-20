@@ -30,6 +30,8 @@ public final class DocumentStore {
         return locked(()->{if(file(id).isFile())return id;write(new JSONObject().put("id",id).put("title",photo.optString("title","Документ")).put("created",photo.optLong("created")).put("updated",System.currentTimeMillis()).put("pages",new JSONArray().put(id)).put("state","ready").put("engine",defaultEngine).put("detail","").put("progress",0));return id;});
     }
     private File[] files(){File[] f=root.listFiles(p->p.isFile()&&p.getName().matches("[a-f0-9-]{36}\\.bin"));return f==null?new File[0]:f;}
+    /** Unpaged encrypted catalog for the local index. Fail closed on unreadable records. */
+    public JSONArray forLocalIndex()throws Exception {return locked(()->{JSONArray out=new JSONArray();for(File f:files())out.put(read(f.getName().substring(0,36)));return out;});}
     public JSONObject list(String query,int limit)throws Exception {
         final int[] unreadable={0};ArrayList<JSONObject> documents=locked(()->{ArrayList<JSONObject> out=new ArrayList<>();for(File f:files())try{out.add(read(f.getName().substring(0,36)));}catch(Exception e){unreadable[0]++;}return out;});
         Set<String> used=new HashSet<>();for(JSONObject d:documents){JSONArray a=d.getJSONArray("pages");for(int i=0;i<a.length();i++)used.add(a.getString(i));}

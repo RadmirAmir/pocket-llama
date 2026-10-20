@@ -39,7 +39,8 @@ def prepare(channel,with_surya=None,bundle_surya=None):
  with_surya,bundle_surya=surya_policy(config,channel,with_surya,bundle_surya)
  assets=ROOT/'app/src/main/assets'
  video=video_bundle.inventory(ROOT)
- allowed={'video':set(video_bundle.ASSETS)}
+ allowed={'video':set(video_bundle.ASSETS),'rag':{'model.json'}}
+ if json.loads((assets/'rag/model.json').read_text())!=json.loads((ROOT/'rag-model.lock.json').read_text()):raise SystemExit('Embedding model metadata does not match its reviewed pin')
  for group in ['speech','ocr','moonshine']:
   manifest=json.loads((assets/group/'manifest.json').read_text())
   allowed[group]={'manifest.json'}|{f['name'] for f in manifest['files']}

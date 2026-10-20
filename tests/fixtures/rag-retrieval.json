@@ -1,0 +1,27 @@
+{
+  "documents": [
+    {"title":"Атлас: запуск","text":"На совещании решили запустить проект Атлас 14 декабря. Презентацию для заказчика готовит Ирина."},
+    {"title":"Счёт 773311","text":"Поставка мебели. Сумма счёта 773311 составляет 185000 рублей. Оплатить нужно до 28 ноября."},
+    {"title":"Train reservation","text":"The Aurora train leaves at 07:45 from platform 3 on March 12. The booking includes a bicycle space."},
+    {"title":"Plants at home","text":"Water the balcony tomatoes on Tuesdays and Fridays. Add fertilizer once every two weeks."},
+    {"title":"Протокол закупок","text":"Покупку офисной бумаги перенесли на 16 января. Заказ оформляет Алексей, доставка будет на следующий день."},
+    {"title":"Astronomy homework","text":"Read chapters four and five about planets before Friday's astronomy lesson. Bring the star map."},
+    {"title":"Рецепт хлеба","text":"Для хлеба смешать 500 граммов муки, 320 граммов воды и 7 граммов дрожжей. Выпекать сорок минут."},
+    {"title":"Weekend walk","text":"Meet the hiking group at Cedar Park at 09:30 on Sunday. Bring waterproof boots and a thermos."},
+    {"title":"План ремонта","text":"Покрасить стены в спальне в светло-зелёный цвет. Перед покраской снять старые обои и прогрунтовать поверхность."},
+    {"title":"Office inventory","text":"There are twelve monitors, eight keyboards and three printers in the office inventory. The stock check is next month."},
+    {"title":"Книги","text":"Купить в подарок сборник рассказов и записать поздравление на открытке. Книжный магазин находится у станции метро."},
+    {"title":"Budget review","text":"The team has reserved 42000 euros for the spring marketing campaign. Review the ad budget with Maya on Monday."}
+  ],
+  "queries": [
+    {"text":"На какую дату назначен старт Атласа?","expected":0},
+    {"text":"How much is invoice 773311 and when must it be paid?","expected":1},
+    {"text":"Во сколько отправляется поезд Aurora?","expected":2},
+    {"text":"When should I water the tomatoes?","expected":3},
+    {"text":"Когда теперь покупаем бумагу для офиса?","expected":4},
+    {"text":"What reading is due for astronomy class?","expected":5},
+    {"text":"Сколько дрожжей положить в хлеб?","expected":6},
+    {"text":"Где и когда встречаются участники похода в воскресенье?","expected":7},
+    {"text":"Which budget was set aside for advertising in spring?","expected":11}
+  ]
+}

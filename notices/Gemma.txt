@@ -1,0 +1,10 @@
+EmbeddingGemma 300M — Google DeepMind
+Gemma is provided under and subject to the Gemma Terms of Use found at ai.google.dev/gemma/terms
+
+Optional Q8_0 GGUF conversion by Unsloth; the conversion does not change the upstream license.
+Weights are downloaded directly from the pinned Unsloth Hugging Face repository after the user accepts the Gemma Terms of Use and Gemma Prohibited Use Policy.
+The terms and prohibited-use policy are included beside this notice.
+Google claims no rights in model outputs. App code remains Apache-2.0; Gemma weights have their own terms.
+
+https://huggingface.co/unsloth/embeddinggemma-300m-GGUF
+https://huggingface.co/google/embeddinggemma-300m

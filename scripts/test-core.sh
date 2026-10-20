@@ -8,3 +8,4 @@ java -cp "$test_dir/classes" CoreTests "$test_dir/fixtures"
 
 javac --release 11 -d "$test_dir/classes" "$project_dir"/app/src/main/java/dev/pocketllama/notes/{NoteDraft,NoteText}.java "$project_dir/tests/NoteDraftTests.java"
 java -cp "$test_dir/classes" NoteDraftTests
+CHAT_JSON_JAR="${CHAT_JSON_JAR:-$project_dir/build/test-deps/json.jar}" bash "$project_dir/scripts/test-rag-core.sh"

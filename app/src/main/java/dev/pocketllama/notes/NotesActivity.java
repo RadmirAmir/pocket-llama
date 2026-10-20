@@ -40,7 +40,7 @@ public final class NotesActivity extends SecureActivity {
         }
     }
     @Override protected void onSecureCreate(Bundle state) {
-        selection = state == null ? "" : state.getString("note", "");
+        selection = state == null ? getIntent().getStringExtra("note") : state.getString("note", "");if(selection==null)selection="";
         root = new FrameLayout(this); web = new WebView(this);
         root.addView(web, new FrameLayout.LayoutParams(-1, -1)); setContentView(root);
         UiHost.attach(this, root, web); web.addJavascriptInterface(new Bridge(), "Notes");

@@ -1,0 +1,15 @@
+{
+  "id": "embeddinggemma-q8-768-v1",
+  "repository": "unsloth/embeddinggemma-300m-GGUF",
+  "revision": "6661a6504c30d8304af13455cb4a5d4f5bc6011f",
+  "name": "embeddinggemma-300M-Q8_0.gguf",
+  "bytes": 328577056,
+  "sha256": "a0f7b4e13c397a6e1b32c2de75b1f65a14c92ec524d5f674d94a4290a1c4969b",
+  "dimensions": 768,
+  "context": 2048,
+  "pooling": "mean",
+  "license": "gemma",
+  "licenseUrl": "https://ai.google.dev/gemma/terms",
+  "queryPrefix": "task: search result | query: ",
+  "documentPrefix": "title: {title} | text: "
+}

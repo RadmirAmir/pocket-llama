@@ -60,3 +60,7 @@ No published phone benchmark matrix is available yet. Automated host, UI and pac
 Интерфейс переключается EN/RU в настройках. Новые расшифровки на EN используют встроенную Moonshine Streaming Medium, на RU — GigaAM v3. OCR читает русский и английский. Незавершённая расшифровка продолжает прежнюю модель; для смены языка нужно запустить её заново. Автоматического определения языка и переключения моделей внутри одной записи нет. Языки чата и конспекта зависят от LLM. Разделение голосов приблизительное. Распознавание таблиц и разметка Surya в публичную сборку не входят.
 
 Скорость, нагрев и расход батареи зависят от телефона; сравнительных замеров на устройствах пока нет. Начните с небольшой модели и стандартных настроек CPU. [Инструкция на русском →](GETTING-STARTED-RU.md)
+
+## Personal-knowledge search
+
+EmbeddingGemma 300M Q8_0 is a separate 328,577,056-byte download, plus encrypted index storage. Vectors alone use about 31 MB per 10,000 passages; text, FTS postings and database overhead add more. The CPU embedder and chat model run sequentially. Available-memory and thermal guards can stop indexing safely. Initial indexing and model reloads take time; physical-phone performance is not yet certified. [Setup and limits →](RAG.md).

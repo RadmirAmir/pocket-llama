@@ -47,6 +47,8 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
     private final AtomicBoolean generating = new AtomicBoolean(), checking = new AtomicBoolean();
     private final AtomicBoolean stopRequested = new AtomicBoolean();
     private volatile ChatApi request;
+    private volatile dev.pocketllama.rag.RagManager rag;
+    private final AtomicBoolean ragOperation=new AtomicBoolean();
     private volatile boolean destroyed, pageReady, vision;
     private WebView web; private FrameLayout root;
     private ConfigStore store;
@@ -73,6 +75,7 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
                 try { JSONObject history=new JSONObject(ChatStore.read(getApplicationContext()));runOnUiThread(()->{if(destroyed)return;emit("boot",history);chatBooted=true;java.util.ArrayList<Runnable> pending=new java.util.ArrayList<>(waitingResults);waitingResults.clear();for(Runnable result:pending)result.run();}); }
                 catch (Exception e) { fail(e); }
                 refreshState();
+                ragStatus();
             });
         }
         @JavascriptInterface public void refresh() {if(!dev.pocketllama.security.GateSession.isOpen())return; refreshState(); }
@@ -83,7 +86,7 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
             startActivity(new Intent(ChatActivity.this,dev.pocketllama.voice.VoiceActivity.class).putExtra("screen","settings").addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_SINGLE_TOP)); finish();
         }); }
         @JavascriptInterface public void startModel() {if(!dev.pocketllama.security.GateSession.isOpen())return; runOnUiThread(() -> {
-            try { if(dev.pocketllama.voice.VoiceState.busy||dev.pocketllama.photo.PhotoStore.busy(ChatActivity.this))throw new IOException(dev.pocketllama.I18n.t("Сначала завершите запись или обработку"));store.load().validate();startForegroundService(new Intent(ChatActivity.this,InferenceService.class).setAction(InferenceService.START));refreshState(); }
+            try { if(dev.pocketllama.rag.RagManager.busy())throw new IOException(I18n.t("База знаний уже обновляется"));if(dev.pocketllama.voice.VoiceState.busy||dev.pocketllama.photo.PhotoStore.busy(ChatActivity.this))throw new IOException(dev.pocketllama.I18n.t("Сначала завершите запись или обработку"));store.load().validate();startForegroundService(new Intent(ChatActivity.this,InferenceService.class).setAction(InferenceService.START));refreshState(); }
             catch(Exception e){fail(e);}
         }); }
         @JavascriptInterface public void pick(boolean imageOnly) {if(!dev.pocketllama.security.GateSession.isOpen())return;
@@ -119,19 +122,60 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
         }
         @JavascriptInterface public void stop() {
             stopRequested.set(true);
+            dev.pocketllama.rag.RagManager search=rag;if(search!=null)search.cancel();
             ChatApi active = request;
             if (active != null) active.cancel();
+        }
+        @JavascriptInterface public void rag(String action) {
+            if(!dev.pocketllama.security.GateSession.isOpen()||destroyed)return;
+            if("status".equals(action)){io.execute(ChatActivity.this::ragStatus);return;}
+            if("cancel".equals(action)){dev.pocketllama.rag.RagManager active=rag;if(active!=null)active.cancel();return;}
+            if(generating.get()||ragOperation.get())return;
+            if("download".equals(action))io.execute(()->{try{
+                String terms=dev.pocketllama.rag.RagAssets.terms(ChatActivity.this);long epoch=dev.pocketllama.security.GateSession.epoch();
+                runOnUiThread(()->{if(destroyed||!dev.pocketllama.security.GateSession.isOpen()||epoch!=dev.pocketllama.security.GateSession.epoch())return;
+                    android.widget.TextView text=new android.widget.TextView(ChatActivity.this);text.setText(terms);text.setTextSize(14);int pad=Math.round(20*getResources().getDisplayMetrics().density);text.setPadding(pad,pad,pad,pad);android.widget.ScrollView scroll=new android.widget.ScrollView(ChatActivity.this);scroll.addView(text);
+                    new AlertDialog.Builder(ChatActivity.this).setTitle(I18n.t("EmbeddingGemma · условия модели")).setView(scroll).setNegativeButton(I18n.t("Отмена"),null).setPositiveButton(I18n.t("Принять и скачать"),(d,w)->ragWork("download")).show();
+                });
+            }catch(Exception e){fail(e);}});
+            else if("build".equals(action))ragWork("build");
+            else if("clear".equals(action))runOnUiThread(()->new AlertDialog.Builder(ChatActivity.this).setTitle(I18n.t("Удалить поисковый индекс?"))
+                .setMessage(I18n.t("Исходные заметки, записи и документы сохранятся. При следующем поиске индекс можно построить заново."))
+                .setNegativeButton(I18n.t("Отмена"),null).setPositiveButton(I18n.t("Удалить индекс"),(d,w)->ragWork("clear")).show());
+        }
+        @JavascriptInterface public void openRagSource(String value) {
+            if(!dev.pocketllama.security.GateSession.isOpen()||value==null||value.length()>16384||generating.get()||ragOperation.get())return;
+            io.execute(()->{try{
+                long epoch=dev.pocketllama.security.GateSession.epoch();JSONObject hit=new JSONObject(value);String id=hit.getString("sourceId"),kind=hit.getString("kind");if(!id.matches("[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}"))throw new IOException("Invalid source");
+                Intent intent;
+                if(kind.equals("note")){try(dev.pocketllama.notes.NoteStore notes=new dev.pocketllama.notes.NoteStore(ChatActivity.this)){if(notes.get(id).optLong("deleted")!=0)throw new IOException(I18n.t("Заметка не найдена"));}intent=new Intent(ChatActivity.this,dev.pocketllama.notes.NotesActivity.class).putExtra("note",id);}
+                else if(kind.equals("voice")){try(dev.pocketllama.voice.VoiceStore voices=new dev.pocketllama.voice.VoiceStore(ChatActivity.this)){voices.get(id);}JSONObject location=hit.optJSONObject("location");intent=new Intent(ChatActivity.this,dev.pocketllama.voice.VoiceActivity.class).putExtra("id",id).putExtra("sourceStart",location==null?0:Math.max(0,location.optLong("start"))).putExtra("sourceSummary",location!=null&&location.optString("section").equals("summary"));}
+                else if(kind.equals("ocr")){new dev.pocketllama.photo.PhotoStore(ChatActivity.this).get(id);intent=new Intent(ChatActivity.this,dev.pocketllama.photo.PhotoActivity.class).putExtra("id",id).putExtra("page",id);}
+                else throw new IOException("Invalid source type");
+                runOnUiThread(()->{if(!destroyed&&dev.pocketllama.security.GateSession.isOpen()&&epoch==dev.pocketllama.security.GateSession.epoch())startActivity(intent);});
+            }catch(Exception e){fail(e);}});
         }
         @JavascriptInterface public void send(String id, String json) {if(!dev.pocketllama.security.GateSession.isOpen())return;
             if (id.length() > 100 || json.length() > 12 * 1024 * 1024) {
                 emit("failed", object("id", id, "message", dev.pocketllama.I18n.t("Слишком большой запрос"))); return;
             }
-            if (!generating.compareAndSet(false, true)) {
+            if (ragOperation.get() || !generating.compareAndSet(false, true)) {
                 emit("failed", object("id", id, "message", dev.pocketllama.I18n.t("Предыдущий ответ ещё завершается"))); return;
             }
             stopRequested.set(false);
             io.execute(() -> sendMessage(id, json));
         }
+    }
+
+    private void ragStatus(){try{emit("ragState",dev.pocketllama.rag.RagManager.status(this));}catch(Exception e){fail(e);}}
+    private void ragWork(String action) {
+        if(!dev.pocketllama.security.GateSession.isOpen()||destroyed||generating.get()||!ragOperation.compareAndSet(false,true))return;
+        emit("ragState",object("working",true,"stage",action,"detail",I18n.t("Подготавливаю базу знаний…")));
+        io.execute(()->{dev.pocketllama.rag.RagManager task=new dev.pocketllama.rag.RagManager(this,()->{if(destroyed)throw new InterruptedException();},s->emit("ragState",s));rag=task;
+            try {if(action.equals("download")){dev.pocketllama.rag.RagAssets.accept(this);task.download();}else if(action.equals("build"))task.build();else task.clear();}
+            catch(Exception e){if(dev.pocketllama.security.GateSession.isOpen())emit("ragState",object("working",false,"error",useful(e)));}
+            finally{if(rag==task)rag=null;ragOperation.set(false);ragStatus();refreshState();}
+        });
     }
 
     private void refreshState() {
@@ -165,6 +209,20 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
             if (dev.pocketllama.voice.VoiceState.busy||dev.pocketllama.photo.PhotoStore.busy(ChatActivity.this)) throw new IOException(dev.pocketllama.I18n.t("Сначала завершите запись или конспект."));
             if (!RuntimeState.ready) throw new IOException(dev.pocketllama.I18n.t("API ещё не запущен. Откройте настройки модели и запустите сервер."));
             JSONObject input = new JSONObject(json);
+            final long epoch=dev.pocketllama.security.GateSession.epoch();
+            dev.pocketllama.rag.RagSources.Check access=()->{if(destroyed||stopRequested.get()||!dev.pocketllama.security.GateSession.isOpen()||epoch!=dev.pocketllama.security.GateSession.epoch())throw new InterruptedException("Ответ остановлен");};
+            JSONObject knowledge=null;
+            if(input.optBoolean("rag",false)) {
+                String query=input.optString("rag_query").trim();if(query.isEmpty()||query.length()>1000)throw new IOException(I18n.t("Для поиска нужен вопрос длиной до 1000 символов"));
+                dev.pocketllama.rag.RagManager task=new dev.pocketllama.rag.RagManager(this,access,s->{try{s.put("id",id);}catch(Exception ignored){}emit("ragProgress",s);});rag=task;
+                try {
+                    dev.pocketllama.rag.RagMcp mcp=new dev.pocketllama.rag.RagMcp(task::search);
+                    JSONObject reply=mcp.handle(dev.pocketllama.rag.RagMcp.call(query),true);access.run();
+                    if(reply.has("error"))throw new IOException(reply.getJSONObject("error").optString("message"));JSONObject result=reply.getJSONObject("result");
+                    if(result.optBoolean("isError"))throw new IOException(result.getJSONArray("content").getJSONObject(0).optString("text"));knowledge=result.getJSONObject("structuredContent");
+                }finally{if(rag==task)rag=null;}
+                access.run();if(!RuntimeState.ready)throw new IOException(I18n.t("Модель чата ещё загружается. Повторите сообщение после запуска"));
+            }
             ServerConfig config = store.load();
             client = new ChatApi(config.port, store.apiKey());
             request = client;
@@ -172,12 +230,14 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
             JSONObject caps = client.capabilities();
             JSONObject body = ChatApi.request(input.getJSONArray("messages"), input.optBoolean("thinking", false),
                     input.optInt("max_tokens", 512), caps.optBoolean("vision", false),RuntimeState.chatProfile);
+            if(knowledge!=null){body=dev.pocketllama.rag.RagPrompt.fit(body,knowledge,caps.optInt("context",config.contextPerSlot),client,access);emit("ragSources",object("id",id,"result",knowledge));}
             RuntimeState.log(dev.pocketllama.I18n.t("Чат запрос: профиль=")+RuntimeState.chatProfile.id+" · thinking="+input.optBoolean("thinking",false)
                     +" · min_p="+body.optDouble("min_p")+" · temperature="+body.optDouble("temperature")
                     +" · top_p="+body.optDouble("top_p")+" · top_k="+body.optInt("top_k")
                     +" · reasoning_budget="+body.optInt("reasoning_budget_tokens",-1)+" · max_tokens="+body.optInt("max_tokens"));
             client.stream(body, new ChatApi.Listener() {
                 @Override public void chunk(String content, String reasoning) {
+                    if(!dev.pocketllama.security.GateSession.isOpen()||epoch!=dev.pocketllama.security.GateSession.epoch()){ChatApi active=request;if(active!=null)active.cancel();return;}
                     if (!content.isEmpty() || !reasoning.isEmpty())
                         emit("chunk", object("id", id, "content", content, "reasoning", reasoning));
                 }
@@ -212,6 +272,7 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
             if (request == client) request = null;
             generating.set(false);
             if (outcome[0] != null) emit(outcomeType[0], outcome[0]);
+            ragStatus();refreshState();
         }
     }
 
@@ -286,10 +347,10 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
         return value;
     }
     private void emit(String type, JSONObject data) {
-        if (destroyed || !pageReady) return;
+        if (destroyed || !pageReady || !dev.pocketllama.security.GateSession.isOpen()) return;
         String event = object("type", type, "data", data).toString();
         runOnUiThread(() -> {
-            if (!destroyed) web.evaluateJavascript("window.PocketEvents(" + event + ");", null);
+            if (!destroyed && dev.pocketllama.security.GateSession.isOpen()) web.evaluateJavascript("window.PocketEvents(" + event + ");", null);
         });
     }
     private static String useful(Exception e) {
@@ -307,6 +368,7 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
     @Override protected void onDestroy() {
         destroyed = true; handler.removeCallbacks(refresh);
         ChatApi active = request; if (active != null) active.cancel();
+        dev.pocketllama.rag.RagManager search=rag;if(search!=null)search.cancel();
         io.shutdownNow();
         if (web != null) { web.removeJavascriptInterface("Pocket"); web.destroy(); }
         super.onDestroy();

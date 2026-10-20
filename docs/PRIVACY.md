@@ -14,4 +14,6 @@ Uninstalling or clearing application data removes the app's access to the encryp
 
 Permissions: microphone for recording; camera for scanning; notifications and foreground services for visible recording, processing and model downloads; internet for the user-requested transfers described above. Android's document picker is used for file import and export.
 
+Personal knowledge is an optional chat tool. Its index contains copies of saved note/transcript/OCR passages, FTS search postings, vectors, and a bounded cache of query hashes and vectors inside SQLCipher. When connected, relevant passages are passed to the selected local chat model. Original edits and deletions are reconciled before lookup. Clearing the index preserves the original materials; deleting an original does not erase quotes already saved in chat history. The EmbeddingGemma download contacts Hugging Face for public model files only; queries, passages and vectors are not sent to it. The embedded MCP handler has no network listener or access for other applications.
+
 The Play Data safety form must reflect the final SDKs and the voluntary report endpoint. Do not mark “no data collected” solely because inference is local: a submitted report contains user-selected text. Review Google Play's definitions and exceptions for the actual published configuration.

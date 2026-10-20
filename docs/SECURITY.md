@@ -52,3 +52,7 @@ The personal and public packages use separate storage and keys. Installing the p
 [Vault and encryption](../app/src/main/java/dev/pocketllama/security/) · [Chat storage](../app/src/main/java/dev/pocketllama/ChatStore.java) · [Photo storage](../app/src/main/java/dev/pocketllama/photo/PhotoStore.java) · [Voice database](../app/src/main/java/dev/pocketllama/voice/VoiceStore.java) · [Manifest](../app/src/main/AndroidManifest.xml) · [Feedback reporting](../app/src/main/java/dev/pocketllama/FeedbackReporter.java)
 
 The separate [publisher privacy-policy draft](PRIVACY.md) still needs publisher identity, contacts and the final deployment details before use as the store policy. Please use synthetic examples in public bug reports.
+
+## Optional personal-knowledge tool
+
+The tool is disconnected by default and is reset for new conversations. Its index, passage copies, FTS postings and vectors use the existing SQLCipher vault key. Searches read canonical edited sources and exclude Trash; stale results are revalidated. The embedded MCP handler has no network listener or arbitrary URL/file-path input. Retrieval does not call a cloud embedding or reranking service. Source snippets are treated as untrusted quoted data and template-token delimiters are escaped. Existing answers can retain earlier quotes after an original is deleted. [Details →](RAG.md).

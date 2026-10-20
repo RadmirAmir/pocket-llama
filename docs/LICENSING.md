@@ -34,3 +34,7 @@ Primary references:
 - https://github.com/yt-dlp/yt-dlp/tree/2026.08.19
 
 The release profile and the in-app license list must agree about what is actually bundled. Catalog LLM files are not included in the APK/AAB and retain their Apache-2.0 notices and pinned source links.
+
+## Optional EmbeddingGemma search model
+
+The personal-knowledge tool downloads the pinned Unsloth EmbeddingGemma 300M Q8_0 GGUF directly after model-term acceptance. It is not bundled or Apache-licensed. The applicable Gemma Terms of Use, prohibited-use policy and required notice are included under `notices/Gemma*.txt` and staged into every distribution. Pocket code remains Apache-2.0. See [RAG setup and architecture](RAG.md).

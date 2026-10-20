@@ -44,8 +44,11 @@ def models(archive,prefix,personal,personal_compact=False):
    assert names.count(name)==1 and z.getinfo(name).file_size==size,name
    with z.open(name) as source:assert digest(source)==sha,'Model checksum: '+name
   assert meta['suryaEnabled']==with_surya
-  for asset in ['notes.html','notes.css','notes.js','theme.js','design.css','studio.html','studio.css','studio.js','photos.js','photos.html','photos.css','chat.html','i18n.js','i18n-en.json','model-catalog/catalog.signed.json','model-catalog/public-key.txt']:
+  for asset in ['notes.html','notes.css','notes.js','theme.js','design.css','studio.html','studio.css','studio.js','photos.js','photos.html','photos.css','chat.html','chat.css','rag/model.json','i18n.js','i18n-en.json','model-catalog/catalog.signed.json','model-catalog/public-key.txt']:
    assert z.read(('' if prefix=='apk' else 'base/')+'assets/'+asset)==(ROOT/'app/src/main/assets'/asset).read_bytes(),'Stale app asset: '+asset
+  for name in ['Gemma.txt','Gemma-terms.txt','Gemma-prohibited-uses.txt']:
+   assert z.read(('' if prefix=='apk' else 'base/')+'assets/notices/'+name)==(ROOT/'notices'/name).read_bytes(),'Missing embedding terms: '+name
+  assert not any(n.startswith(('assets/rag/','base/assets/rag/')) and n.endswith('.gguf') for n in names),'Embedding weights must remain a separate download'
   if with_surya:
    for name in ['Surya-community.txt','Surya-weights.txt']:
     assert z.read(('' if prefix=='apk' else 'base/')+'assets/notices/'+name)==(ROOT/'notices'/name).read_bytes(),'Missing or stale model terms: '+name

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.11.0 — personal knowledge for local chat
+
+- Explicitly connect Personal knowledge in Chat tools to search all active notes, edited audio/video transcripts, summaries and saved OCR.
+- Optional pinned EmbeddingGemma 300M Q8_0 download with resume, integrity verification and model terms. Hybrid semantic/FTS5 search, encrypted incremental index and resumable embedding checkpoints.
+- Source citations open notes, document pages and transcript timestamps. The chat model's tokenizer bounds evidence to its context.
+- Embedded MCP JSON-RPC tool; disabled by default and disconnected for a new conversation. CPU embedding runs separately from the chat model to limit memory.
+
 ## 0.10.2 — copy audio transcripts
 
 - Copy the complete audio transcript directly from its tab, including edited text, speaker names and timestamps.
