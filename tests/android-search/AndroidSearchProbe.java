@@ -8,6 +8,7 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.TimeUnit;
 import org.json.*;
 
 /** Runs the packaged Bionic CPython/extensions and real SearXNG on Android. */
@@ -22,7 +23,7 @@ public final class AndroidSearchProbe extends Activity {
             check(sources.length()==1,"native parser result");
             check(sources.getJSONObject(0).getString("url").equals("https://example.org/native"),"native source URL");
             check(sources.getJSONObject(0).getString("text").equals("Android SearXNG runtime works."),"native lxml parser and msgspec aggregation");
-            check(!((Process)field(task,"process")).isAlive(),"child retires after lookup");
+            check(((Process)field(task,"process")).waitFor(2,TimeUnit.SECONDS),"child retires after lookup");
             File base=new File(getNoBackupFilesDir(),"search-runtime-v1");
             for(File file:base.listFiles())check(!file.getName().endsWith(".db")&&!file.getName().endsWith(".db-wal"),"no disk cache");
             AtomicBoolean allowed=new AtomicBoolean(true);AtomicReference<Throwable> outcome=new AtomicReference<>();
@@ -33,7 +34,7 @@ public final class AndroidSearchProbe extends Activity {
             long cancelled=System.currentTimeMillis();allowed.set(false);query.join(3000);
             check(!query.isAlive()&&outcome.get() instanceof Exception,"lock cancels lookup");
             check(System.currentTimeMillis()-cancelled<3000,"bounded cancellation");
-            check(!((Process)field(slow,"process")).isAlive(),"lock kills Python child");
+            check(((Process)field(slow,"process")).waitFor(2,TimeUnit.SECONDS),"lock kills Python child");
             Log.i("PocketSearchTest","PASS: native CPython, lxml, msgspec, real SearXNG, memory cache and lock cancellation");
         }catch(Throwable e){Log.e("PocketSearchTest","FAIL",e);}
     },"pocket-search-test").start();}

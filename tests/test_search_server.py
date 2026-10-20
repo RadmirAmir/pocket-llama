@@ -136,8 +136,9 @@ class SearchServerTests(unittest.TestCase):
     def test_no_query_or_result_files(self):
         self.request({'query': 'UNIQUE_PRIVATE_TEST_QUERY', 'language': 'ru'})
         files = list(Path(self.directory.name).iterdir())
-        self.assertEqual([p.name for p in files], ['settings.json'])
-        self.assertNotIn('UNIQUE_PRIVATE_TEST_QUERY', files[0].read_text())
+        self.assertEqual(sorted(p.name for p in files), ['empty-ui', 'settings.json'])
+        self.assertEqual(list((Path(self.directory.name) / 'empty-ui').iterdir()), [])
+        self.assertNotIn('UNIQUE_PRIVATE_TEST_QUERY', (Path(self.directory.name) / 'settings.json').read_text())
         self.assertNotIn('UNIQUE_PRIVATE_TEST_QUERY', self.stdout.getvalue())
         self.assertEqual(self.http_server.server_address[0], '127.0.0.1')
 
