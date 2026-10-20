@@ -36,6 +36,8 @@ Draft a message, work through an idea, or ask for a clearer explanation. Choose 
 
 ## Ask across your notes, recordings and scans
 
+The 0.13.0 update adds a bounded agent loop: the local model chooses enabled tools, checks their results, refines queries and then answers. View the steps and stop the whole loop from chat. [How agent mode works →](docs/AGENT.md)
+
 Connect **Tools → Personal knowledge** in Chat. Find an agreement in a transcript, a detail in a scanned document or an idea you wrote weeks ago, then open the cited source. The optional 329 MB EmbeddingGemma model runs on your phone; the search index is encrypted. The tool is off until you connect it. [Set up personal knowledge →](docs/RAG.md)
 
 ## Document scanner and offline OCR
@@ -111,6 +113,6 @@ The public build targets **Android 10 or newer with a 64-bit ARM system**. It us
 
 Pocket's own code is **Apache-2.0**. The recorder uses GigaAM v3 (RU), Moonshine Streaming Medium (EN), Silero VAD and CAM++; the scanner includes PaddleOCR and optional Surya OCR 2; chat runs through llama.cpp. Dependencies and model weights retain their own licenses. Surya models and output retain their separate license terms. The separate CC BY-NC-SA line detector has been removed. The app is free, with no ads or paid features. [Licenses and inventory →](docs/LICENSING.md)
 
-[Build from source](docs/BUILDING.md) · [Contribute](CONTRIBUTING.md) · [Release guide](docs/RELEASE.md) · [What has been tested](docs/VALIDATION-0.12.0.md) · [Report a bug](https://github.com/RadmirAmir/pocket-llama/issues/new/choose)
+[Build from source](docs/BUILDING.md) · [Contribute](CONTRIBUTING.md) · [Release guide](docs/RELEASE.md) · [What has been tested](docs/VALIDATION-0.13.0.md) · [Report a bug](https://github.com/RadmirAmir/pocket-llama/issues/new/choose)
 
 If you want a useful AI that stays on your phone, **star Pocket** and help shape the next release. A helpful bug report includes your phone model, Android version, chosen LLM and steps to reproduce. Please keep private recordings, documents and conversations out of public issues.

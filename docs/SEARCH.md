@@ -1,12 +1,16 @@
 # Built-in SearXNG web search
 
-In chat, open **Tools → Web search** and accept the native confirmation. Each
-message then searches its current question through the bundled SearXNG engine
-and passes bounded search snippets to the local language model. Responses cite
-Internet sources as `[W1]`; personal knowledge retains `[S1]` citations. Source
-cards show the exact snippets supplied to the model, the outgoing query, partial
-engine failures and context truncation. Opening a source launches the external
-browser only after the user taps it.
+In chat, open **Tools → Web search** and accept the native confirmation. The
+local model decides whether a search would help, creates a query, inspects the
+returned snippets and can refine the query or use personal knowledge before
+answering. Enabling a tool does not run it on every message. The bounded
+[agent loop](AGENT.md) allows at most four tool calls per reply.
+
+Responses cite Internet sources as `[W1]`; personal knowledge retains `[S1]`.
+Citations stay distinct across repeated lookups. The action history shows tool
+queries, completion counts and failures. Source cards show the exact snippets
+supplied to the final answer, all outgoing queries, partial engine failures and
+context truncation. Opening a source launches the external browser after a tap.
 
 Search is off by default. A new conversation, a new chat Activity, or a changed
 vault unlock session requires enabling it again. Restoring chat JSON cannot
@@ -15,18 +19,26 @@ has no network permission through its content security policy.
 
 ## What goes online
 
-Google, Brave and DuckDuckGo receive the **current question text** and the
-connection's public IP address. Personal data typed into that question also goes
-to those search engines. Chat history, attachments, local knowledge passages,
-embeddings and generated answers are not used to generate search queries and
-are not sent to search services. The current question is used literally: no
-extra LLM query-planning pass reads private context. Search snippets, rather than
-full pages, are returned. Search does not crawl result URLs or load favicons.
+Google, Brave, DuckDuckGo and fallback provider Bing receive **model-generated search queries** and the
+connection's public IP address. The local planner reads the conversation,
+attachments and earlier tool results. Its queries can therefore contain personal
+information from any of those sources, including personal-knowledge results.
+The native consent explicitly explains this before enabling web search. Full
+files, embeddings and the complete conversation are not uploaded by the search
+bridge, but generated queries are not guaranteed to omit their private content.
+Keep web search off when working with information you do not want to share.
+
+Only generated query strings (up to 1,000 characters) and the interface language
+reach the native search bridge. Search snippets, rather than full pages, are
+returned. Search does not crawl result URLs or load favicons.
 
 The native confirmation explains this before enabling the tool. A visible badge
 and composer label remain while search is enabled. Offline/network/CAPTCHA
-failures produce an explicit error; the app does not silently invent a searched
-answer. A provider outage can produce useful partial results with a notice.
+failures are shown in the action history and returned to the model. It can try
+another query within the same budget or explain the missing evidence. A provider outage can produce useful partial results with a notice. If the
+primary group produces no usable snippets, one Bing lookup is attempted. DNS,
+certificate/TLS, CAPTCHA, rate-limit, timeout and internal runtime failures have
+separate fixed diagnostics, without raw URLs or exception text.
 
 ## Android runtime
 
@@ -47,13 +59,13 @@ the APK. No code is downloaded, installed by pip or compiled on the phone.
 The short-lived child listens on a random `127.0.0.1` port. Its 256-bit
 capability is passed on stdin and required in a POST header. Browser Origin,
 unrecognized arguments and oversized requests are rejected. No web UI or
-unauthenticated search route is exposed. Only three configured search engines
+unauthenticated search route is exposed. Only the three primary engines and backup Bing
 are initialized; there are no startup network probes. Engine caches use shared
 in-memory SQLite; HTTP/query logging is disabled. Search output is stored only
 as part of the app's existing encrypted chat history.
 
 The process is killed after lookup, cancellation, Activity destruction, consent
-revocation or a vault session change. A 45-second alarm bounds orphaned work.
+revocation or a vault session change. A 60-second alarm bounds orphaned work.
 Search runs separately from inference and does not unload the chat model.
 
 ## Build and verify
@@ -73,6 +85,6 @@ vault, chat history, recordings, scans, notes and personal knowledge index.
 Checks include Java URL/context/cancellation tests, WebView consent and rendering
 tests, the real SearXNG pipeline with deterministic upstream-response fixtures,
 and an x86_64 Android probe running the actual Bionic interpreter, lxml, msgspec,
-SQLite cache and cancellation. Fixtures are included only in the diagnostic
+DNS, verified HTTPS, untrusted-certificate rejection, SQLite cache and cancellation. Fixtures are included only in the diagnostic
 test APK. Live provider availability and performance on an ARM64 phone remain
 separate device acceptance checks.

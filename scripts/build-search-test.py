@@ -30,6 +30,13 @@ def main():
     tools, android = sdk / 'build-tools/36.0.0', sdk / 'platforms/android-36/android.jar'
     work = ROOT / 'build/search-android'
     work.mkdir(parents=True, exist_ok=True)
+    tls = work / 'tls'
+    tls.mkdir(exist_ok=True)
+    if not (tls / 'fixture-ca.pem').is_file():
+        run('openssl', 'req', '-x509', '-newkey', 'rsa:2048', '-sha256', '-nodes',
+            '-keyout', tls / 'fixture-key.pem', '-out', tls / 'fixture-ca.pem',
+            '-days', '30', '-subj', '/CN=Pocket disposable TLS fixture',
+            '-addext', 'subjectAltName=DNS:localhost,IP:127.0.0.1')
     classes, dex = work / 'classes', work / 'dex'
     for folder in (classes, dex):
         if folder.exists():
@@ -49,7 +56,7 @@ def main():
     bridge = (java / 'search/WebSearch.java').read_text()
     quiet = 'while(in.read(b)!=-1){}'
     assert bridge.count(quiet) == 1
-    diagnostic_bridge.write_text(bridge.replace(quiet, 'int n;while((n=in.read(b))!=-1){android.util.Log.e("PocketSearchRuntime",new String(b,0,n,StandardCharsets.UTF_8));}'))
+    diagnostic_bridge.write_text(bridge.replace(quiet, 'int n;while((n=in.read(b))!=-1){android.util.Log.e("PocketSearchRuntime",new String(b,0,n,StandardCharsets.UTF_8));}').replace('new String[]{"server.py"}', 'new String[]{"server.py","fixture-ca.pem","fixture-key.pem"}'))
     sources = [*sorted((java / 'core').glob('*.java')), java / 'ChatApi.java',
                java / 'video/VideoRuntime.java', *sorted(p for p in (java / 'search').glob('*.java') if p.name != 'WebSearch.java'), diagnostic_bridge,
                ROOT / 'tests/android-search/AndroidSearchProbe.java']
@@ -86,6 +93,8 @@ def main():
             apk.writestr('assets/search/python.zip', search_zip.getvalue())
             apk.writestr('assets/search/runtime-id.txt', hashlib.sha256(search_zip.getvalue()).hexdigest() + '\n')
             apk.write(ROOT / 'tests/android-search/fixture-server.py', 'assets/search/server.py')
+            for name in ['fixture-ca.pem', 'fixture-key.pem']:
+                apk.write(tls / name, 'assets/search/' + name)
     run(tools / 'zipalign', '-P', '16', '-f', '4', work / 'base.apk', work / 'aligned.apk')
     key = work / 'debug.keystore'
     if not key.exists():

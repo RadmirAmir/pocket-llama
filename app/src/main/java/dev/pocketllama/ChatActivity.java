@@ -139,7 +139,7 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
                 if(generating.get())return;
                 long epoch=dev.pocketllama.security.GateSession.epoch();
                 new AlertDialog.Builder(ChatActivity.this).setTitle(I18n.t("Включить интернет-поиск?"))
-                    .setMessage(I18n.t("SearXNG работает внутри Pocket на вашем телефоне. При отправке сообщения текст текущего вопроса будет передан поисковым системам Google, Brave и DuckDuckGo через интернет. Вопрос может содержать личные данные. Поисковики увидят запрос и ваш IP-адрес. История чата, вложения и база знаний не передаются. Интернет-поиск выключается при новом диалоге и повторном открытии чата."))
+                    .setMessage(I18n.t("SearXNG работает внутри Pocket на вашем телефоне. Помощник сам составляет запросы и может искать несколько раз. Google, Brave, DuckDuckGo и резервный Bing увидят поисковые запросы и ваш IP-адрес. В запросы могут попасть личные сведения из переписки, вложений и результатов базы знаний. Приложение отправляет поисковые запросы длиной до 1000 символов. Включайте интернет-поиск только для данных, которые готовы передать поисковикам. При новом диалоге и повторном открытии чата поиск выключается."))
                     .setNegativeButton(I18n.t("Отмена"),(d,w)->emit("webState",object("enabled",false)))
                     .setOnCancelListener(d->emit("webState",object("enabled",false)))
                     .setPositiveButton(I18n.t("Включить поиск"),(d,w)->{
@@ -242,35 +242,37 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
             dev.pocketllama.rag.RagSources.Check access=()->{if(destroyed||stopRequested.get()||!dev.pocketllama.security.GateSession.isOpen()||epoch!=dev.pocketllama.security.GateSession.epoch())throw new InterruptedException("Ответ остановлен");};
             boolean online=input.optBoolean("web",false);
             if(online&&(!webConnected||webConsentEpoch!=epoch))throw new IOException(I18n.t("Сначала включите интернет-поиск в инструментах чата"));
-            String webQuery=online?dev.pocketllama.search.WebQuery.validate(input.optString("web_query")):"";
-            JSONObject knowledge=null;
-            if(input.optBoolean("rag",false)) {
-                String query=input.optString("rag_query").trim();if(query.isEmpty()||query.length()>1000)throw new IOException(I18n.t("Для поиска нужен вопрос длиной до 1000 символов"));
-                dev.pocketllama.rag.RagManager task=new dev.pocketllama.rag.RagManager(this,access,s->{try{s.put("id",id);}catch(Exception ignored){}emit("ragProgress",s);});rag=task;
-                try {
-                    dev.pocketllama.rag.RagMcp mcp=new dev.pocketllama.rag.RagMcp(task::search);
-                    JSONObject reply=mcp.handle(dev.pocketllama.rag.RagMcp.call(query),true);access.run();
-                    if(reply.has("error"))throw new IOException(reply.getJSONObject("error").optString("message"));JSONObject result=reply.getJSONObject("result");
-                    if(result.optBoolean("isError"))throw new IOException(result.getJSONArray("content").getJSONObject(0).optString("text"));knowledge=result.getJSONObject("structuredContent");
-                }finally{if(rag==task)rag=null;}
-                access.run();if(!RuntimeState.ready)throw new IOException(I18n.t("Модель чата ещё загружается. Повторите сообщение после запуска"));
-            }
+            boolean personal=input.optBoolean("rag",false);
             ServerConfig config = store.load();
             client = new ChatApi(config.port, store.apiKey());
             request = client;
-            if (stopRequested.get()) { client.cancel(); throw new IOException(dev.pocketllama.I18n.t("Ответ остановлен")); }
+            access.run();
             JSONObject caps = client.capabilities();
             JSONObject body = ChatApi.request(input.getJSONArray("messages"), input.optBoolean("thinking", false),
                     input.optInt("max_tokens", 512), caps.optBoolean("vision", false),RuntimeState.chatProfile);
             int context=caps.optInt("context",config.contextPerSlot);
-            if(knowledge!=null){int ragContext=online?Math.max(512,context-Math.min(1400,context/3)):context;body=dev.pocketllama.rag.RagPrompt.fit(body,knowledge,ragContext,client,access);emit("ragSources",object("id",id,"result",knowledge));}
-            if(online){
-                dev.pocketllama.search.WebPrompt.Check webAccess=()->{access.run();if(!webConnected||webConsentEpoch!=epoch)throw new InterruptedException("Ответ остановлен");};
-                webAccess.run();emit("webProgress",object("id",id,"detail",I18n.t("SearXNG ищет в интернете…"),"query",webQuery));
-                dev.pocketllama.search.WebSearch task=new dev.pocketllama.search.WebSearch(this,webAccess);webSearch=task;JSONObject found;
-                try{found=task.search(webQuery,I18n.language());}finally{task.close();if(webSearch==task)webSearch=null;}
-                webAccess.run();body=dev.pocketllama.search.WebPrompt.fit(body,found,context,client,webAccess);emit("webSources",object("id",id,"result",found));
-            }
+            if(personal||online)body.getJSONArray("messages").getJSONObject(0).put("content",body.getJSONArray("messages").getJSONObject(0).getString("content")+"\nCurrent device date: "+java.time.LocalDate.now()+". Time zone: "+java.time.ZoneId.systemDefault()+". Use this date for today/current searches; do not invent current events.");
+            if(personal||online)body=new dev.pocketllama.agent.ChatAgent(client,new dev.pocketllama.agent.ChatAgent.Host(){
+                public void check()throws Exception {access.run();if(online&&(!webConnected||webConsentEpoch!=epoch))throw new InterruptedException("Ответ остановлен");}
+                public void event(String type,JSONObject data)throws Exception {check();data.put("id",id);emit(type,data);}
+                public JSONObject call(String tool,String query)throws Exception {
+                    check();
+                    if(tool.equals(dev.pocketllama.agent.ChatAgent.KNOWLEDGE)&&personal){
+                        dev.pocketllama.rag.RagManager task=new dev.pocketllama.rag.RagManager(ChatActivity.this,this::check,s->{try{s.put("id",id);}catch(Exception ignored){}emit("ragProgress",s);});rag=task;
+                        try {
+                            JSONObject reply=new dev.pocketllama.rag.RagMcp(task::search).handle(dev.pocketllama.rag.RagMcp.call(query),true);check();
+                            if(!RuntimeState.ready)throw new IOException(I18n.t("Модель чата ещё загружается. Повторите сообщение после запуска"));
+                            if(reply.has("error"))throw new IOException(reply.getJSONObject("error").optString("message"));JSONObject result=reply.getJSONObject("result");
+                            if(result.optBoolean("isError"))throw new IOException(result.getJSONArray("content").getJSONObject(0).optString("text"));return result.getJSONObject("structuredContent");
+                        }finally{if(rag==task)rag=null;}
+                    }
+                    if(tool.equals(dev.pocketllama.agent.ChatAgent.WEB)&&online){
+                        dev.pocketllama.search.WebSearch task=new dev.pocketllama.search.WebSearch(ChatActivity.this,this::check);webSearch=task;
+                        try{return task.search(query,I18n.language());}finally{task.close();if(webSearch==task)webSearch=null;}
+                    }
+                    throw new IOException("Tool is disabled");
+                }
+            },personal,online).prepare(body,context);
             access.run();
             RuntimeState.log(dev.pocketllama.I18n.t("Чат запрос: профиль=")+RuntimeState.chatProfile.id+" · thinking="+input.optBoolean("thinking",false)
                     +" · min_p="+body.optDouble("min_p")+" · temperature="+body.optDouble("temperature")

@@ -13,6 +13,11 @@ public final class WebCoreTests {
         check(WebQuery.publicUrl("https://example.org/docs?q=café"),"public source allowed");
         check(WebQuery.validate("  Current question  ").equals("Current question"),"literal current question");
         for(String q:new String[]{null," ","x".repeat(1001)}){boolean bad=false;try{WebQuery.validate(q);}catch(IllegalArgumentException e){bad=true;}check(bad,"invalid query rejected");}
+        String diagnostics=SearchErrors.describe(new JSONObject().put("error","engines_unavailable").put("diagnostics",new JSONArray().put(new JSONObject().put("engine","google").put("reason","certificate")).put(new JSONObject().put("engine","brave").put("reason","captcha"))));
+        check(diagnostics.contains("сертификата")&&diagnostics.contains("CAPTCHA"),"network failure distinguishes TLS from CAPTCHA");
+        check(SearchErrors.describe(new JSONObject().put("error","search_internal_error")).contains("Внутренняя ошибка"),"runtime errors are not blamed on connectivity");
+        String safe=SearchErrors.describe(new JSONObject().put("error","PRIVATE").put("diagnostics",new JSONArray().put(new JSONObject().put("engine","https://private/query").put("reason","private traceback"))));
+        check(!safe.contains("private")&&!safe.contains("PRIVATE"),"untrusted error details never enter UI");
         HttpServer server=HttpServer.create(new InetSocketAddress("127.0.0.1",0),0);
         server.createContext("/",x->{try{
             JSONObject in=new JSONObject(new String(x.getRequestBody().readAllBytes(),StandardCharsets.UTF_8)),out;

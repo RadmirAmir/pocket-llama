@@ -2,8 +2,8 @@
 """Private, short-lived Android SearXNG server. No web UI or disk query cache.
 
 The Android host passes an ephemeral capability on stdin, then calls POST
-/search on the dynamically assigned loopback port. Only the question goes to
-SearXNG; the server never receives chat history, attachments or local RAG.
+/search on the dynamically assigned loopback port. Only model-generated query strings go to SearXNG. Their contents may include
+personal details selected by the local model; full chat/file objects are rejected.
 """
 import ctypes
 import hmac
@@ -20,7 +20,8 @@ from urllib.parse import urlsplit, urlunsplit
 
 MAX_QUERY = 1000
 MAX_BODY = 8192
-ENGINES = ("google", "brave", "duckduckgo")
+PRIMARY_ENGINES = ("google", "brave", "duckduckgo")
+ENGINES = PRIMARY_ENGINES + ("bing",)
 
 
 def clean_text(value, limit):
@@ -51,6 +52,62 @@ def public_url(value):
     except (ValueError, TypeError):
         return None
 
+
+class SearchFailure(Exception):
+    def __init__(self, code, diagnostics):
+        super().__init__(code)
+        self.code, self.diagnostics = code, diagnostics
+
+
+def failure_reason(error):
+    """Fixed public categories only: no URL, query, exception message or traceback."""
+    import socket
+    import ssl
+    import httpx
+    from searx.exceptions import (SearxEngineCaptchaException,
+                                  SearxEngineTooManyRequestsException,
+                                  SearxEngineAccessDeniedException)
+    chain, seen = [], set()
+    while isinstance(error, BaseException) and id(error) not in seen:
+        seen.add(id(error)); chain.append(error)
+        error = error.__cause__ or error.__context__
+    if any(isinstance(e, SearxEngineCaptchaException) for e in chain):
+        return "captcha"
+    if any(isinstance(e, SearxEngineTooManyRequestsException) for e in chain):
+        return "rate_limited"
+    if any(isinstance(e, SearxEngineAccessDeniedException) for e in chain):
+        return "access_denied"
+    if any(isinstance(e, ssl.SSLCertVerificationError) for e in chain):
+        return "certificate"
+    if any(isinstance(e, ssl.SSLError) for e in chain):
+        return "tls"
+    if any(isinstance(e, socket.gaierror) for e in chain):
+        return "dns"
+    if any(isinstance(e, (httpx.TimeoutException, TimeoutError)) for e in chain):
+        return "timeout"
+    for e in chain:
+        if isinstance(e, httpx.HTTPStatusError):
+            code = e.response.status_code
+            return "rate_limited" if code == 429 else "access_denied" if code in (401, 402, 403) else "http_error"
+    if any(isinstance(e, (httpx.ConnectError, httpx.NetworkError, OSError)) for e in chain):
+        return "connection"
+    return "internal"
+
+
+def install_diagnostics():
+    from searx.search.processors import PROCESSORS
+    for name in ENGINES:
+        processor = PROCESSORS.get(name)
+        if processor is None:
+            continue
+        original = processor.handle_exception
+
+        def capture(container, error, *args, _original=original, _name=name, **kwargs):
+            # Each lookup owns its ResultContainer, including late worker failures.
+            container.__dict__.setdefault("pocket_failures", {})[_name] = failure_reason(error)
+            return _original(container, error, *args, **kwargs)
+
+        processor.handle_exception = capture
 
 def initialize():
     # No general SearXNG webapp, network probe, plugins or unrelated engines.
@@ -91,6 +148,7 @@ def initialize():
     searx.cache.ExpireCacheCfg.__post_init__ = memory_cache
     import searx.search
     searx.search.initialize(check_network=False, enable_metrics=False)
+    install_diagnostics()
     from flask import Flask
     from flask_babel import Babel
     app = Flask("pocket_search")
@@ -102,29 +160,39 @@ def search(app, query, language):
     from searx.search import Search
     from searx.search.models import SearchQuery, EngineRef
     # A user cannot select engines, invoke bangs or turn a result into a fetch.
-    request = SearchQuery(query, [EngineRef(name, "general") for name in ENGINES],
-                          lang="ru-RU" if language == "ru" else "en-US",
-                          safesearch=0, pageno=1, timeout_limit=10.0)
+    sources, seen, failed, diagnostics, attempted = [], set(), set(), {}, []
+    # A blocked primary group must not make the whole tool unusable. Bing is
+    # contacted only when the three primary engines returned no usable evidence.
     with app.test_request_context("/search", method="POST"):
-        result = Search(request).search()
-        sources, seen = [], set()
-        for hit in result.get_ordered_results():
-            url = public_url(hit.get("url", ""))
-            if not url or url in seen:
-                continue
-            text = clean_text(hit.get("content", ""), 1200)
-            if not text:
-                continue
-            seen.add(url)
-            sources.append({"citation": "W" + str(len(sources) + 1), "url": url,
-                            "title": clean_text(hit.get("title", ""), 240), "text": text})
-            if len(sources) == 6:
+        for engines in (PRIMARY_ENGINES, ("bing",)):
+            attempted.extend(engines)
+            request = SearchQuery(query, [EngineRef(name, "general") for name in engines],
+                                  lang="ru-RU" if language == "ru" else "en-US",
+                                  safesearch=0, pageno=1, timeout_limit=10.0)
+            result = Search(request).search()
+            for hit in result.get_ordered_results():
+                url = public_url(hit.get("url", ""))
+                if not url or url in seen:
+                    continue
+                text = clean_text(hit.get("content", ""), 1200)
+                if not text:
+                    continue
+                seen.add(url)
+                sources.append({"citation": "W" + str(len(sources) + 1), "url": url,
+                                "title": clean_text(hit.get("title", ""), 240), "text": text})
+                if len(sources) == 6:
+                    break
+            failures = getattr(result, "pocket_failures", {})
+            for engine, *_ in result.unresponsive_engines:
+                failed.add(str(engine))
+                diagnostics[str(engine)] = failures.get(str(engine), "timeout")
+            if sources:
                 break
-        failed = sorted({str(e[0]) for e in result.unresponsive_engines})
-        if not sources and len(failed) == len(ENGINES):
-            # Never silently generate an apparently researched answer on failure.
-            raise RuntimeError("engines_unavailable")
-        return {"query": query, "sources": sources, "failedEngines": failed,
+        details = [{"engine": name, "reason": diagnostics[name]} for name in sorted(diagnostics)]
+        if not sources and all(name in failed for name in attempted):
+            raise SearchFailure("engines_unavailable", details)
+        return {"query": query, "sources": sources, "failedEngines": sorted(failed),
+                "diagnostics": details, "attemptedEngines": attempted,
                 "engine": "SearXNG", "noEvidence": not sources}
 
 
@@ -162,8 +230,10 @@ def serve(app, token):
                 return
             try:
                 self.reply(200, search(app, query.strip(), language))
+            except SearchFailure as error:
+                self.reply(502, {"error": error.code, "diagnostics": error.diagnostics})
             except Exception:
-                self.reply(502, {"error": "engines_unavailable"})
+                self.reply(502, {"error": "search_internal_error"})
 
         def reply(self, code, body):
             raw = json.dumps(body, ensure_ascii=False).encode("utf-8")
@@ -189,7 +259,7 @@ def main():
         ctypes.CDLL(None).prctl(1, signal.SIGKILL, 0, 0, 0)
     except (AttributeError, OSError):
         pass
-    signal.alarm(45)  # hard deadline, including imports and a stuck upstream
+    signal.alarm(60)  # hard deadline, including imports and a stuck upstream
     line = sys.stdin.buffer.readline(4097)
     control = json.loads(line)
     token = control.get("token", "")
