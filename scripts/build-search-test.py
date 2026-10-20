@@ -74,6 +74,7 @@ def main():
             apk.writestr('assets/video/python.zip', python_zip.getvalue())
             apk.writestr('assets/video/runtime-id.txt', hashlib.sha256(python_zip.getvalue()).hexdigest() + '\n')
             apk.writestr('assets/video/yt-dlp', 'unused by search test')
+            apk.write(ROOT / 'app/src/main/assets/video/launcher.py', 'assets/video/launcher.py')
             apk.writestr('assets/search/python.zip', search_zip.getvalue())
             apk.writestr('assets/search/runtime-id.txt', hashlib.sha256(search_zip.getvalue()).hexdigest() + '\n')
             apk.write(ROOT / 'tests/android-search/fixture-server.py', 'assets/search/server.py')
