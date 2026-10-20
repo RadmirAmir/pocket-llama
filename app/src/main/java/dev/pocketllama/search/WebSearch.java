@@ -42,7 +42,7 @@ public final class WebSearch implements AutoCloseable {
             try(OutputStream stdin=process.getOutputStream()){stdin.write((new JSONObject().put("token",secret.toString()).toString()+"\n").getBytes(StandardCharsets.UTF_8));}
             long deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(25);String line;
             while(true){check();try{line=ready.get(100,TimeUnit.MILLISECONDS);break;}catch(TimeoutException e){if(System.nanoTime()>deadline)throw new IOException("Не удалось запустить встроенный SearXNG. Установите обновление Pocket");}}
-            check();JSONObject state=new JSONObject(line);int port=state.optInt("port");
+            check();JSONObject state;try{state=new JSONObject(line);}catch(JSONException e){throw new IOException("Не удалось запустить встроенный SearXNG. Установите обновление Pocket",e);}int port=state.optInt("port");
             if(!state.optBoolean("ready")||port<1024||port>65535)throw new IOException("Не удалось запустить встроенный SearXNG. Установите обновление Pocket");
             connection=(HttpURLConnection)new URL("http://127.0.0.1:"+port+"/search").openConnection(Proxy.NO_PROXY);
             connection.setConnectTimeout(1500);connection.setReadTimeout(15000);connection.setInstanceFollowRedirects(false);connection.setRequestMethod("POST");connection.setDoOutput(true);

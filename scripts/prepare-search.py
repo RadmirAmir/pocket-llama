@@ -107,6 +107,8 @@ def native(abi, ndk):
             config_name = next(n for n in runtime.namelist() if '_sysconfigdata' in n and n.endswith('.py'))
             tree = ast.parse(runtime.read(config_name).decode())
             variables = ast.literal_eval(next(n.value for n in tree.body if isinstance(n, ast.Assign)))
+            python_library = work / variables['INSTSONAME']
+            python_library.write_bytes(runtime.read('usr/lib/' + variables['INSTSONAME']))
     template = (python_source / 'pyconfig.h.in').read_text()
 
     def define(match):
@@ -125,13 +127,19 @@ def native(abi, ndk):
     common = [compiler, '-shared', '-fPIC', '-O2', '-g0', '-Wl,-z,max-page-size=16384',
               '-I' + str(headers), '-DPY_SSIZE_T_CLEAN']
     run([*common, '-I' + str(msgspec / 'src/msgspec'), msgspec / 'src/msgspec/_core.c',
-         '-o', work / '_core.so', '-lm'], work, env, log)
+         '-o', work / '_core.so', python_library, '-lm'], work, env, log)
     run([*common, '-DCYTHON_CLINE_IN_TRACEBACK=0', '-DCYTHON_USE_SYS_MONITORING=0',
          '-DLIBXML_STATIC', '-DLIBXSLT_STATIC', '-DLIBEXSLT_STATIC',
          '-I' + str(lxml / 'src'), '-I' + str(lxml / 'src/lxml/includes'),
          '-I' + str(prefix / 'include/libxml2'), '-I' + str(prefix / 'include'),
          lxml / 'src/lxml/etree.c', '-o', work / 'etree.so',
-         prefix / 'lib/libexslt.a', prefix / 'lib/libxslt.a', prefix / 'lib/libxml2.a', '-lm'], work, env, log)
+         prefix / 'lib/libexslt.a', prefix / 'lib/libxslt.a', prefix / 'lib/libxml2.a', python_library, '-lm'], work, env, log)
+    # Android's linker uses each extension's dependency group for Python data
+    # symbols. Unlike a Linux host build, both modules need explicit DT_NEEDED.
+    for extension in ('_core.so', 'etree.so'):
+        dynamic = subprocess.check_output([str(toolchain / 'bin/llvm-readelf'), '-d', str(work / extension)], text=True)
+        if '[' + variables['INSTSONAME'] + ']' not in dynamic:
+            raise ValueError('Missing bundled Python dependency in ' + extension)
     marker.write_text(key)
     return work
 
