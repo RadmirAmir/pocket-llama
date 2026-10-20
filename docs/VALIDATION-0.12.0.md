@@ -8,7 +8,7 @@ notes, recordings, scans, chats and optional Surya remain available.
 ## Signed artifact
 
 - APK: `PocketLlama-0.12.0-community-arm64.apk`, 662322940 bytes.
-- SHA-256: `994bf8740457df1184b4bf3b3fd7791e1c7af7b88bf17877f30891ca689faede`.
+- SHA-256: `06f39a830e0fe3de2e6584af246753af5db9a83c2ecd499297e1cd4e5711532e`.
 - Version name `0.12.0`, version code `32`; Android 10+, ARM64.
 - Certificate SHA-256: `ef3cea40110c13d179cc7e1f1e570aeb2f870cb7d46f16273eb5d733cf9b2ed0`.
 - Compared against the exact published 0.11.0 RC.3 APK. All 16 model assets,
@@ -26,6 +26,10 @@ notes, recordings, scans, chats and optional Surya remain available.
 - Browser checks for native-consent state, default-off behavior, query
   isolation from attachments/history/RAG, safe citations, partial failures,
   RAG coexistence, RU/EN and narrow mobile layouts.
+
+The native extensions explicitly link the bundled shared Python library; the
+Android build verifies their DT_NEEDED entries. This resolves Android loader
+failures that host-only Python tests do not expose.
 
 ## Android acceptance
 
