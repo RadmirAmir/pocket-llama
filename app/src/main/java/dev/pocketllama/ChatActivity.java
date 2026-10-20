@@ -48,6 +48,10 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
     private final AtomicBoolean stopRequested = new AtomicBoolean();
     private volatile ChatApi request;
     private volatile dev.pocketllama.rag.RagManager rag;
+    private volatile dev.pocketllama.search.WebSearch webSearch;
+    // Consent is native, bound to this unlocked Activity, and never restored from JS/history.
+    private volatile boolean webConnected;
+    private volatile long webConsentEpoch=-1;
     private final AtomicBoolean ragOperation=new AtomicBoolean();
     private volatile boolean destroyed, pageReady, vision;
     private WebView web; private FrameLayout root;
@@ -76,6 +80,7 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
                 catch (Exception e) { fail(e); }
                 refreshState();
                 ragStatus();
+                emit("webState",object("enabled",false));
             });
         }
         @JavascriptInterface public void refresh() {if(!dev.pocketllama.security.GateSession.isOpen())return; refreshState(); }
@@ -117,14 +122,37 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
                 if (generating.get()) return;
                 new AlertDialog.Builder(ChatActivity.this).setTitle(dev.pocketllama.I18n.t("Начать новый диалог?"))
                         .setMessage(dev.pocketllama.I18n.t("Текущая история и вложения будут очищены."))
-                        .setNegativeButton(dev.pocketllama.I18n.t("Отмена"), null).setPositiveButton(dev.pocketllama.I18n.t("Новый диалог"), (dialog, which) -> emit("reset", new JSONObject())).show();
+                        .setNegativeButton(dev.pocketllama.I18n.t("Отмена"), null).setPositiveButton(dev.pocketllama.I18n.t("Новый диалог"), (dialog, which) -> {disconnectWeb();emit("reset", new JSONObject());}).show();
             });
         }
         @JavascriptInterface public void stop() {
             stopRequested.set(true);
+            dev.pocketllama.search.WebSearch online=webSearch;if(online!=null)online.cancel();
             dev.pocketllama.rag.RagManager search=rag;if(search!=null)search.cancel();
             ChatApi active = request;
             if (active != null) active.cancel();
+        }
+        @JavascriptInterface public void setWebSearch(boolean enable) {
+            if(!dev.pocketllama.security.GateSession.isOpen()||destroyed)return;
+            runOnUiThread(()->{
+                if(!enable){disconnectWeb();return;}
+                if(generating.get())return;
+                long epoch=dev.pocketllama.security.GateSession.epoch();
+                new AlertDialog.Builder(ChatActivity.this).setTitle(I18n.t("Включить интернет-поиск?"))
+                    .setMessage(I18n.t("SearXNG работает внутри Pocket на вашем телефоне. При отправке сообщения текст текущего вопроса будет передан поисковым системам Google, Brave и DuckDuckGo через интернет. Вопрос может содержать личные данные. Поисковики увидят запрос и ваш IP-адрес. История чата, вложения и база знаний не передаются. Интернет-поиск выключается при новом диалоге и повторном открытии чата."))
+                    .setNegativeButton(I18n.t("Отмена"),(d,w)->emit("webState",object("enabled",false)))
+                    .setOnCancelListener(d->emit("webState",object("enabled",false)))
+                    .setPositiveButton(I18n.t("Включить поиск"),(d,w)->{
+                        if(destroyed||!dev.pocketllama.security.GateSession.isOpen()||epoch!=dev.pocketllama.security.GateSession.epoch())return;
+                        webConsentEpoch=epoch;webConnected=true;emit("webState",object("enabled",true));
+                    }).show();
+            });
+        }
+        @JavascriptInterface public void openWebSource(String url) {
+            if(!dev.pocketllama.security.GateSession.isOpen()||!dev.pocketllama.search.WebQuery.publicUrl(url))return;
+            runOnUiThread(()->{if(!dev.pocketllama.security.GateSession.isOpen()||destroyed)return;
+                try{startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse(url)).addCategory(Intent.CATEGORY_BROWSABLE));}catch(Exception e){fail(new IOException(I18n.t("Не удалось открыть ссылку")));}
+            });
         }
         @JavascriptInterface public void rag(String action) {
             if(!dev.pocketllama.security.GateSession.isOpen()||destroyed)return;
@@ -167,6 +195,7 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
         }
     }
 
+    private void disconnectWeb(){webConnected=false;webConsentEpoch=-1;dev.pocketllama.search.WebSearch task=webSearch;if(task!=null)task.cancel();emit("webState",object("enabled",false));}
     private void ragStatus(){try{emit("ragState",dev.pocketllama.rag.RagManager.status(this));}catch(Exception e){fail(e);}}
     private void ragWork(String action) {
         if(!dev.pocketllama.security.GateSession.isOpen()||destroyed||generating.get()||!ragOperation.compareAndSet(false,true))return;
@@ -211,6 +240,9 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
             JSONObject input = new JSONObject(json);
             final long epoch=dev.pocketllama.security.GateSession.epoch();
             dev.pocketllama.rag.RagSources.Check access=()->{if(destroyed||stopRequested.get()||!dev.pocketllama.security.GateSession.isOpen()||epoch!=dev.pocketllama.security.GateSession.epoch())throw new InterruptedException("Ответ остановлен");};
+            boolean online=input.optBoolean("web",false);
+            if(online&&(!webConnected||webConsentEpoch!=epoch))throw new IOException(I18n.t("Сначала включите интернет-поиск в инструментах чата"));
+            String webQuery=online?dev.pocketllama.search.WebQuery.validate(input.optString("web_query")):"";
             JSONObject knowledge=null;
             if(input.optBoolean("rag",false)) {
                 String query=input.optString("rag_query").trim();if(query.isEmpty()||query.length()>1000)throw new IOException(I18n.t("Для поиска нужен вопрос длиной до 1000 символов"));
@@ -230,7 +262,16 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
             JSONObject caps = client.capabilities();
             JSONObject body = ChatApi.request(input.getJSONArray("messages"), input.optBoolean("thinking", false),
                     input.optInt("max_tokens", 512), caps.optBoolean("vision", false),RuntimeState.chatProfile);
-            if(knowledge!=null){body=dev.pocketllama.rag.RagPrompt.fit(body,knowledge,caps.optInt("context",config.contextPerSlot),client,access);emit("ragSources",object("id",id,"result",knowledge));}
+            int context=caps.optInt("context",config.contextPerSlot);
+            if(knowledge!=null){int ragContext=online?Math.max(512,context-Math.min(1400,context/3)):context;body=dev.pocketllama.rag.RagPrompt.fit(body,knowledge,ragContext,client,access);emit("ragSources",object("id",id,"result",knowledge));}
+            if(online){
+                dev.pocketllama.search.WebPrompt.Check webAccess=()->{access.run();if(!webConnected||webConsentEpoch!=epoch)throw new InterruptedException("Ответ остановлен");};
+                webAccess.run();emit("webProgress",object("id",id,"detail",I18n.t("SearXNG ищет в интернете…"),"query",webQuery));
+                dev.pocketllama.search.WebSearch task=new dev.pocketllama.search.WebSearch(this,webAccess);webSearch=task;JSONObject found;
+                try{found=task.search(webQuery,I18n.language());}finally{task.close();if(webSearch==task)webSearch=null;}
+                webAccess.run();body=dev.pocketllama.search.WebPrompt.fit(body,found,context,client,webAccess);emit("webSources",object("id",id,"result",found));
+            }
+            access.run();
             RuntimeState.log(dev.pocketllama.I18n.t("Чат запрос: профиль=")+RuntimeState.chatProfile.id+" · thinking="+input.optBoolean("thinking",false)
                     +" · min_p="+body.optDouble("min_p")+" · temperature="+body.optDouble("temperature")
                     +" · top_p="+body.optDouble("top_p")+" · top_k="+body.optInt("top_k")
@@ -363,9 +404,10 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
     private void fail(Exception e) { emit("error", object("message", useful(e))); }
 
     @Override public void onConfigurationChanged(android.content.res.Configuration c) { super.onConfigurationChanged(c);if(!secureInitialized())return;UiHost.colors(this,root,web);web.getSettings().setTextZoom(Math.round(100*c.fontScale)); }
-    @Override protected void onResume() { super.onResume();if(!secureInitialized()||!dev.pocketllama.security.GateSession.isOpen())return; UiHost.syncLanguage(web);handler.post(refresh); }
+    @Override protected void onResume() { super.onResume();if(!secureInitialized()||!dev.pocketllama.security.GateSession.isOpen())return; if(webConnected&&webConsentEpoch!=dev.pocketllama.security.GateSession.epoch())disconnectWeb();UiHost.syncLanguage(web);handler.post(refresh); }
     @Override protected void onPause() {if(!secureInitialized()){super.onPause();return;} handler.removeCallbacks(refresh); super.onPause(); }
     @Override protected void onDestroy() {
+        disconnectWeb();
         destroyed = true; handler.removeCallbacks(refresh);
         ChatApi active = request; if (active != null) active.cancel();
         dev.pocketllama.rag.RagManager search=rag;if(search!=null)search.cancel();

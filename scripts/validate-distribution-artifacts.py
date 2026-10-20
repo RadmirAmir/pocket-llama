@@ -4,6 +4,7 @@ from pathlib import Path
 import argparse,hashlib,json,re,struct,subprocess,zipfile,sys
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 import video_bundle
+import search_bundle
 ROOT=Path(__file__).resolve().parents[1]
 def digest(stream):
  h=hashlib.sha256()
@@ -22,6 +23,7 @@ def models(archive,prefix,personal,personal_compact=False):
   names=z.namelist();assert len(names)==len(set(names)),'Duplicate archive entry'
   if prefix=='apk':apk_resources(z)
   video_count=video_bundle.validate_archive(z,video_bundle.inventory(ROOT),'' if prefix=='apk' else 'base/')
+  search_count=search_bundle.validate_archive(z,search_bundle.inventory(ROOT),'' if prefix=='apk' else 'base/')
   meta=json.loads(z.read(('' if prefix=='apk' else 'base/')+'assets/distribution.json'))
   config=json.loads((ROOT/'distribution/release.json').read_text())
   community=config.get('communitySurya',{})
@@ -52,7 +54,7 @@ def models(archive,prefix,personal,personal_compact=False):
   if with_surya:
    for name in ['Surya-community.txt','Surya-weights.txt']:
     assert z.read(('' if prefix=='apk' else 'base/')+'assets/notices/'+name)==(ROOT/'notices'/name).read_bytes(),'Missing or stale model terms: '+name
-  return {'modelsVerified':len(expected),'videoFilesVerified':video_count,'channel':meta['channel'],'suryaBundled':bool(personal and not personal_compact),'bytes':Path(archive).stat().st_size}
+  return {'modelsVerified':len(expected),'videoFilesVerified':video_count,'searchFilesVerified':search_count,'channel':meta['channel'],'suryaBundled':bool(personal and not personal_compact),'bytes':Path(archive).stat().st_size}
 def certificate(java,signer,path):
  result=subprocess.check_output([java,'-jar',str(signer),'verify','--print-certs',str(path)],text=True)
  return re.search(r'Signer #1 certificate SHA-256 digest: ([a-fA-F0-9]+)',result).group(1).lower()

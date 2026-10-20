@@ -6,6 +6,7 @@ files. Model packs remain standard install-time Play AI packs.
 """
 from pathlib import Path
 import argparse,json,os,shutil,subprocess,zipfile
+import search_bundle
 ROOT=Path(__file__).resolve().parents[1]
 def main():
  p=argparse.ArgumentParser(description=__doc__);p.add_argument('--bundletool',required=True);p.add_argument('--output');p.add_argument('--sign',action='store_true');a=p.parse_args()
@@ -17,6 +18,7 @@ def main():
  for index,module in enumerate(modules):
   if not module.is_file():raise SystemExit('Build the Gradle pre-bundle tasks first: '+str(module))
   with zipfile.ZipFile(module) as z:
+   if index==0:search_bundle.validate_archive(z,search_bundle.inventory(ROOT))
    for name in z.namelist():
     if name.startswith('assets/'):
      if name in seen:raise SystemExit('Asset appears in multiple modules: '+name)

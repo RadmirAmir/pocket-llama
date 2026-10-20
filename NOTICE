@@ -5,3 +5,5 @@ The original Pocket code is licensed under Apache-2.0.
 Third-party code, runtimes and model weights retain their individual licenses.
 See notices/, the lock files and docs/LICENSING.md.
 Surya model weights are not licensed under the application license.
+
+Built-in web search includes SearXNG (AGPL-3.0-or-later) as a separate local process. See notices/SearXNG.txt and docs/SEARCH.md.

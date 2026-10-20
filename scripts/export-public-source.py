@@ -18,6 +18,7 @@ def selected():
   if rel.as_posix().startswith('app/src/main/assets/moonshine/') and rel.name!='manifest.json':continue
   if p.suffix=='.jar' and rel.as_posix()!='gradle/wrapper/gradle-wrapper.jar':continue
   if rel.as_posix().startswith('app/src/main/assets/video/') and rel.name!='launcher.py':continue
+  if rel.as_posix().startswith('app/src/main/assets/search/') and rel.name!='server.py':continue
   if len(rel.parts)>2 and rel.parts[0].endswith('_pack') and 'assets' in rel.parts:continue
   if p.is_symlink():raise SystemExit('Review source symlink: '+str(rel))
   if p.stat().st_size>8*1024*1024:raise SystemExit('Unexpected large source file: '+str(rel))

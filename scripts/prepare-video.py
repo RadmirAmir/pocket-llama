@@ -11,7 +11,7 @@ ROOT=Path(__file__).resolve().parents[1]
 lock=json.loads((ROOT/'video-runtime.lock.json').read_text())
 cache=ROOT/'.cache/video';cache.mkdir(parents=True,exist_ok=True)
 assets=ROOT/'app/src/main/assets/video';assets.mkdir(parents=True,exist_ok=True)
-libs=ROOT/'app/src/main/jniLibs/arm64-v8a'
+libs=ROOT/'app/src/main/jniLibs/arm64-v8a';libs.mkdir(parents=True,exist_ok=True)
 for item in lock['artifacts']:
     target=cache/item['name']
     if not target.is_file() or hashlib.sha256(target.read_bytes()).hexdigest()!=item['sha256']:

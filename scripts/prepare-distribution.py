@@ -4,6 +4,7 @@ import argparse,hashlib,json,os,shutil,sys
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 import video_bundle
+import search_bundle
 ROOT=Path(__file__).resolve().parents[1]
 def checked(path,size,sha):
  if not path.is_file() or path.stat().st_size!=size:raise SystemExit('Missing or incomplete asset: '+str(path.relative_to(ROOT)))
@@ -39,7 +40,8 @@ def prepare(channel,with_surya=None,bundle_surya=None):
  with_surya,bundle_surya=surya_policy(config,channel,with_surya,bundle_surya)
  assets=ROOT/'app/src/main/assets'
  video=video_bundle.inventory(ROOT)
- allowed={'video':set(video_bundle.ASSETS),'rag':{'model.json'}}
+ search=search_bundle.inventory(ROOT)
+ allowed={'video':set(video_bundle.ASSETS),'search':set(search_bundle.ASSETS),'rag':{'model.json'}}
  if json.loads((assets/'rag/model.json').read_text())!=json.loads((ROOT/'rag-model.lock.json').read_text()):raise SystemExit('Embedding model metadata does not match its reviewed pin')
  for group in ['speech','ocr','moonshine']:
   manifest=json.loads((assets/group/'manifest.json').read_text())
@@ -83,6 +85,7 @@ def prepare(channel,with_surya=None,bundle_surya=None):
   else:
    for f in scanner['surya']['models']:copy(ROOT/'.cache/surya'/f['name'],common/'surya/bundled'/f['name'])
  video_bundle.validate_assets(common,video)
+ search_bundle.validate_assets(common,search)
  assert_scanner_assets(common,bundle_surya and channel!='play',scanner if with_surya else {})
  report={'channel':channel,'surya':with_surya,'suryaBundled':bool(with_surya and bundle_surya),'assetBytes':sum(p.stat().st_size for p in common.rglob('*') if p.is_file()),'packs':packs}
  (stage/'manifest.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(report),flush=True);return stage

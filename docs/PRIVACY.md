@@ -6,6 +6,16 @@ Pocket processes recordings, photographs, document text, transcripts, summaries 
 
 Network activity occurs for requested model/catalog downloads, user-started video URL imports, opening a model's source page, explicitly enabled local-network API use, and voluntary content reports. Download and video providers receive the network requests needed to serve the requested content. Do not describe all app network activity as model downloads only.
 
+Web search is an optional chat tool, disabled by default and enabled only after
+a native confirmation. The built-in SearXNG process sends the current question
+to Google, Brave and DuckDuckGo. Those providers receive the query, any personal
+data in it, and the connection IP address. History, attachments, personal
+knowledge, vectors and generated answers are not sent. Search snippets and the
+query can be retained in the encrypted chat history. Engine caches are kept in
+memory, with query logging disabled. A new chat or unlock session turns this
+permission off. Opening an Internet source is an explicit external-browser
+action. See [built-in search](SEARCH.md).
+
 The report action opens a review dialog. The user can edit the answer excerpt and add a comment. Only the reviewed excerpt, comment, selected category and app version are sent after pressing Send. Other conversation messages, recordings and documents are not attached automatically. Reports require HTTPS; redirects are not followed. Failed reports remain in the open dialog and are not silently queued for later transmission. The publisher must identify the receiving service, purpose, retention and deletion contact.
 
 Exports and clipboard actions are explicit user actions. Exported copies are outside Pocket's encryption and can be accessed by the chosen destination app. Enabling LAN API exposes the selected local model's HTTP API to network clients with the API token; the app warns that this transport has no TLS. It does not expose the recorder or document database.

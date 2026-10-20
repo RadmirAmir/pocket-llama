@@ -38,9 +38,17 @@ public final class VideoRuntime {
     }
     public Process start(List<String> options)throws IOException {
         ArrayList<String> args=new ArrayList<>(Arrays.asList(python.getAbsolutePath(),"-B",launcher.getAbsolutePath(),script.getAbsolutePath(),"--ignore-config","--no-plugin-dirs","--no-cache-dir","--no-update","--no-playlist","--playlist-items","1","--no-warnings","--no-colors","--socket-timeout","20","--retries","2","--fragment-retries","2","--js-runtimes","quickjs:"+quickjs.getAbsolutePath(),"--format","bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio/best"));
-        args.addAll(options);ProcessBuilder builder=new ProcessBuilder(args);builder.directory(temporary);
+        args.addAll(options);return configure(new ProcessBuilder(args)).start();
+    }
+    /** Shared bundled interpreter; separate child processes keep tools isolated. */
+    public ProcessBuilder pythonProcess(File entrypoint,List<String> options) {
+        ArrayList<String> args=new ArrayList<>(Arrays.asList(python.getAbsolutePath(),"-B","-s",entrypoint.getAbsolutePath()));
+        args.addAll(options);return configure(new ProcessBuilder(args));
+    }
+    private ProcessBuilder configure(ProcessBuilder builder) {
+        builder.directory(temporary);
         Map<String,String> env=builder.environment();env.put("PYTHONHOME",home.getAbsolutePath());env.put("PYTHONPATH","");env.put("PYTHONNOUSERSITE","1");env.put("PYTHONDONTWRITEBYTECODE","1");env.put("LD_LIBRARY_PATH",new File(home,"lib").getAbsolutePath());env.put("SSL_CERT_FILE",new File(home,"etc/tls/cert.pem").getAbsolutePath());env.put("TMPDIR",temporary.getAbsolutePath());
-        return builder.start();
+        return builder;
     }
     private static InputStream asset(Context c,String name)throws IOException {
         try{return c.getAssets().open(name);}catch(FileNotFoundException e){throw new IOException("Не удалось подготовить загрузчик видео. Установите обновление Pocket.",e);}

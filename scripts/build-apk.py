@@ -89,6 +89,7 @@ def main():
             if not path.is_file() or path.stat().st_size != item['bytes'] or hashlib.sha256(path.read_bytes()).hexdigest() != item['sha256']:
                 parser.error('Speech runtime checksum mismatch: run python3 scripts/prepare-runtime.py: ' + item['path'])
     video = module.video_bundle.inventory(ROOT)
+    search = module.search_bundle.inventory(ROOT)
     scanner = json.loads((ROOT / 'scanner-runtime.lock.json').read_text())
     for item in scanner['files'] + [f for a in scanner['artifacts'] for f in a['files']]:
         if not json.loads((stage/'manifest.json').read_text())['surya'] and item['path'].startswith('app/src/main/assets/surya/'):continue
@@ -134,6 +135,7 @@ def main():
             module.video_bundle.validate_assets(assets, video)
             package_assets(z, assets)
         module.video_bundle.validate_archive(z, video)
+        module.search_bundle.validate_archive(z, search)
     aligned = build / 'aligned.apk'
     run(tools / ('zipalign'+suffix), '-P', '16', '-f', '4', unsigned, aligned)
     keystore=Path(args.keystore).resolve()

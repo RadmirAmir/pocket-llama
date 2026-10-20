@@ -2,7 +2,7 @@
 
 [← Pocket](../README.md) · [Русский](SECURITY-RU.md)
 
-This page describes the implementation in the 0.9.0 public preview. It is a technical product explanation, not an independent security audit or the publisher's final legal privacy policy.
+This page describes the implementation in the 0.12.0 public preview. It is a technical product explanation, not an independent security audit or the publisher's final legal privacy policy.
 
 ## What stays on your phone
 
@@ -32,6 +32,7 @@ The app decrypts data as needed while you use it. Encryption at rest does not pr
 | --- | --- |
 | Download/refresh a model catalog or download a model | The hosting provider receives the request needed to serve the catalog/file; personal recordings, scans and chats are not part of that download |
 | Import video from a URL | The video provider is contacted to retrieve the requested media; the imported audio is processed locally |
+| Enable Web search in Chat tools and send a question | After native confirmation, bundled SearXNG sends the current question and the connection's public IP to Google, Brave and DuckDuckGo. History, attachments and personal-knowledge passages are excluded. The tool starts off in a new chat. [Details](SEARCH.md) |
 | Open a model source or external video link | The browser or chosen app contacts that site |
 | Export/share/copy | The selected destination receives the content you choose; its own networking and storage rules then apply |
 | Enable the optional LAN API | Other network clients with the API token can access the selected model's HTTP API; there is no TLS on this API. It is off by default and does not expose the recording/document database |

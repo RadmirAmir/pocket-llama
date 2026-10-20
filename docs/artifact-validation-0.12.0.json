@@ -1,0 +1,17 @@
+{
+  "community": {
+    "modelsVerified": 16,
+    "videoFilesVerified": 6,
+    "searchFilesVerified": 3,
+    "channel": "community",
+    "suryaBundled": false,
+    "bytes": 662322940
+  },
+  "legacyCertificateMatches": true,
+  "legacyCertificateSha256": "ef3cea40110c13d179cc7e1f1e570aeb2f870cb7d46f16273eb5d733cf9b2ed0",
+  "apkSha256": "fd5e7679f750e523c86bca3535eeefeaecf8b35cc1484dabfe85ef54c0136afa",
+  "versionName": "0.12.0",
+  "versionCode": 32,
+  "package": "dev.pocketllama",
+  "sourceCommit": "b77e2c86fa1752363e5767c2b68e758f6025eb6b"
+}
