@@ -9,6 +9,7 @@ import importlib.util
 import io
 import json
 import socket
+import shutil
 import sys
 import tempfile
 import threading
@@ -21,7 +22,12 @@ import urllib.request
 ROOT = Path(__file__).resolve().parents[1]
 source = Path(sys.argv.pop(1)) if len(sys.argv) > 1 and not sys.argv[1].startswith('-') else None
 if source:
-    sys.path.insert(0, str(source))
+    # Match the shipped headless source profile, rather than letting a full
+    # checkout's unused UI directories hide Android settings-schema failures.
+    source_profile = tempfile.TemporaryDirectory()
+    shutil.copytree(source / 'searx', Path(source_profile.name) / 'searx',
+                    ignore=shutil.ignore_patterns('static', 'templates', '__pycache__', '*.pyc'))
+    sys.path.insert(0, source_profile.name)
 spec = importlib.util.spec_from_file_location('pocket_search', ROOT / 'app/src/main/assets/search/server.py')
 search = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(search)

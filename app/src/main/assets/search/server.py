@@ -55,6 +55,10 @@ def public_url(value):
 def initialize():
     # No general SearXNG webapp, network probe, plugins or unrelated engines.
     # JSON is also valid YAML; no secret or personal data is stored in settings.
+    # The embedded engine omits SearXNG's unused browser UI. Its settings schema
+    # still requires existing static/template directories, including on Android.
+    empty_ui = Path(__file__).with_name("empty-ui")
+    empty_ui.mkdir(exist_ok=True)
     settings = {
         "use_default_settings": {"engines": {"keep_only": list(ENGINES)}},
         "general": {"debug": False, "enable_metrics": False},
@@ -64,6 +68,7 @@ def initialize():
         "outgoing": {"request_timeout": 8.0, "max_request_timeout": 10.0,
                      "pool_connections": 6, "pool_maxsize": 3, "enable_http2": True},
         "valkey": {"url": False},
+        "ui": {"static_path": str(empty_ui), "templates_path": str(empty_ui)},
         "engines": [{"name": name, "disabled": False, "timeout": 8.0} for name in ENGINES],
     }
     # This file contains public configuration only, never the query or token.
