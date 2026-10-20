@@ -56,14 +56,14 @@
 <div class="tools-heading"><h2 id="toolsTitle">Инструменты чата</h2><button id="closeTools" class="tool-close" aria-label="Закрыть">×</button></div>
 <div class="knowledge-card">
 <label class="knowledge-toggle"><span><b>Личная база знаний</b><small>Расшифровки · OCR · заметки</small></span><input id="ragEnabled" type="checkbox" aria-describedby="ragDescription"></label>
-<p id="ragDescription">Подключите поиск к этому диалогу. Помощник будет искать по вашим материалам и показывать источники. Всё обрабатывается на телефоне.</p>
+<p id="ragDescription">Помощник сам решает, когда искать по вашим материалам, уточняет запросы и проверяет результаты. Всё обрабатывается на телефоне.</p>
 <div id="ragStatus" class="knowledge-status" role="status" aria-live="polite">Модель поиска ещё не загружена</div>
 <p class="knowledge-hint">EmbeddingGemma Q8 · 329 МБ. Первая индексация может занять время. Модель чата ненадолго выгружается на время смыслового поиска.</p>
 <div class="knowledge-actions"><button id="ragDownload">Скачать модель</button><button id="ragBuild">Обновить индекс</button><button id="ragClear">Удалить индекс</button><button id="ragCancel" hidden>Остановить</button></div>
 </div>
 <div class="knowledge-card">
 <label class="knowledge-toggle"><span><b>Интернет-поиск</b><small>SearXNG · внутри приложения</small></span><input id="webEnabled" type="checkbox" aria-describedby="webDescription"></label>
-<p id="webDescription">Поиск по текущему вопросу через Google, Brave и DuckDuckGo. Текст вопроса, включая личные данные в нём, и ваш IP-адрес доступны поисковикам. История, вложения и база знаний не передаются.</p>
+<p id="webDescription">Помощник сам составляет запросы к Google, Brave и DuckDuckGo; если они недоступны, используется Bing. В них могут попасть сведения из переписки, вложений и базы знаний. Поисковики видят запросы и ваш IP-адрес. Не более четырёх вызовов инструментов на ответ.</p>
 <p class="knowledge-hint">Перед включением Pocket запросит подтверждение. Источники появятся под ответом. Новый диалог начинает работу без интернета.</p>
 </div>
 <p class="knowledge-hint">Инструмент выключен по умолчанию. Новый диалог начинает работу без доступа к базе знаний. Индекс хранится в зашифрованном виде.</p>
@@ -121,7 +121,8 @@ function metricText(metrics){
 }
 function streamNote(message){
  var elapsed=Math.max(0,Date.now()-message.created),stage;
- if(message.content)stage=_t('Пишет ответ');
+ if(message.agentStage&&!message.content)stage=message.agentStage;
+ else if(message.content)stage=_t('Пишет ответ');
  else if(message.reasoning)stage=_t('Модель размышляет');
  else if(message.progress&&Number(message.progress.total)>0){var p=message.progress;stage=_t('Обработка запроса: ')+Math.min(Number(p.total),Number(p.processed||0)+Number(p.cache||0))+' / '+p.total+_t(' ток.');}
  else stage=message.webStage||message.ragStage||_t('Ожидание модели');
@@ -152,6 +153,7 @@ function draw(){
   article.appendChild(meta);
   var bubble=node('div','bubble');
   if(message.role==='assistant'&&message.reasoning){var details=node('details','reasoning');details.appendChild(node('summary','',_t('Размышление модели')));details.appendChild(node('div','reasoning-body',message.reasoning));bubble.appendChild(details);}
+  if(message.role==='assistant'&&message.agent)bubble.appendChild(agentCards(message.agent));
   var prose=node('div','prose');var text=message.role==='user'?message.view_text:message.content;
   if(text)rich(prose,text,allSources(message));else if(message.state==='streaming')prose.appendChild(node('span','thinking-dots','● ● ●'));
   bubble.appendChild(prose);
@@ -196,12 +198,26 @@ function sourceCards(result){
 function webSourceCards(result){
  var details=node('details','rag-sources web-sources'),sources=Array.isArray(result.sources)?result.sources:[];
  details.appendChild(node('summary','',_t('Интернет')+' · '+sources.length+_t(' источников')));
- details.appendChild(node('p','knowledge-hint',_t('Поисковый запрос: ')+(result.query||'')));
+ (result.queries||[result.query||'']).forEach(function(query){details.appendChild(node('p','knowledge-hint',_t('Поисковый запрос: ')+query));});
  if(!sources.length)details.appendChild(node('p','knowledge-hint',_t('Подходящих фрагментов не найдено.')));
  sources.forEach(function(source){var card=node('div','rag-source'),button=node('button','source-open','['+source.citation+'] '+(source.title||source.url));button.onclick=function(){bridge('openWebSource',source.url);};card.appendChild(button);card.appendChild(node('small','',source.url||''));card.appendChild(node('p','',source.text||''));details.appendChild(card);});
  if(result.failedEngines&&result.failedEngines.length)details.appendChild(node('p','knowledge-hint',_t('Часть поисковиков недоступна: ')+result.failedEngines.join(', ')));
  if(result.contextLimited)details.appendChild(node('p','knowledge-hint',_t('Часть источников не поместилась в контекст модели.')));return details;
 }
+function agentCards(agent){
+ var details=node('details','agent-actions');
+ details.appendChild(node('summary','',_t('Действия помощника')+' · '+(agent.steps||[]).length));
+ if(agent.phase==='planning'&&!(agent.steps||[]).length)details.appendChild(node('p','knowledge-hint',_t('Выбирает следующий шаг…')));
+ (agent.steps||[]).forEach(function(step){
+  var row=node('div','agent-action');row.appendChild(node('b','',step.step+'. '+(step.tool==='web_search'?_t('Интернет-поиск'):_t('База знаний'))));
+  row.appendChild(node('p','agent-query',step.query));
+  var status=step.state==='running'?_t('Поиск…'):step.state==='done'?_t('Найдено фрагментов: ')+Number(step.count||0):step.state==='cancelled'?_t('Ответ остановлен'):window.PocketI18n.status(step.error||_t('Ошибка поиска'));
+  row.appendChild(node('small',step.state==='error'?'error':'',status));details.appendChild(row);
+ });
+ var end=agent.reason==='limit'?_t('Достигнут лимит шагов. Ответ по собранным данным.'):agent.reason==='invalid'?_t('Модель не смогла выбрать действие. Ответ по доступным данным.'):!(agent.steps||[]).length&&agent.reason==='answer'?_t('Инструменты не понадобились.'):'';
+ if(end)details.appendChild(node('p','knowledge-hint',end));return details;
+}
+function finishAgent(message){if(message.agent){message.agent.phase='done';(message.agent.steps||[]).forEach(function(step){if(step.state==='running')step.state='cancelled';});}message.agentStage='';}
 function renderRag(){
  var working=!!ragState.working,ready=!!ragState.modelReady;
  $('ragEnabled').disabled=busy||working||!ready;
@@ -222,19 +238,16 @@ function requestMessages(){
 function startRequest(){
  if(!state.ready){notice(_t('Сначала запустите модель кнопкой вверху.'));return;}
  if(requestMessages().length>62){notice(_t('История слишком длинная. Начните новый диалог.'));return;}
- var lastUser=messages.filter(function(m){return m.role==='user';}).slice(-1)[0],query=lastUser?String(lastUser.view_text||''):'';
- if(($('ragEnabled').checked||webConnected)&&(!query.trim()||query.length>1000)){notice(_t('Для поиска нужен вопрос длиной до 1000 символов'));return;}
  currentId='reply-'+Date.now()+'-'+Math.random().toString(16).slice(2);
  messages.push({id:currentId,role:'assistant',content:'',reasoning:'',state:'streaming',created:Date.now()});
  busy=true;autoScroll=true;notice('');draw();persist();
- var payload={messages:requestMessages(),thinking:$('thinking').checked,max_tokens:Number($('maxTokens').value),rag:$('ragEnabled').checked};if(payload.rag)payload.rag_query=query;payload.web=webConnected;if(payload.web)payload.web_query=query;
+ var payload={messages:requestMessages(),thinking:$('thinking').checked,max_tokens:Number($('maxTokens').value),rag:$('ragEnabled').checked ,web:webConnected};
  bridge('send',currentId,JSON.stringify(payload));
 }
 function send(){
  if(busy){bridge('stop');notice(_t('Останавливаю ответ…'));return;}
  if(attachmentBusy||!state.ready)return;
  var text=$('input').value.trim();
- if(($('ragEnabled').checked||webConnected)&&(!text||text.length>1000)){notice(_t('Для поиска нужен вопрос длиной до 1000 символов'));return;}
  if(!text&&pending.length===0)return;
  if(messages.length>=60){notice(_t('История слишком длинная. Начните новый диалог.'));return;}
  if(pending.some(function(f){return f.kind==='image';})&&!state.vision){notice(_t('Для фото нужен запущенный сервер с поддержкой изображений.'));return;}
@@ -257,7 +270,7 @@ window.PocketEvents=function(event){
  var data=event.data||{};
  if(event.type==='boot'){
   messages=Array.isArray(data.messages)?data.messages.filter(function(m){return m&&['user','assistant'].indexOf(m.role)>=0;}):[];
-  messages.forEach(function(m){if(m.state==='streaming'){m.state='interrupted';m.note=_t('Предыдущий ответ был прерван');}});
+  messages.forEach(function(m){if(m.state==='streaming'){m.state='interrupted';finishAgent(m);m.note=_t('Предыдущий ответ был прерван');}});
   pending=Array.isArray(data.pending)?data.pending.slice(0,4):[];
   $('input').value=typeof data.draft==='string'?data.draft:'';
   $('thinking').checked=!!data.thinking;
@@ -273,12 +286,19 @@ window.PocketEvents=function(event){
   $('capability').textContent=data.ready?'· '+(data.vision?_t('Текст + фото'):_t('Текст'))+' · '+data.context+_t(' ток.'):'';
   document.querySelector('.pill').textContent=data.backend==='cpu'?'CPU'+(data.cpu_profile?' · '+data.cpu_profile:''):String(data.backend||_t('На телефоне')).toUpperCase();
   controls();
+ }else if(event.type==='agentStatus'&&data.id===currentId){
+  var m=messages[messages.length-1];m.agent=m.agent||{steps:[]};m.agent.phase=data.phase;m.agent.reason=data.reason||'';m.agent.calls=data.calls||0;
+  m.agentStage=data.phase==='planning'?_t('Выбирает следующий шаг…'):_t('Формирует ответ…');m.ragStage='';m.webStage='';m.progress=null;m.lastUpdate=Date.now();draw();scheduleSave();
+ }else if(event.type==='agentStep'&&data.id===currentId){
+  var m=messages[messages.length-1];m.agent=m.agent||{steps:[]};var at=m.agent.steps.findIndex(function(step){return step.step===data.step;});if(at<0)m.agent.steps.push(data);else m.agent.steps[at]=data;
+  m.agentStage=data.state==='running'?(data.tool==='web_search'?_t('SearXNG ищет в интернете…'):_t('Ищу в личной базе знаний…')):_t('Проверяет результаты…');m.ragStage='';m.webStage='';m.lastUpdate=Date.now();draw();scheduleSave();
+ }else if(event.type==='agentPulse'&&data.id===currentId){messages[messages.length-1].lastUpdate=Date.now();
  }else if(event.type==='webState'){webConnected=data.enabled===true;$('webEnabled').checked=webConnected;controls();
  }else if(event.type==='webProgress'&&data.id===currentId){var m=messages[messages.length-1];m.webStage=data.detail||'';m.webQuery=data.query||'';m.lastUpdate=Date.now();scheduleDraw();
  }else if(event.type==='webSources'&&data.id===currentId){var m=messages[messages.length-1];m.web=data.result;m.webStage='';draw();scheduleSave();
  }else if(event.type==='ragState'){
   Object.keys(data).forEach(function(k){ragState[k]=data[k];});if(!data.working){ragState.detail='';delete ragState.total;delete ragState.done;}if(data.error)notice(window.PocketI18n.status(data.error));renderRag();
- }else if(event.type==='ragProgress'&&data.id===currentId){var m=messages[messages.length-1];m.ragStage=data.detail||'';m.lastUpdate=Date.now();scheduleDraw();
+ }else if(event.type==='ragProgress'&&data.id===currentId){var m=messages[messages.length-1];m.ragStage=data.detail||'';m.agentStage=m.ragStage;m.lastUpdate=Date.now();scheduleDraw();
  }else if(event.type==='ragSources'&&data.id===currentId){var m=messages[messages.length-1];m.rag=data.result;m.ragStage='';draw();scheduleSave();
  }else if(event.type==='attachmentBusy'){
   attachmentBusy=!!data.busy;if(attachmentBusy)notice(_t('Читаю вложения…'));else if($('notice').textContent===_t('Читаю вложения…'))notice('');controls();
@@ -290,12 +310,12 @@ window.PocketEvents=function(event){
  }else if(event.type==='progress'&&data.id===currentId){
   var m=messages[messages.length-1];if(data.prompt)m.progress=data.prompt;if(data.metrics)m.metrics=data.metrics;m.lastUpdate=Date.now();scheduleDraw();
  }else if(event.type==='complete'&&data.id===currentId){
-  var m=messages[messages.length-1];m.state='done';if(data.metrics)m.metrics=data.metrics;
+  var m=messages[messages.length-1];m.state='done';finishAgent(m);if(data.metrics)m.metrics=data.metrics;
   var count=data.usage&&data.usage.completion_tokens;
   m.note=data.reason==='cancelled'?_t('Ответ остановлен'):data.reason==='length'?_t('Достигнут лимит ответа'):count?count+_t(' токенов'):'';
   busy=false;currentId=null;notice('');draw();persist();
  }else if(event.type==='failed'&&data.id===currentId){
-  var m=messages[messages.length-1];m.state='error';m.note=window.PocketI18n.status(data.message)||_t('Не удалось получить ответ');if(data.metrics)m.metrics=data.metrics;
+  var m=messages[messages.length-1];m.state='error';finishAgent(m);m.note=window.PocketI18n.status(data.message)||_t('Не удалось получить ответ');if(data.metrics)m.metrics=data.metrics;
   busy=false;currentId=null;notice('');draw();persist();
  }else if(event.type==='error'){notice(window.PocketI18n.status(data.message)||_t('Ошибка'));}
  else if(event.type==='reset'){messages=[];pending=[];$('input').value='';$('ragEnabled').checked=false;webConnected=false;$('webEnabled').checked=false;if(native&&typeof native.setWebSearch==='function')bridge('setWebSearch',false);currentId=null;notice('');resize();draw();persist();}

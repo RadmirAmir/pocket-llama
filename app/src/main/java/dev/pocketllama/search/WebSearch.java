@@ -45,11 +45,14 @@ public final class WebSearch implements AutoCloseable {
             check();JSONObject state;try{state=new JSONObject(line);}catch(JSONException e){throw new IOException("Не удалось запустить встроенный SearXNG. Установите обновление Pocket",e);}int port=state.optInt("port");
             if(!state.optBoolean("ready")||port<1024||port>65535)throw new IOException("Не удалось запустить встроенный SearXNG. Установите обновление Pocket");
             connection=(HttpURLConnection)new URL("http://127.0.0.1:"+port+"/search").openConnection(Proxy.NO_PROXY);
-            connection.setConnectTimeout(1500);connection.setReadTimeout(15000);connection.setInstanceFollowRedirects(false);connection.setRequestMethod("POST");connection.setDoOutput(true);
+            connection.setConnectTimeout(1500);connection.setReadTimeout(28000);connection.setInstanceFollowRedirects(false);connection.setRequestMethod("POST");connection.setDoOutput(true);
             connection.setRequestProperty("Authorization","Bearer "+secret);connection.setRequestProperty("Content-Type","application/json; charset=utf-8");
             byte[] body=new JSONObject().put("query",query).put("language","en".equals(language)?"en":"ru").toString().getBytes(StandardCharsets.UTF_8);connection.setFixedLengthStreamingMode(body.length);
             check();try(OutputStream out=connection.getOutputStream()){out.write(body);}check();
-            if(connection.getResponseCode()!=200)throw new IOException("Интернет-поиск недоступен: нет сети или поисковики отклонили запрос. Повторите позже либо выключите инструмент");
+            if(connection.getResponseCode()!=200){
+                JSONObject failure;try(InputStream in=connection.getErrorStream()){failure=new JSONObject(new String(read(in,8192),StandardCharsets.UTF_8));}catch(Exception ignored){failure=new JSONObject();}
+                throw new IOException(SearchErrors.describe(failure));
+            }
             ByteArrayOutputStream response=new ByteArrayOutputStream();try(InputStream in=connection.getInputStream()){byte[] b=new byte[4096];int n;while((n=in.read(b))!=-1){check();if(response.size()+n>128*1024)throw new IOException("Слишком большой ответ SearXNG");response.write(b,0,n);}}
             check();JSONObject result=new JSONObject(response.toString("UTF-8"));JSONArray hits=result.getJSONArray("sources");if(hits.length()>6)throw new IOException("Invalid SearXNG result");
             for(int i=0;i<hits.length();i++){JSONObject hit=hits.getJSONObject(i);if(!WebQuery.publicUrl(hit.optString("url"))||hit.optString("text").length()>1200)throw new IOException("Invalid SearXNG source");}

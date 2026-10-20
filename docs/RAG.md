@@ -8,7 +8,7 @@ The search covers every saved active note, the complete edited audio/video trans
 
 Answers show source cards and clickable references such as **[S1]**. A source opens its note, document page, or the relevant time in a transcript. Check these originals when accuracy matters. An embedding model finds passages; your selected chat model writes the answer and can still make mistakes.
 
-The tool is **off by default** and a new conversation disconnects it. Connecting it authorizes a local lookup for each subsequent question in that conversation. Disconnect it in Tools to stop adding knowledge to new requests. Existing answers and their quoted source cards remain part of the encrypted conversation history.
+The tool is **off by default** and a new conversation disconnects it. Connecting it makes local search available to the model, which decides when it is useful and can refine its query. Disconnect it in Tools to stop adding knowledge to new requests. Existing answers and their quoted source cards remain part of the encrypted conversation history.
 
 **RC.3:** notes containing only a title are included in the index. After updating from RC.2, the next connected search or **Update index** picks them up automatically.
 
@@ -18,7 +18,7 @@ The tool is **off by default** and a new conversation disconnects it. Connecting
 - **Incremental indexing:** unchanged passages reuse their vectors. Completed vector checkpoints survive interruption; a source update becomes searchable only after its passages are complete. Changed and deleted originals are reconciled before each lookup, and selected sources are checked against their current originals.
 - **On-device storage:** source copies, the full-text index, vectors and a bounded query-vector cache are inside SQLCipher. Clearing the search index keeps the original materials. Rebuild it when needed.
 - **Memory:** Pocket releases the chat model before running the CPU embedder, then restores the same model and settings. This adds reload time, but avoids keeping two models in memory together. Repeated identical questions can reuse their query vector. Keep Pocket open during indexing; Stop, leaving the screen, or locking the app can interrupt work safely.
-- **Context:** only a bounded set of relevant passages is passed to the chat model. Pocket counts tokens using that model's own template and tokenizer. If there is no space, use a shorter answer, a new conversation or a larger context. Shortened evidence is marked. Search questions are limited to 1,000 characters.
+- **Context:** only a bounded set of relevant passages is passed to the chat model. Pocket counts tokens using that model's own template and tokenizer. If there is no space, use a shorter answer, a new conversation or a larger context. Shortened evidence is marked. Model-generated tool queries are limited to 1,000 characters.
 
 The index stores 768-dimensional normalized float vectors. Exact full-text search (FTS5) and cosine search are combined by reciprocal rank fusion, followed by diversity selection. IDs, dates, names and amounts benefit from the text branch; paraphrases and cross-language questions benefit from embeddings. There is no cloud vector database or remote reranker.
 
@@ -47,3 +47,7 @@ The model is pinned in [rag-model.lock.json](../rag-model.lock.json); its files 
 Первая индексация может занять время. Во время смыслового поиска модель чата выгружается и затем запускается с прежними настройками — это экономит память, но добавляет время загрузки. Держите приложение открытым; работу можно остановить и продолжить позднее. Если источники не помещаются в контекст, уменьшите длину ответа, начните новый диалог или увеличьте контекст модели. Вопрос для поиска — до 1 000 символов.
 
 MCP-инструмент встроен внутрь приложения и подключается к чату явно. Публичного сетевого MCP-сервера и доступа сторонних приложений к базе нет. В интернет уходят только запросы на скачивание модели; тексты, вопросы и векторы остаются на телефоне.
+
+When web search is also enabled, the agent may use details from local search results in outgoing Internet queries. See the [agent loop and web privacy](AGENT.md).
+
+Если включён и интернет-поиск, помощник может включить сведения из личных материалов в поисковые запросы. [Подробнее об агентном цикле](AGENT.md).

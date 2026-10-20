@@ -27,6 +27,9 @@ public final class AndroidSearchProbe extends Activity {
             check(((Process)field(task,"process")).waitFor(2,TimeUnit.SECONDS),"child retires after lookup");
             File base=new File(getNoBackupFilesDir(),"search-runtime-v1");
             for(File file:base.listFiles())check(!file.getName().endsWith(".db")&&!file.getName().endsWith(".db-wal"),"no disk cache");
+            WebSearch badTls=new WebSearch(this,()->{});boolean rejected=false;
+            try{badTls.search("certificate validation fixture","en");}catch(java.io.IOException error){rejected=error.getMessage().contains("сертификата");}
+            check(rejected,"untrusted TLS certificate is rejected and diagnosed");
             AtomicBoolean allowed=new AtomicBoolean(true);AtomicReference<Throwable> outcome=new AtomicReference<>();
             WebSearch slow=new WebSearch(this,()->{if(!allowed.get())throw new InterruptedException("locked");});
             Thread query=new Thread(()->{try{slow.search("slow cancellation fixture","en");outcome.set(new AssertionError("cancelled lookup returned"));}catch(Exception e){outcome.set(e);}});query.start();
@@ -36,7 +39,7 @@ public final class AndroidSearchProbe extends Activity {
             check(!query.isAlive()&&outcome.get() instanceof Exception,"lock cancels lookup");
             check(System.currentTimeMillis()-cancelled<3000,"bounded cancellation");
             check(((Process)field(slow,"process")).waitFor(2,TimeUnit.SECONDS),"lock kills Python child");
-            Log.i("PocketSearchTest","PASS: native CPython, lxml, msgspec, real SearXNG, memory cache and lock cancellation");
+            Log.i("PocketSearchTest","PASS: native CPython, DNS/TCP/verified HTTPS, certificate rejection, lxml, msgspec, real SearXNG and lock cancellation");
         }catch(Throwable e){Log.e("PocketSearchTest","FAIL",e);}
     },"pocket-search-test").start();}
 }

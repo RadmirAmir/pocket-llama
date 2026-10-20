@@ -9,6 +9,7 @@ import importlib.util
 import io
 import json
 import socket
+import subprocess
 import shutil
 import sys
 import tempfile
@@ -100,6 +101,49 @@ class SearchServerTests(unittest.TestCase):
                 return response.status, json.load(response)
         except urllib.error.HTTPError as error:
             return error.code, json.load(error) if error.headers.get('Content-Type', '').startswith('application/json') else {}
+
+    def setUp(self):
+        from searx.search.processors import PROCESSORS
+        for processor in PROCESSORS.values():
+            processor.suspended_status.resume()
+
+    def test_bing_fallback_after_primary_failure(self):
+        import httpx
+        from searx.search.processors import PROCESSORS
+        from searx.extended_types import SXNG_Response
+
+        def fallback(params):
+            html = '<ol id="b_results"><li class="b_algo"><h2><a href="https://example.org/fallback">Fallback</a></h2><p>Evidence from the backup engine.</p></li></ol>'
+            return SXNG_Response(200, text=html, request=httpx.Request('GET', params['url']))
+
+        with patch.object(PROCESSORS['brave'], '_send_http_request', side_effect=httpx.ConnectError('offline')):
+            with patch.object(PROCESSORS['bing'], '_send_http_request', side_effect=fallback):
+                code, result = self.request()
+        self.assertEqual(code, 200)
+        self.assertEqual(result['sources'][0]['url'], 'https://example.org/fallback')
+        self.assertEqual(result['attemptedEngines'], ['google', 'brave', 'duckduckgo', 'bing'])
+
+    def test_failure_categories_never_include_private_details(self):
+        import httpx
+        from searx.search.processors import PROCESSORS
+        def dns(*_):
+            try:
+                raise socket.gaierror(-2, 'PRIVATE_QUERY_URL')
+            except socket.gaierror as cause:
+                raise httpx.ConnectError('PRIVATE_QUERY_URL') from cause
+        with patch.object(PROCESSORS['brave'], '_send_http_request', side_effect=dns):
+            with patch.object(PROCESSORS['bing'], '_send_http_request', side_effect=dns):
+                code, result = self.request()
+        self.assertEqual(code, 502)
+        self.assertIn({'engine': 'brave', 'reason': 'dns'}, result['diagnostics'])
+        self.assertNotIn('PRIVATE', json.dumps(result))
+        with patch.object(search, 'search', side_effect=RuntimeError('PRIVATE_INTERNAL')):
+            self.assertEqual(self.request()[1], {'error': 'search_internal_error'})
+
+    def test_real_tls_transport(self):
+        location = source_profile.name if source else str(Path(__import__('searx').__file__).parent.parent)
+        for extra in ([], ['--bad-certificate']):
+            subprocess.run([sys.executable, str(ROOT / 'tests/test_search_tls.py'), location, *extra], check=True, timeout=25)
 
     def test_real_parser_and_partial_engine_failure(self):
         code, result = self.request()

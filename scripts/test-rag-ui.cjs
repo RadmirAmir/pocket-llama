@@ -18,7 +18,7 @@ async function run(){
    await page.locator('#tools').click();assert(await page.locator('#toolsPanel').isVisible());assert.equal(await page.locator('#ragEnabled').isChecked(),false);
    await page.locator('#ragEnabled').check();await page.locator('#closeTools').click();
    assert(await page.locator('#ragBadge').isVisible());await page.locator('#input').fill('Find invoice 773311');await page.locator('#send').click();
-   sent=await page.evaluate(()=>window.sent);assert.equal(sent.body.rag,true);assert.equal(sent.body.rag_query,'Find invoice 773311');assert(await page.locator('#tools').isDisabled());
+   sent=await page.evaluate(()=>window.sent);assert.equal(sent.body.rag,true);assert.equal(sent.body.rag_query,undefined,'the model chooses the knowledge query');assert(await page.locator('#tools').isDisabled());
    const source={citation:'S1',kind:'ocr',sourceId:'ba585069-fde2-4e86-ac81-4c8dddb8da6a',title:'<img src=x onerror="window.attacked=true">',text:'Invoice 773311 — pay by Friday. <script>window.attacked=true</script>',location:{page:2}};
    await page.evaluate(({id,source})=>{PocketEvents({type:'ragSources',data:{id,result:{sources:[source],contextLimited:false}}});PocketEvents({type:'chunk',data:{id,content:'Pay by Friday [S1].'}});PocketEvents({type:'complete',data:{id,reason:'stop',usage:{}}});},{id:sent.id,source});
    assert.equal(await page.locator('.citation').count(),1);await page.locator('.citation').click();assert.equal((await page.evaluate(()=>window.opened)).sourceId,source.sourceId);
