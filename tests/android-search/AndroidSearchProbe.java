@@ -13,9 +13,10 @@ import org.json.*;
 
 /** Runs the packaged Bionic CPython/extensions and real SearXNG on Android. */
 public final class AndroidSearchProbe extends Activity {
+    private static final AtomicBoolean started=new AtomicBoolean();
     private static Object field(Object value,String name)throws Exception{Field f=value.getClass().getDeclaredField(name);f.setAccessible(true);return f.get(value);}
     private static void check(boolean value,String label){if(!value)throw new AssertionError(label);}
-    @Override public void onCreate(Bundle state){super.onCreate(state);new Thread(()->{
+    @Override public void onCreate(Bundle state){super.onCreate(state);if(!started.compareAndSet(false,true))return;new Thread(()->{
         try{
             WebSearch task=new WebSearch(this,()->{});
             JSONObject result=task.search("Pocket native parser fixture","en");
