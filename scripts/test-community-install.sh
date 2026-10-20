@@ -75,6 +75,7 @@ sleep 3
 adb shell pidof dev.pocketllama
 
 # Exercise programs from the published APK, not missing-file-safe developer assets.
+# Source-level knowledge regression also covers notes containing only a title.
 python3 scripts/prepare-test-deps.py
 python3 scripts/prepare-security.py
 python3 scripts/prepare-video.py

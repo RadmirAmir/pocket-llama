@@ -22,3 +22,7 @@ Source fingerprints use a canonical field order, so document-page revalidation i
 [Full source CI](https://github.com/RadmirAmir/pocket-llama/actions/runs/39415093503) passed all host, RU/EN frontend and Android jobs, including the community APK and Play bundle/lint build. [Exact published APK installation](https://github.com/RadmirAmir/pocket-llama/actions/runs/39415093584) passed the upgrade from 0.10.2, fresh installation, startup and installed version 0.11.0 / code 30. That job also passed 8 exact-APK video-loader checks, 21 Android Notes checks, 19 SQLCipher knowledge checks and 34 Android video/migration checks. The native knowledge fixtures compile the production reader/index code with synthetic keys and embeddings; they do not execute EmbeddingGemma on a physical phone. The separate GGUF host test is described above.
 
 Additional local chat transport regression: 70 HTTP assertions passed. Published APK SHA-256: `5154a6f203b8d1ba264966049b08e5ea3f304e4b2ba3a44e28a06f8697a99d07`. Package and certificate match the previous community release.
+
+## Unreleased title-only note fix
+
+The source now indexes a note title when the body is empty, with a native SQLCipher retrieval/revalidation regression. The signed RC.2 APK predates this follow-up. Its signing/build execution server lost its connection, so a new signed APK could not be produced in this session. The published RC.2 remains the verified downloadable artifact; its limitations are documented in [RAG setup](RAG.md).

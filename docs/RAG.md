@@ -10,6 +10,8 @@ Answers show source cards and clickable references such as **[S1]**. A source op
 
 The tool is **off by default** and a new conversation disconnects it. Connecting it authorizes a local lookup for each subsequent question in that conversation. Disconnect it in Tools to stop adding knowledge to new requests. Existing answers and their quoted source cards remain part of the encrypted conversation history.
 
+**RC.2 limitation:** the signed download indexes note bodies. A note with only a title needs that text in its body to be searchable in RC.2. The current source includes the title-only fix; the next signed build will include it.
+
 ## Download, indexing and memory
 
 - **EmbeddingGemma 300M Q8_0:** a separate 328,577,056-byte download, approximately 329 MB. It is not bundled into the APK and does not replace your chat model. Downloads resume and must pass a pinned SHA-256 check.
@@ -29,6 +31,8 @@ The app uses an **in-process MCP transport** and a host-managed lookup for each 
 The model is pinned in [rag-model.lock.json](../rag-model.lock.json); its files are fetched directly from the specified Hugging Face revision. Only model bytes are requested from that service. Your query, passages and vectors stay on the phone. Model terms are separate from Pocket's Apache-2.0 code; see [Gemma notice](../notices/Gemma.txt), [terms](../notices/Gemma-terms.txt) and [prohibited-use policy](../notices/Gemma-prohibited-uses.txt).
 
 ## Русский
+
+**Ограничение APK RC.2:** заметки только с заголовком пока не попадают в индекс. До следующей сборки добавьте текст в тело такой заметки. В исходниках этот случай уже исправлен.
 
 В чате откройте **Инструменты → Личная база знаний**. Скачайте модель поиска, ознакомьтесь с условиями Gemma и включите переключатель для этого диалога. Нажмите **Обновить индекс** или задайте первый вопрос — индекс построится автоматически. Например: «Когда договорились сдать Атлас?» или «Найди сумму и срок оплаты счёта 773311».
 

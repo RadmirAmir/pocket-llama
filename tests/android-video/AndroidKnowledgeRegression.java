@@ -25,12 +25,13 @@ public final class AndroidKnowledgeRegression {
     public static void run(Context parent)throws Exception {
         File data=new File(parent.getNoBackupFilesDir(),"knowledge-fixture");data.mkdirs();
         Context c=new ContextWrapper(parent){@Override public Context getApplicationContext(){return this;}@Override public File getNoBackupFilesDir(){return data;}};
-        String noteId,meetingId,pageId;Embeddings embed=new Embeddings();RagSources reader=new RagSources(c,()->{});
+        String noteId,meetingId,pageId,titleId;Embeddings embed=new Embeddings();RagSources reader=new RagSources(c,()->{});
         JSONObject locA=new JSONObject().put("document","doc").put("page",2).put("pageId","page"),locB=new JSONObject().put("pageId","page").put("page",2).put("document","doc");
         check(RagSources.text("ocr","page","","Title","Same text",locA).fingerprint().equals(RagSources.text("ocr","page","","Title","Same text",locB).fingerprint()),"source fingerprint is independent of JSON field order");
         try(NoteStore notes=new NoteStore(c);VoiceStore voice=new VoiceStore(c)) {
             for(int i=0;i<130;i++){JSONObject n=notes.create();notes.save(n.getString("id"),n.getLong("revision"),"Note "+i,"Material "+i+" café Ёжик 😀");}
             JSONObject n=notes.create();noteId=n.getString("id");notes.save(noteId,n.getLong("revision"),"Private note","STALE_PRIVATE text never leave device");
+            n=notes.create();titleId=n.getString("id");notes.save(titleId,n.getLong("revision"),"Call Serena 742999","");
             meetingId=voice.create("Project meeting",false,1);
             for(int i=1;i<=240;i++)voice.getWritableDatabase().execSQL("INSERT INTO turns(mid,idx,start,end,speaker,text,text_fold) VALUES(?,?,?,?,?,?,?)",new Object[]{meetingId,i,i*1000L,i*1000L+900,1,"Original turn "+i,"original turn "+i});
             voice.getWritableDatabase().execSQL("INSERT INTO edits(mid,idx,speaker,text,text_fold) VALUES(?,?,?,?,?)",new Object[]{meetingId,210,1,"EDITED_TRANSCRIPT deadline Friday","edited_transcript deadline friday"});
@@ -40,9 +41,10 @@ public final class AndroidKnowledgeRegression {
             String legacy=photos.create(new byte[]{6},new byte[]{7},100,100);photos.edit(legacy,"Legacy OCR document is also indexed");
             try(RagStore index=new RagStore(c)) {
                 index.sync(reader,embed,(a,b,d)->{},()->{});int first=embed.documents;
-                check(index.status().getInt("sources")>=134,"knowledge reads all notes beyond UI page limits, transcripts and both OCR formats");
+                check(index.status().getInt("sources")>=135,"knowledge reads all notes beyond UI page limits, transcripts and both OCR formats");
                 index.sync(reader,embed,(a,b,d)->{},()->{});check(embed.documents==first,"unchanged corpus is not embedded again");
                 float[] q=index.query("Invoice 773311",embed,()->{});index.query("Invoice 773311",embed,()->{});check(embed.queries==1,"repeated queries reuse the encrypted embedding cache");
+                JSONArray headings=index.search("742999",index.query("742999",embed,()->{}),6,"note",reader,()->{}).getJSONArray("sources");check(headings.length()>0&&headings.getJSONObject(0).getString("sourceId").equals(titleId),"a note containing only a title is searchable and revalidates");
                 JSONArray hits=index.search("Invoice 773311",q,6,"all",reader,()->{}).getJSONArray("sources");check(hits.length()>0&&hits.getJSONObject(0).getString("sourceId").equals(pageId),"hybrid FTS and vector search retrieves the exact invoice");
                 JSONObject location=hits.getJSONObject(0).getJSONObject("location");check(location.getInt("page")==1&&location.getString("document").equals(document),"OCR source keeps document and page anchors");
                 hits=index.search("EDITED_TRANSCRIPT",index.query("EDITED_TRANSCRIPT",embed,()->{}),6,"voice",reader,()->{}).getJSONArray("sources");

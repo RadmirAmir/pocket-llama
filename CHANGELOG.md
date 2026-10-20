@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Include notes containing only a title in personal knowledge search. This source fix is not yet in the signed 0.11.0-rc.2 APK.
+
 ## 0.11.0 — personal knowledge for local chat
 
 - Explicitly connect Personal knowledge in Chat tools to search all active notes, edited audio/video transcripts, summaries and saved OCR.

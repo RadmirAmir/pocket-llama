@@ -51,6 +51,7 @@ public final class RagSources {
     }
     public static Source text(String kind,String id,String suffix,String title,String body,JSONObject extra)throws Exception {
         List<Piece> pieces=new ArrayList<>();
+        if(kind.equals("note")&&(body==null||body.trim().isEmpty())&&title!=null&&!title.trim().isEmpty())body=title;
         for(RagText.Passage p:RagText.split(body==null?"":body))pieces.add(new Piece(p.text,new JSONObject(extra.toString()).put("offset",p.start).put("endOffset",p.end)));
         return new Source(kind,id,suffix,title==null?"":title,pieces);
     }
