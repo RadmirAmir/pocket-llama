@@ -49,6 +49,8 @@ public final class AndroidVideoRegression {
   }
   try(VoiceStore store=new VoiceStore(c)){check(store.getWritableDatabase().getVersion()==4,"fresh schema 4 opens");check(store.list().length()==0,"fresh database starts empty");}
   check(!new String(Files.readAllBytes(Vault.database(c).toPath()),java.nio.charset.StandardCharsets.ISO_8859_1).startsWith("SQLite format 3"),"database stays encrypted");
+  File published=new File(root,"published.apk");
+  if(published.isFile())AndroidPublishedKnowledgeRegression.run(published);
   AndroidNotesRegression.run(c);
   AndroidKnowledgeRegression.run(c);
   System.out.println("PASS: "+checks+" Android video and migration checks");

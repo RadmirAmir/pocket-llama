@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # This test resets only the public package in a disposable emulator.
-# Published 0.11.0 is checked as an in-place update from 0.10.2.
+# Published RC.3 is checked as an in-place update from 0.10.2 and RC.2.
 set -euo pipefail
 if [ "$(adb shell getprop ro.kernel.qemu | tr -d '\r')" != 1 ] && [ "$(adb shell getprop ro.boot.qemu | tr -d '\r')" != 1 ]; then
     echo 'Refusing destructive installation tests on a physical device' >&2
@@ -11,9 +11,11 @@ adb shell getprop > install-evidence/device-properties.txt
 adb logcat -c
 trap 'adb logcat -d > install-evidence/logcat.txt' EXIT
 curl --fail --location --retry 3 --output build/install/community-0.10.2.apk https://github.com/RadmirAmir/pocket-llama/releases/download/v0.10.2-rc.1/PocketLlama-0.10.2-community-arm64.apk
-curl --fail --location --retry 3 --output build/install/community-0.11.0.apk https://github.com/RadmirAmir/pocket-llama/releases/download/v0.11.0-rc.2/PocketLlama-0.11.0-community-arm64.apk
+curl --fail --location --retry 3 --output build/install/community-0.11.0-rc2.apk https://github.com/RadmirAmir/pocket-llama/releases/download/v0.11.0-rc.2/PocketLlama-0.11.0-community-arm64.apk
+curl --fail --location --retry 3 --output build/install/community-0.11.0.apk https://github.com/RadmirAmir/pocket-llama/releases/download/v0.11.0-rc.3/PocketLlama-0.11.0-community-arm64.apk
 echo '8a070a2f260c220fbe78892f59e7054ad97bff8406b53907ca51bfee99f5e23c  build/install/community-0.10.2.apk' | sha256sum --check
-echo '5154a6f203b8d1ba264966049b08e5ea3f304e4b2ba3a44e28a06f8697a99d07  build/install/community-0.11.0.apk' | sha256sum --check
+echo '5154a6f203b8d1ba264966049b08e5ea3f304e4b2ba3a44e28a06f8697a99d07  build/install/community-0.11.0-rc2.apk' | sha256sum --check
+echo 'fe9e47e9ea489a27549a9b760af29df70c7f4303df852273775d8bf2f40c0464  build/install/community-0.11.0.apk' | sha256sum --check
 python3 - <<'PY'
 from pathlib import Path
 import hashlib,json,zipfile,importlib.util
@@ -63,10 +65,18 @@ python3 - <<'PY'
 from pathlib import Path
 import re
 package=Path('install-evidence/package-0.11.0.txt').read_text()
-assert re.search(r'versionCode=30(?:\s|$)',package)
+assert re.search(r'versionCode=31(?:\s|$)',package)
 assert re.search(r'versionName=0\.11\.0(?:\s|$)',package)
-print('Installed community version 0.11.0 / code 30 verified')
+print('Installed community version 0.11.0 / code 31 verified')
 PY
+adb uninstall dev.pocketllama
+adb install --no-streaming --no-incremental build/install/community-0.11.0-rc2.apk > install-evidence/baseline-0.11.0-rc2.txt 2>&1
+adb shell am start -W -n dev.pocketllama/dev.pocketllama.MainActivity > install-evidence/startup-baseline-0.11.0-rc2.txt
+adb install --no-streaming --no-incremental -r build/install/community-0.11.0.apk > install-evidence/upgrade-rc2-to-rc3.txt 2>&1
+cat install-evidence/upgrade-rc2-to-rc3.txt
+adb shell am start -W -n dev.pocketllama/dev.pocketllama.MainActivity > install-evidence/startup-upgrade-rc3.txt
+sleep 3
+adb shell pidof dev.pocketllama
 adb uninstall dev.pocketllama
 adb install --no-streaming --no-incremental build/install/community-0.11.0.apk > install-evidence/fresh-0.11.0.txt 2>&1
 cat install-evidence/fresh-0.11.0.txt
@@ -75,7 +85,7 @@ sleep 3
 adb shell pidof dev.pocketllama
 
 # Exercise programs from the published APK, not missing-file-safe developer assets.
-# Source-level knowledge regression also covers notes containing only a title.
+# Check the signed APK's own RAG DEX and the source-level SQLCipher fixture.
 python3 scripts/prepare-test-deps.py
 python3 scripts/prepare-security.py
 python3 scripts/prepare-video.py

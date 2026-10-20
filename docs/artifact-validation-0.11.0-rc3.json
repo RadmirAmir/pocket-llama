@@ -1,0 +1,18 @@
+{
+  "community": {
+    "modelsVerified": 16,
+    "videoFilesVerified": 6,
+    "channel": "community",
+    "suryaBundled": false,
+    "bytes": 640863630
+  },
+  "legacyCertificateMatches": true,
+  "legacyCertificateSha256": "ef3cea40110c13d179cc7e1f1e570aeb2f870cb7d46f16273eb5d733cf9b2ed0",
+  "sourceCommit": "33517976485dc20e604cdcccd950d5d82d37a9cc",
+  "versionCode": 31,
+  "versionName": "0.11.0",
+  "sha256": "fe9e47e9ea489a27549a9b760af29df70c7f4303df852273775d8bf2f40c0464",
+  "nativeLibrariesUnchanged": 14,
+  "exactApkVideoHostChecks": 8,
+  "exactApkAndroidInstallation": "pending"
+}
