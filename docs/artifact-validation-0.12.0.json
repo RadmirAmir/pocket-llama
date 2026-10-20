@@ -9,9 +9,9 @@
   },
   "legacyCertificateMatches": true,
   "legacyCertificateSha256": "ef3cea40110c13d179cc7e1f1e570aeb2f870cb7d46f16273eb5d733cf9b2ed0",
-  "apkSha256": "06f39a830e0fe3de2e6584af246753af5db9a83c2ecd499297e1cd4e5711532e",
+  "apkSha256": "fd5e7679f750e523c86bca3535eeefeaecf8b35cc1484dabfe85ef54c0136afa",
   "versionName": "0.12.0",
   "versionCode": 32,
   "package": "dev.pocketllama",
-  "sourceCommit": "14a7bf874c943aa38fc8be25735d3049ee4f9982"
+  "sourceCommit": "b77e2c86fa1752363e5767c2b68e758f6025eb6b"
 }

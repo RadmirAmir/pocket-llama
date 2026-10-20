@@ -8,9 +8,9 @@ notes, recordings, scans, chats and optional Surya remain available.
 ## Signed artifact
 
 - APK: `PocketLlama-0.12.0-community-arm64.apk`, 662322940 bytes.
-- SHA-256: `06f39a830e0fe3de2e6584af246753af5db9a83c2ecd499297e1cd4e5711532e`.
+- SHA-256: `fd5e7679f750e523c86bca3535eeefeaecf8b35cc1484dabfe85ef54c0136afa`.
 - Version name `0.12.0`, version code `32`; Android 10+, ARM64.
-- Certificate SHA-256: `ef3cea40110c13d179cc7e1f1e570aeb2f870cb7d46f16273eb5d733cf9b2ed0`.
+- Certificate SHA-256: `fd5e7679f750e523c86bca3535eeefeaecf8b35cc1484dabfe85ef54c0136afa`.
 - Compared against the exact published 0.11.0 RC.3 APK. All 16 model assets,
   six video-runtime files and three search-runtime files passed size/hash
   verification. Resource table and signature checks passed.
