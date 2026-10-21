@@ -32,9 +32,9 @@ jobs:
         run: |
           python3 scripts/prepare-search-host.py
           python3 tests/test_search_server.py "$(cat build/search-host-source.txt)"
-      - name: Live SearXNG news providers (real public HTTPS)
+      - name: Live background SearXNG feeds/APIs (real public HTTPS)
         timeout-minutes: 2
-        run: python3 scripts/test-search-live.py --news-only
+        run: python3 scripts/test-search-live.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -56,7 +56,6 @@ jobs:
           node scripts/test-scanner-ui.cjs
           node scripts/test-i18n-ui.cjs
           node scripts/test-search-ui.cjs
-          node scripts/test-browser-search.cjs
   android:
     runs-on: ubuntu-latest
     steps:

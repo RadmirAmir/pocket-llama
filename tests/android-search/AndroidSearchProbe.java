@@ -4,21 +4,25 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 import dev.pocketllama.search.WebSearch;
-import dev.pocketllama.search.BrowserSearch;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CountDownLatch;
 import org.json.*;
 
 /** Runs the packaged Bionic CPython/extensions and real SearXNG on Android. */
 public final class AndroidSearchProbe extends Activity {
     private static final AtomicBoolean started=new AtomicBoolean();
+    private final CountDownLatch focused=new CountDownLatch(1);
+    private final AtomicBoolean checkingSearch=new AtomicBoolean(),lostFocus=new AtomicBoolean();
+    @Override public void onWindowFocusChanged(boolean hasFocus){super.onWindowFocusChanged(hasFocus);if(hasFocus)focused.countDown();else if(checkingSearch.get())lostFocus.set(true);}
     private static Object field(Object value,String name)throws Exception{Field f=value.getClass().getDeclaredField(name);f.setAccessible(true);return f.get(value);}
     private static void check(boolean value,String label){if(!value)throw new AssertionError(label);}
     @Override public void onCreate(Bundle state){super.onCreate(state);if(!started.compareAndSet(false,true))return;new Thread(()->{
         try{
+            check(focused.await(15,TimeUnit.SECONDS),"search probe has window focus");checkingSearch.set(true);
             WebSearch task=new WebSearch(this,()->{});
             JSONObject result=task.search("Pocket native parser fixture","en");
             JSONArray sources=result.getJSONArray("sources");
@@ -43,18 +47,16 @@ public final class AndroidSearchProbe extends Activity {
             check(!query.isAlive()&&outcome.get() instanceof Exception,"lock cancels lookup");
             check(System.currentTimeMillis()-cancelled<3000,"bounded cancellation");
             check(((Process)field(slow,"process")).waitFor(2,TimeUnit.SECONDS),"lock kills Python child");
-            browserChecks();
-            Log.i("PocketSearchTest","PASS: native CPython, DNS/TCP/verified HTTPS, certificate rejection, lxml, msgspec, real SearXNG and lock cancellation");
+            WebSearch live=new WebSearch(this,()->{});
+            try{
+                JSONObject news=live.search("Нефтекамск новости","ru","news");JSONArray dated=news.getJSONArray("sources");check(dated.length()>0,"live public news returned sources");
+                for(int i=0;i<dated.length();i++)check(!dated.getJSONObject(i).optString("published").isEmpty(),"live news has publication dates");
+                JSONObject general=live.search("llama.cpp","en","general");check(general.getJSONArray("sources").length()>0,"live public general search returned sources");
+                Log.i("PocketSearchTest","Live background search: RU news="+dated.length()+", EN general="+general.getJSONArray("sources").length());
+            }finally{live.close();}
+            check(!lostFocus.get(),"background search never opens another window");checkingSearch.set(false);
+            Log.i("PocketSearchTest","PASS: native CPython, public DNS/verified HTTPS, background RSS/API search without windows, certificate rejection, real SearXNG and lock cancellation");
         }catch(Throwable e){Log.e("PocketSearchTest","FAIL",e);}
     },"pocket-search-test").start();}
 
-    private Thread browserThread(BrowserSearch browser,String query,AtomicReference<Object> result){Thread t=new Thread(()->{try{result.set(browser.search(query,"en"));}catch(Throwable e){result.set(e);}},"browser-probe");t.start();return t;}
-    private void browserChecks()throws Exception {
-        AtomicReference<Object> result=new AtomicReference<>();BrowserSearch first=new BrowserSearch(this,()->{},()->{});Thread worker=browserThread(first,"browser fixture",result);worker.join(15000);
-        check(!worker.isAlive()&&result.get() instanceof JSONObject,"real WebView returns parsed source: "+result.get());JSONObject hit=((JSONObject)result.get()).getJSONArray("sources").getJSONObject(0);check(hit.getString("text").contains("No native bridge"),"untrusted page has no native bridge");check(hit.getString("url").equals("https://example.org/browser"),"browser source URL");
-        BrowserSearch challenge=new BrowserSearch(this,()->{},()->{});result.set(null);worker=browserThread(challenge,"challenge fixture",result);Thread.sleep(2500);check(worker.isAlive()&&result.get()==null,"challenge waits for user, never auto-solves");
-        runOnUiThread(()->{try{((android.webkit.WebView)field(challenge,"view")).evaluateJavascript("document.getElementById('continue').click()",null);}catch(Exception e){throw new RuntimeException(e);}});worker.join(10000);check(!worker.isAlive()&&result.get() instanceof JSONObject,"manual fixture confirmation resumes browser search");
-        AtomicBoolean allowed=new AtomicBoolean(true);BrowserSearch cancel=new BrowserSearch(this,()->{if(!allowed.get())throw new InterruptedException("locked");},()->{});result.set(null);worker=browserThread(cancel,"challenge cancel fixture",result);Thread.sleep(1500);allowed.set(false);worker.join(3000);check(!worker.isAlive()&&result.get() instanceof InterruptedException,"vault lock retires browser promptly");BrowserSearch.clearSession();
-        Log.i("PocketSearchTest","PASS: real Android WebView/JavaScript, no native bridge, manual challenge handoff and browser cancellation (synthetic pages)");
-    }
 }

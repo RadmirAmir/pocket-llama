@@ -28,7 +28,7 @@ with tempfile.TemporaryDirectory() as directory:
                 server.search(app, 'certificate validation fixture', 'en')
                 raise AssertionError('untrusted certificate was accepted')
             except server.SearchFailure as error:
-                assert {'engine': 'brave', 'reason': 'certificate'} in error.diagnostics, error.diagnostics
+                assert {'engine': 'bing rss', 'reason': 'certificate'} in error.diagnostics, error.diagnostics
         else:
             result = server.search(app, 'Pocket native parser fixture', 'en')
             assert len(result['sources']) == 1, result

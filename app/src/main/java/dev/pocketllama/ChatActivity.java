@@ -49,7 +49,6 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
     private volatile ChatApi request;
     private volatile dev.pocketllama.rag.RagManager rag;
     private volatile dev.pocketllama.search.WebSearch webSearch;
-    private volatile dev.pocketllama.search.BrowserSearch browserSearch;
     // Consent is native, bound to this unlocked Activity, and never restored from JS/history.
     private volatile boolean webConnected;
     private volatile long webConsentEpoch=-1;
@@ -129,7 +128,6 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
         @JavascriptInterface public void stop() {
             stopRequested.set(true);
             dev.pocketllama.search.WebSearch online=webSearch;if(online!=null)online.cancel();
-            dev.pocketllama.search.BrowserSearch browser=browserSearch;if(browser!=null)browser.close();
             dev.pocketllama.rag.RagManager search=rag;if(search!=null)search.cancel();
             ChatApi active = request;
             if (active != null) active.cancel();
@@ -141,7 +139,7 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
                 if(generating.get())return;
                 long epoch=dev.pocketllama.security.GateSession.epoch();
                 new AlertDialog.Builder(ChatActivity.this).setTitle(I18n.t("Включить интернет-поиск?"))
-                    .setMessage(I18n.t("Поиск работает на вашем телефоне. Google, Brave, DuckDuckGo или Bing получают поисковые запросы и ваш IP-адрес. В запросы могут попасть личные сведения из переписки, вложений и результатов базы знаний. Новости читаются из RSS; обычный поиск открывает браузерную страницу. Если нужна CAPTCHA, подтвердите запрос на этой странице. Браузер использует отдельную от Chrome сессию; поисковые cookies удаляются при отключении инструмента, закрытии или блокировке чата. Включайте поиск только для данных, которые готовы передать поисковикам."))
+                    .setMessage(I18n.t("Поиск выполняется в фоне. Внешние сайты получают поисковые запросы и ваш IP-адрес. Модель может включить в запрос личные сведения из переписки, вложений и подключённой базы знаний. Включайте поиск только для данных, которые готовы отправить в интернет."))
                     .setNegativeButton(I18n.t("Отмена"),(d,w)->emit("webState",object("enabled",false)))
                     .setOnCancelListener(d->emit("webState",object("enabled",false)))
                     .setPositiveButton(I18n.t("Включить поиск"),(d,w)->{
@@ -197,7 +195,7 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
         }
     }
 
-    private void disconnectWeb(){webConnected=false;webConsentEpoch=-1;dev.pocketllama.search.WebSearch task=webSearch;if(task!=null)task.cancel();dev.pocketllama.search.BrowserSearch browser=browserSearch;if(browser!=null)browser.close();dev.pocketllama.search.BrowserSearch.clearSession();emit("webState",object("enabled",false));}
+    private void disconnectWeb(){webConnected=false;webConsentEpoch=-1;dev.pocketllama.search.WebSearch task=webSearch;if(task!=null)task.cancel();emit("webState",object("enabled",false));}
     private void ragStatus(){try{emit("ragState",dev.pocketllama.rag.RagManager.status(this));}catch(Exception e){fail(e);}}
     private void ragWork(String action) {
         if(!dev.pocketllama.security.GateSession.isOpen()||destroyed||generating.get()||!ragOperation.compareAndSet(false,true))return;
@@ -272,16 +270,9 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
                         }finally{if(rag==task)rag=null;}
                     }
                     if(tool.equals(dev.pocketllama.agent.ChatAgent.WEB)&&online){
-                        JSONObject rss=null;
-                        if(news){
-                            dev.pocketllama.search.WebSearch task=webSearch;if(task==null){task=new dev.pocketllama.search.WebSearch(ChatActivity.this,this::check);webSearch=task;}
-                            try{rss=task.search(query,I18n.language(),"news");if(rss.getJSONArray("sources").length()>0)return rss;}
-                            catch(InterruptedException e){throw e;}catch(Exception e){check();}
-                        }
-                        dev.pocketllama.search.WebSearch child=webSearch;if(child!=null){webSearch=null;child.close();}
-                        check();dev.pocketllama.search.BrowserSearch browser=new dev.pocketllama.search.BrowserSearch(ChatActivity.this,this::check,()->{stopRequested.set(true);ChatApi active=request;if(active!=null)active.cancel();});browserSearch=browser;
-                        try{JSONObject result=browser.search(query,I18n.language());if(rss!=null)for(String field:new String[]{"failedEngines","diagnostics"})if(rss.has(field))result.put(field,rss.get(field));return result;}
-                        finally{browser.close();if(browserSearch==browser)browserSearch=null;}
+                        dev.pocketllama.search.WebSearch task=webSearch;
+                        if(task==null){task=new dev.pocketllama.search.WebSearch(ChatActivity.this,this::check);webSearch=task;}
+                        return task.search(query,I18n.language(),news?"news":"general");
                     }
                     throw new IOException("Tool is disabled");
                 }
@@ -322,7 +313,6 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
             }
         } finally {
             dev.pocketllama.search.WebSearch search=webSearch;if(search!=null){webSearch=null;search.close();}
-            dev.pocketllama.search.BrowserSearch browser=browserSearch;if(browser!=null){browserSearch=null;browser.close();}
             if (client != null && outcome[0] != null) {
                 JSONObject metrics = client.statistics();
                 try { outcome[0].put("metrics", metrics); } catch (Exception ignored) { }
@@ -424,7 +414,7 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
     @Override public void onConfigurationChanged(android.content.res.Configuration c) { super.onConfigurationChanged(c);if(!secureInitialized())return;UiHost.colors(this,root,web);web.getSettings().setTextZoom(Math.round(100*c.fontScale)); }
     @Override protected void onResume() { super.onResume();if(!secureInitialized()||!dev.pocketllama.security.GateSession.isOpen())return; if(webConnected&&webConsentEpoch!=dev.pocketllama.security.GateSession.epoch())disconnectWeb();UiHost.syncLanguage(web);handler.post(refresh); }
     @Override protected void onPause() {if(!secureInitialized()){super.onPause();return;} handler.removeCallbacks(refresh); super.onPause(); }
-    @Override protected void onVaultLocked(){if(webConnected||webSearch!=null||browserSearch!=null)disconnectWeb();}
+    @Override protected void onVaultLocked(){if(webConnected||webSearch!=null)disconnectWeb();}
     @Override protected void onDestroy() {
         disconnectWeb();
         destroyed = true; handler.removeCallbacks(refresh);

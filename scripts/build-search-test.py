@@ -57,17 +57,9 @@ def main():
     quiet = 'while(in.read(b)!=-1){}'
     assert bridge.count(quiet) == 1
     diagnostic_bridge.write_text(bridge.replace(quiet, 'int n;while((n=in.read(b))!=-1){android.util.Log.e("PocketSearchRuntime",new String(b,0,n,StandardCharsets.UTF_8));}').replace('new String[]{"server.py"}', 'new String[]{"server.py","fixture-ca.pem","fixture-key.pem"}'))
-    diagnostic_browser = work / 'diagnostic/BrowserSearch.java'
-    browser = (java / 'search/BrowserSearch.java').read_text()
-    assert browser.count('view.loadUrl(url);') == 1
-    browser = browser.replace('view.loadUrl(url);', 'view.loadDataWithBaseURL(url,dev.pocketllama.searchtest.BrowserFixture.PAGE,"text/html","UTF-8",url);')
-    browser = browser.replace('private void extract(int current){', 'private void extract(int current){android.util.Log.i("PocketBrowserProbe","scan="+current+" navigation="+navigation+" url="+(view==null?"none":view.getUrl()));')
-    browser = browser.replace('view.evaluateJavascript(script,raw->{', 'view.evaluateJavascript(script,raw->{android.util.Log.i("PocketBrowserProbe","fixture DOM="+raw);')
-    browser = browser.replace('}catch(Exception e){done.countDown();}', '}catch(Exception e){android.util.Log.e("PocketBrowserProbe","fixture UI",e);done.countDown();}')
-    diagnostic_browser.write_text(browser)
     sources = [*sorted((java / 'core').glob('*.java')), java / 'ChatApi.java',
-               java / 'video/VideoRuntime.java', *sorted(p for p in (java / 'search').glob('*.java') if p.name not in ('WebSearch.java','BrowserSearch.java')), diagnostic_bridge, diagnostic_browser,
-               ROOT / 'tests/android-search/AndroidSearchProbe.java', ROOT / 'tests/android-search/BrowserFixture.java']
+               java / 'video/VideoRuntime.java', *sorted(p for p in (java / 'search').glob('*.java') if p.name != 'WebSearch.java'), diagnostic_bridge,
+               ROOT / 'tests/android-search/AndroidSearchProbe.java']
     run('javac', '--release', '11', '-encoding', 'UTF-8', '-cp', android, '-d', classes, *sources)
     run('java', '-cp', tools / 'lib/d8.jar', 'com.android.tools.r8.D8', '--min-api', '29', '--lib', android, '--output', dex, *sorted(classes.rglob('*.class')))
     python_zip = io.BytesIO()
@@ -101,7 +93,6 @@ def main():
             apk.writestr('assets/search/python.zip', search_zip.getvalue())
             apk.writestr('assets/search/runtime-id.txt', hashlib.sha256(search_zip.getvalue()).hexdigest() + '\n')
             apk.write(ROOT / 'tests/android-search/fixture-server.py', 'assets/search/server.py')
-            apk.write(ROOT / 'app/src/main/assets/search/browser-extract.js', 'assets/search/browser-extract.js')
             for name in ['fixture-ca.pem', 'fixture-key.pem']:
                 apk.write(tls / name, 'assets/search/' + name)
     run(tools / 'zipalign', '-P', '16', '-f', '4', work / 'base.apk', work / 'aligned.apk')

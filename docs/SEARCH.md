@@ -1,83 +1,75 @@
-# Search on the phone
+# Background search on the phone
 
-Web search is an optional tool in the complete Pocket app (`dev.pocketllama`).
-No remote SearXNG instance, API key, companion app or container is needed.
+Web search is an optional tool inside the complete Pocket app. It runs in the
+background: no search WebView, browser session, CAPTCHA window or companion app
+is created. The chat shows agent actions and source links. Opening a source is
+an explicit user action.
 
-## News
+## Providers
 
-The real embedded SearXNG processor loads Google News RSS first and Bing News RSS
-as a fallback. Feeds include dates and titles without depending on browser SERP
-markup. Undated queries use the past week; «today» uses a rolling day. Explicit
-date/range terms are retained. The six newest usable results are selected.
+The real embedded SearXNG scheduler uses public feeds and APIs:
 
-Google News descriptions often repeat related headlines: they are labeled
-**headline only**, never presented as downloaded article text. Source cards show
-publication dates, publisher metadata where supplied, and the feed's article
-link. Redirect decoding and full-page crawling are not performed.
+- News: Google News RSS first, Bing News RSS as a fallback. Undated news uses
+  the past week; «today» uses a rolling day. Explicit date/range terms remain.
+- General queries: Bing RSS and Wikipedia's public search API run together,
+  within the same bounded lookup. A failed provider does not discard useful
+  results from the other.
 
-## Normal browser search
+Browser search-page scraping and its automatic browser fallback are removed.
+Requests identify the app as PocketLlama; no browser/TLS impersonation, CAPTCHA
+solving, IP rotation or external scraping proxy is used. Providers can still
+limit or reject requests. Such failures remain inline errors; they never open
+another window.
 
-General queries open a **visible Android WebView**, using its default user agent,
-Chromium networking, JavaScript and a real browser session on the phone. Google,
-Brave and DuckDuckGo can be selected on the page. News also falls back to this
-browser if its feeds fail. There is no user-agent/TLS impersonation, automated
-CAPTCHA solving, IP rotation or use of an external scraping proxy.
+At most six public results are returned per lookup. News is sorted by supplied
+publication time. Google News descriptions commonly repeat headlines: those
+results are marked headline-only, not presented as downloaded articles. Source
+cards show publication dates and publisher metadata when supplied. General
+results are snippets, not full pages. Linked pages are not fetched automatically.
 
-If a provider asks for confirmation, the page stays open for the user. Extraction
-resumes after confirmation. The reader collects at most six visible result
-headings/snippets, deduplicates URLs and excludes ads. It does not click article
-links. The browser session is separate from Chrome and does not import Chrome
-cookies or passwords. A successful browser request is still not guaranteed:
-providers can reject an IP or require a verification the WebView cannot complete.
+## Agent and limits
 
-No native JavaScript interface is attached to remote pages. File/content access,
-mixed content, downloads, popups, camera/microphone/geolocation permissions and
-third-party cookies are disabled. Search navigation is limited to the supported
-search/consent origins. The temporary browser view is destroyed after extraction;
-cache/history are cleared. Search cookies and provider storage are cleared when
-web consent is revoked, the chat closes or the vault locks. The browser window
-also uses screen-capture protection.
+The [native agent](AGENT.md) writes queries, reads results and decides whether to
+refine or finish. The whole turn has three tool calls, five planning decisions,
+a 1,024-token planning input and 96-token planning output ceiling. Final evidence
+is capped at six deduplicated passages and fitted using the actual tokenizer.
 
-## Agent and resource limits
-
-The model writes each query and inspects returned evidence within the
-[mobile agent budget](AGENT.md). Search is not automatically run for greetings
-or offline instructions. Normal failure messages are produced by the app rather
-than paraphrased by a small model into technical error codes.
-
-The SearXNG child and connection pools are reused only within the current turn.
-It is retired before the final LLM generation or local embedding. Engine stages
-have bounded timeouts. Browser confirmation allows up to 90 seconds and can be
-cancelled immediately. Native consent, vault epoch and cancellation are checked
-throughout; restoring chat history cannot grant consent.
+The Python child and connection pools are reused within one turn, then closed
+before final model generation or embedding. General-provider network requests
+can overlap; model inference and tool calls remain sequential. Provider stages
+have a seven-second engine timeout; the loopback read is bounded to 24 seconds.
+Cancellation/consent/vault checks run throughout. Restored chat history cannot
+grant native web consent.
 
 ## Privacy
 
-Generated queries (up to 1,000 characters) and the public IP go to the selected
-providers. Queries may include private details from conversation, attachments
-or knowledge results. Browser pages also load their normal remote resources.
-No complete file, embedding or full chat object is uploaded by the search bridge.
-Keep the tool off for information you do not want shared. Actions and snippets
-are saved in the existing encrypted chat history.
+Generated queries, up to 1,000 characters, and the public IP go to the selected
+providers. A query can contain private details selected by the model from
+conversation, attachments or personal knowledge. Full files, embeddings and
+whole chat objects are not attached. Remote browser resources, provider cookies
+and browser local storage are not created by search.
+
+Search starts off in a new conversation and requires native confirmation.
+Actions and result snippets use the existing encrypted chat history. Keep web
+off for information you do not want sent to external sites.
 
 ## Runtime and verification
 
-`search-runtime.lock.json` pins upstream SearXNG revision
-`15b0c8ef3ab02a86131040e5eabc0d5b82bb9470` and its CPython dependencies. The
-RSS adapter uses the real SearXNG scheduler, network stack, parsers and result
-container. XML parsing does not fetch DTDs or expand entities. Its authenticated
-loopback server rejects browser Origin, unknown parameters and oversized input;
-engine caches are in memory and provider/query logging is disabled.
+The SearXNG revision and CPython/native dependencies remain pinned in
+search-runtime.lock.json. The actual SearXNG scheduler, network stack, parsers
+and result container execute each lookup. RSS XML does not load DTDs or resolve
+entities. The authenticated loopback server rejects browser Origin, arbitrary
+parameters and oversized input. Engine caches are in memory; provider/query
+logging is disabled.
 
-Build with `scripts/prepare-video.py` and `scripts/prepare-search.py` using pinned
-NDK 28.2.13676358. All distribution builders validate all four search assets,
-including the browser reader. Licenses/source pins remain in the Python bundle
-and `notices/SearXNG*`.
+The required search bundle has three files: server.py, python.zip and
+runtime-id.txt. All distribution builders validate them. Upstream source and
+license notices remain in the Python archive and notices/SearXNG*.
 
-Tests cover the HTTP/SSE agent protocol, real TLS and certificate rejection,
-RSS dates/headline limits, browser DOM reading, consent, cancellation and safe
-source rendering. The Android probe executes actual Bionic CPython and an actual
-Android WebView. Its browser pages and manual-confirmation button are synthetic;
-it never solves a real CAPTCHA. `scripts/test-search-live.py --news-only` separately
-queries real public news providers with no mocked responses and writes sanitized
-counts/latency evidence. Physical-phone availability still depends on its network.
+Deterministic tests cover real SearXNG parsing, RSS dates/headline limits, API
+fallback, private-link filtering, verified TLS and certificate rejection,
+consent and cancellation. Live host probes use public synthetic RU news, EN
+news and general queries without mocking responses. The Android probe also
+makes real public news/general requests through the production Bionic CPython
+bridge and checks that search opens no other window. Acceptance results for
+this release are in [validation](VALIDATION-0.13.2.md).
