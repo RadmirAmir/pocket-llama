@@ -4,7 +4,7 @@ import hashlib
 import json
 import video_bundle
 
-ASSETS = ('server.py', 'python.zip', 'runtime-id.txt')
+ASSETS = ('server.py', 'python.zip', 'runtime-id.txt', 'browser-extract.js')
 REQUIRED = {'app/src/main/assets/search/' + n for n in ASSETS}
 
 

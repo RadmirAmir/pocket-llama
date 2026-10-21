@@ -58,7 +58,7 @@ class SearchServerTests(unittest.TestCase):
             return SXNG_Response(200, text=html, request=httpx.Request('GET', params['url']))
 
         cls.patches.append(patch.object(PROCESSORS['brave'], '_send_http_request', side_effect=fixture))
-        for name in ('google', 'duckduckgo'):
+        for name in ('google', 'duckduckgo', *search.RSS_ENGINES):
             cls.patches.append(patch.object(PROCESSORS[name].engine, 'request', side_effect=httpx.ConnectError('fixture offline')))
         for p in cls.patches:
             p.start()
@@ -113,15 +113,16 @@ class SearchServerTests(unittest.TestCase):
         from searx.extended_types import SXNG_Response
 
         def fallback(params):
-            html = '<ol id="b_results"><li class="b_algo"><h2><a href="https://example.org/fallback">Fallback</a></h2><p>Evidence from the backup engine.</p></li></ol>'
+            html = '<rss><channel><item><title>Fallback</title><link>https://example.org/fallback</link><description>Evidence from the backup engine.</description></item></channel></rss>'
             return SXNG_Response(200, text=html, request=httpx.Request('GET', params['url']))
 
         with patch.object(PROCESSORS['brave'], '_send_http_request', side_effect=httpx.ConnectError('offline')):
-            with patch.object(PROCESSORS['bing'], '_send_http_request', side_effect=fallback):
-                code, result = self.request()
+            with patch.object(PROCESSORS['bing rss'].engine, 'request', side_effect=search.rss_request('bing rss')):
+                with patch.object(PROCESSORS['bing rss'], '_send_http_request', side_effect=fallback):
+                    code, result = self.request()
         self.assertEqual(code, 200)
         self.assertEqual(result['sources'][0]['url'], 'https://example.org/fallback')
-        self.assertEqual(result['attemptedEngines'], ['google', 'brave', 'duckduckgo', 'bing'])
+        self.assertEqual(result['attemptedEngines'], ['bing rss'])
 
     def test_failure_categories_never_include_private_details(self):
         import httpx
@@ -132,7 +133,7 @@ class SearchServerTests(unittest.TestCase):
             except socket.gaierror as cause:
                 raise httpx.ConnectError('PRIVATE_QUERY_URL') from cause
         with patch.object(PROCESSORS['brave'], '_send_http_request', side_effect=dns):
-            with patch.object(PROCESSORS['bing'], '_send_http_request', side_effect=dns):
+            with patch.object(PROCESSORS['bing rss'], '_send_http_request', side_effect=dns):
                 code, result = self.request()
         self.assertEqual(code, 502)
         self.assertIn({'engine': 'brave', 'reason': 'dns'}, result['diagnostics'])
@@ -151,7 +152,40 @@ class SearchServerTests(unittest.TestCase):
         self.assertEqual(result['query'], 'Pocket SearXNG')
         self.assertEqual(result['sources'], [{'citation': 'W1', 'url': 'https://example.org/pocket',
                          'title': 'Pocket & SearXNG', 'text': 'Real parser fixture. Local server, external search.'}])
-        self.assertEqual(set(result['failedEngines']), {'google', 'duckduckgo'})
+        self.assertEqual(set(result['failedEngines']), {'google', 'duckduckgo', 'bing rss'})
+
+
+    def test_news_rss_dates_and_headline_only(self):
+        import httpx
+        from searx.search.processors import PROCESSORS
+        from searx.extended_types import SXNG_Response
+        rss = b'<rss><channel><item><title>Earlier headline</title><link>https://news.google.com/rss/articles/first</link><source>Publisher</source><description>Related headlines are not article text</description><pubDate>Tue, 20 Oct 2026 08:00:00 GMT</pubDate></item><item><title>Latest headline</title><link>https://news.google.com/rss/articles/last</link><pubDate>Wed, 21 Oct 2026 08:00:00 GMT</pubDate></item><item><title>Private URL</title><link>http://127.0.0.1/private</link></item></channel></rss>'
+        def feed(params):
+            return SXNG_Response(200, content=rss, request=httpx.Request('GET', params['url']))
+        with patch.object(PROCESSORS['google news rss'].engine, 'request', side_effect=search.rss_request('google news rss')):
+            with patch.object(PROCESSORS['google news rss'], '_send_http_request', side_effect=feed):
+                code, result = self.request({'query': 'Нефтекамск новости', 'language': 'ru', 'mode': 'news'})
+        self.assertEqual(code, 200)
+        self.assertEqual(result['attemptedEngines'], ['google news rss'])
+        self.assertEqual(len(result['sources']), 2)
+        self.assertEqual(result['sources'][0]['title'], 'Latest headline')
+        self.assertTrue(result['sources'][0]['headlineOnly'])
+        self.assertEqual(result['sources'][0]['published'], '2026-10-21T08:00:00+00:00')
+        self.assertEqual(result['sources'][1]['text'], 'Earlier headline')
+        self.assertNotIn('Related headlines', str(result))
+
+    def test_rss_does_not_resolve_entities_or_accept_html(self):
+        import httpx
+        from searx.extended_types import SXNG_Response
+        for raw in [b'<html><body>CAPTCHA</body></html>', b'<rss><channel><item><title>Title</title><link>file:///etc/passwd</link></item></channel></rss>']:
+            response = SXNG_Response(200, content=raw, request=httpx.Request('GET', 'https://example.org/rss'))
+            try:
+                self.assertEqual(search.rss_response(response), [])
+            except ValueError:
+                self.assertTrue(raw.startswith(b'<html>'))
+        raw = b'<!DOCTYPE rss [<!ENTITY secret SYSTEM "file:///etc/passwd">]><rss><channel><item><title>&secret;</title><link>https://example.org/a</link></item></channel></rss>'
+        result = search.rss_response(SXNG_Response(200,content=raw,request=httpx.Request('GET','https://example.org/rss')))
+        self.assertNotIn('root:', str(result))
 
     def test_no_capability_or_browser_origin_never_searches(self):
         count = len(self.calls)

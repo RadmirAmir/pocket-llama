@@ -57,7 +57,7 @@ def initialize():
         params["url"] = "https://localhost:" + str(server.server_port) + "/?" + urlsplit(params["url"]).query
 
     PROCESSORS["brave"].engine.request = request
-    for name in ("google", "duckduckgo", "bing"):
+    for name in ("google", "duckduckgo", *pocket_server.RSS_ENGINES):
         PROCESSORS[name].engine.request = offline
     return app
 

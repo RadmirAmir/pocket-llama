@@ -57,3 +57,14 @@ The separate [publisher privacy-policy draft](PRIVACY.md) still needs publisher 
 ## Optional personal-knowledge tool
 
 The tool is disconnected by default and is reset for new conversations. Its index, passage copies, FTS postings and vectors use the existing SQLCipher vault key. Searches read canonical edited sources and exclude Trash; stale results are revalidated. The embedded MCP handler has no network listener or arbitrary URL/file-path input. Retrieval does not call a cloud embedding or reranking service. Source snippets are treated as untrusted quoted data and template-token delimiters are escaped. Existing answers can retain earlier quotes after an original is deleted. [Details →](RAG.md).
+
+
+### Search browser in 0.13.1
+
+News uses embedded SearXNG RSS; general search uses a visible Android WebView
+with its own search session, separate from Chrome. A CAPTCHA is handed to the
+user. Remote pages have no native JavaScript bridge or file/content access.
+They can load normal browser resources from providers and third parties.
+Queries can contain personal details selected by the local model. Search
+cookies/provider storage are cleared on web disconnect, chat closure and vault
+lock; temporary browser cache/history are cleared after extraction.

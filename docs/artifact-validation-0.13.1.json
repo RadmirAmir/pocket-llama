@@ -1,0 +1,41 @@
+{
+  "community": {
+    "modelsVerified": 16,
+    "videoFilesVerified": 6,
+    "searchFilesVerified": 4,
+    "channel": "community",
+    "suryaBundled": false,
+    "bytes": 662343498
+  },
+  "legacyCertificateMatches": true,
+  "legacyCertificateSha256": "ef3cea40110c13d179cc7e1f1e570aeb2f870cb7d46f16273eb5d733cf9b2ed0",
+  "apk": "PocketLlama-0.13.1-community-arm64.apk",
+  "sha256": "e353801199fb80da92d640e87bb379d7ca32aef58123ec6165491a65b1048d2b",
+  "sourceCommit": "aa76791423c24b2a78eba21aa978121cd719b7d6",
+  "unchangedNativeLibraries": 14,
+  "diagnosticClassesPackaged": false,
+  "sourceCi": {
+    "run": 39574723177,
+    "conclusion": "success"
+  },
+  "nativeSearchCi": {
+    "job": 119137282881,
+    "conclusion": "success",
+    "browserPages": "synthetic",
+    "realPublicNewsQueries": 2
+  },
+  "signedApkCi": {
+    "run": 39575480622,
+    "job": 119139827566,
+    "conclusion": "success",
+    "platform": "Android 36 x86_64 emulator",
+    "freshInstallAndStartup": true,
+    "upgradeFrom": "0.11.0-rc.3",
+    "signedDexKnowledgeChecks": 6,
+    "notesChecks": 21,
+    "sqlCipherKnowledgeChecks": 20,
+    "videoMigrationChecks": 34,
+    "evidenceArtifact": 12333528334,
+    "evidenceSha256": "2a9abcb789f1d7267348d1aef349b427de4e597be21f31550231bd07c1f0dfbb"
+  }
+}

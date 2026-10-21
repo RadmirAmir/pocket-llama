@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.13.1 — mobile agent and on-device browser search
+
+- Require a lookup for explicit web and current-news requests when the tool is enabled; preserve the topic for short search follow-ups and respect offline/private-source scope.
+- Bound planning to 1,024 input tokens, 96 output tokens, two tool calls and three decisions including repair. Read prior evidence before refinement, suppress duplicate calls and avoid another model generation for hard search failures without sources.
+- Read dated news through the real embedded SearXNG RSS pipeline. Mark headlines separately from full article text and fall back to browser search when feeds fail.
+- Use a visible real Android WebView for general searches, with its normal networking/session and manual CAPTCHA handoff. Cancel on stop, consent revocation and vault lock.
+- Verify live Russian/English news, actual Android CPython/TLS and WebView behavior. Preserve the main app package, original update certificate, all 14 native libraries and bundled speech/OCR/video features; version code 34.
+
 ## 0.12.0 — built-in SearXNG web search
 
 - Connect Web search in Chat tools, with a native confirmation explaining that the current question and your public IP reach Internet search engines.
