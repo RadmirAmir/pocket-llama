@@ -110,6 +110,12 @@ public final class ChatAgentTests {
             f.input.getJSONArray("messages").getJSONObject(1).put("content","PRIVATE_LONG_DOCUMENT_".repeat(400));f.context=16384;JSONObject answer=f.run(true,false);
             for(JSONObject request:f.requests){check(f.api.tokens(request)<=ChatAgent.PLAN_CONTEXT,"planner prefill is capped at 1024 real tokens");check(request.getInt("max_tokens")==96,"planner generation is capped at 96 tokens");check(!request.toString().contains("PRIVATE_LONG_DOCUMENT_".repeat(30)),"planner excludes full documents and long history");}
         }
+        try(Fixture f=new Fixture(action(ChatAgent.KNOWLEDGE,"news in personal notes"),action("answer",""))){
+            f.input.getJSONArray("messages").getJSONObject(3).put("content","Найди в моих заметках запись о новостях");f.run(true,true);
+            check(!dev.pocketllama.agent.SearchIntent.from(f.input).required&&!dev.pocketllama.agent.SearchIntent.from(f.input).news,"personal note lookup does not force private text into web search");
+            f.input.getJSONArray("messages").getJSONObject(3).put("content","Find latest news in my saved notes");check(!dev.pocketllama.agent.SearchIntent.from(f.input).required,"English personal lookup is not forced to the web");
+            f.input.getJSONArray("messages").getJSONObject(3).put("content","Search the web for latest news and compare with my saved notes");check(dev.pocketllama.agent.SearchIntent.from(f.input).required,"explicit public search can be combined with personal notes");
+        }
         for(String bad:List.of("{\"action\":\"shell\",\"query\":\"rm\"}","{\"action\":\"web_search\",\"query\":\"\"}","{\"action\":\"answer\",\"query\":\"send this\"}","{\"action\":\"answer\",\"query\":\"\",\"extra\":1}",action("answer","")+"{}",action(ChatAgent.WEB,"x".repeat(1001)))){
             boolean rejected=false;try{ChatAgent.parse(bad);}catch(Exception e){rejected=true;}check(rejected,"invalid action rejected before side effects");
         }

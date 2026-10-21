@@ -81,6 +81,8 @@ public final class ChatAgent {
             throw new IOException(message);
         }
         Fit answer=fit(original,context);
+        if(web&&intent.required&&answer.sources(WEB).getJSONObject("result").getJSONArray("sources").length()==0)
+            throw new IOException(en()?"The web sources did not fit. Start a new chat or increase context.":"Источники из интернета не поместились в контекст. Начните новый диалог или увеличьте контекст модели.");
         if(called(KNOWLEDGE))host.event("ragSources",answer.sources(KNOWLEDGE));
         if(called(WEB))host.event("webSources",answer.sources(WEB));
         host.event("agentStatus",new JSONObject().put("phase","answering").put("reason",stop).put("calls",calls));

@@ -23,9 +23,12 @@ public final class SearchIntent {
         boolean definition=latest.toLowerCase(Locale.ROOT).matches("(?s)^(?:что такое|как работает|объясни (?:что|как)|what is|how does).*?");
         boolean creative=latest.toLowerCase(Locale.ROOT).matches("(?s)^(?:переведи|перефразируй|сочини|напиши (?:стих|рассказ|письмо)|translate|rewrite|write (?:a )?(?:poem|story|email)).*");
         definition|=creative;
-        boolean news=NEWS.matcher(task).find()&&!definition;
+        boolean personal=Pattern.compile("(?:моих|моей|мои|моя) (?:заметк|запис|баз|документ|расшифров)|в (?:этом|прикрепленном|приложенном) (?:документе|файле|тексте|коде)|\\bmy (?:saved )?(?:notes|documents|transcripts)|\\bin (?:this|the attached) (?:file|document|text)",Pattern.CASE_INSENSITIVE|Pattern.UNICODE_CASE).matcher(task).find();
+        boolean publicSearch=Pattern.compile("интернет|онлайн|погугли|\\bweb\\b|\\bonline\\b|public (?:docs|documentation)",Pattern.CASE_INSENSITIVE|Pattern.UNICODE_CASE).matcher(latest).find();
+        boolean localScope=personal&&!publicSearch;
+        boolean news=NEWS.matcher(task).find()&&!definition&&!localScope;
         boolean greeting=latest.trim().toLowerCase(Locale.ROOT).matches("(?:привет|здравствуй(?:те)?|спасибо|hello|hi|thanks|thank you)[!.,\\s]*");
-        return new SearchIntent(!forbidden&&(search||news||CURRENT.matcher(task).find()&&!definition),news,forbidden,greeting);
+        return new SearchIntent(!forbidden&&!localScope&&(search||news||CURRENT.matcher(task).find()&&!definition),news,forbidden,greeting);
     }
     public static String text(JSONObject message){
         Object content=message.opt("content");if(content instanceof String)return (String)content;
