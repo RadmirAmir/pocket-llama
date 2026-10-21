@@ -29,3 +29,14 @@ Permissions: microphone for recording; camera for scanning; notifications and fo
 Personal knowledge is an optional chat tool. Its index contains copies of saved note/transcript/OCR passages, FTS search postings, vectors, and a bounded cache of query hashes and vectors inside SQLCipher. When connected, relevant passages are passed to the selected local chat model. Original edits and deletions are reconciled before lookup. Clearing the index preserves the original materials; deleting an original does not erase quotes already saved in chat history. The EmbeddingGemma download contacts Hugging Face for public model files only; queries, passages and vectors are not sent to it. The embedded MCP handler has no network listener or access for other applications.
 
 The Play Data safety form must reflect the final SDKs and the voluntary report endpoint. Do not mark “no data collected” solely because inference is local: a submitted report contains user-selected text. Review Google Play's definitions and exceptions for the actual published configuration.
+
+
+### Search browser in 0.13.1
+
+News uses embedded SearXNG RSS; general search uses a visible Android WebView
+with its own search session, separate from Chrome. A CAPTCHA is handed to the
+user. Remote pages have no native JavaScript bridge or file/content access.
+They can load normal browser resources from providers and third parties.
+Queries can contain personal details selected by the local model. Search
+cookies/provider storage are cleared on web disconnect, chat closure and vault
+lock; temporary browser cache/history are cleared after extraction.

@@ -17,7 +17,8 @@ public abstract class SecureActivity extends Activity {
         ArrayList<Runnable> work; synchronized(deferred){work=new ArrayList<>(deferred);deferred.clear();}for(Runnable r:work)r.run();
     }
     @Override protected void onPause(){resumed=false;super.onPause();}
-    public final void hideForLock(){View content=findViewById(android.R.id.content);if(content!=null)content.setVisibility(View.INVISIBLE);}
+    protected void onVaultLocked(){}
+    public final void hideForLock(){onVaultLocked();View content=findViewById(android.R.id.content);if(content!=null)content.setVisibility(View.INVISIBLE);}
     protected final boolean deferResult(Runnable r){if(initialized&&GateSession.isOpen())return false;synchronized(deferred){deferred.add(r);}return true;}
     public final void lockNow(){GateSession.lock();if(resumed)GateSession.show(this);}
 }

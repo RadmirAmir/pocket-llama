@@ -1,90 +1,83 @@
-# Built-in SearXNG web search
+# Search on the phone
 
-In chat, open **Tools → Web search** and accept the native confirmation. The
-local model decides whether a search would help, creates a query, inspects the
-returned snippets and can refine the query or use personal knowledge before
-answering. Enabling a tool does not run it on every message. The bounded
-[agent loop](AGENT.md) allows at most four tool calls per reply.
+Web search is an optional tool in the complete Pocket app (`dev.pocketllama`).
+No remote SearXNG instance, API key, companion app or container is needed.
 
-Responses cite Internet sources as `[W1]`; personal knowledge retains `[S1]`.
-Citations stay distinct across repeated lookups. The action history shows tool
-queries, completion counts and failures. Source cards show the exact snippets
-supplied to the final answer, all outgoing queries, partial engine failures and
-context truncation. Opening a source launches the external browser after a tap.
+## News
 
-Search is off by default. A new conversation, a new chat Activity, or a changed
-vault unlock session requires enabling it again. Restoring chat JSON cannot
-grant network consent. Native code checks consent before searching; the WebView
-has no network permission through its content security policy.
+The real embedded SearXNG processor loads Google News RSS first and Bing News RSS
+as a fallback. Feeds include dates and titles without depending on browser SERP
+markup. Undated queries use the past week; «today» uses a rolling day. Explicit
+date/range terms are retained. The six newest usable results are selected.
 
-## What goes online
+Google News descriptions often repeat related headlines: they are labeled
+**headline only**, never presented as downloaded article text. Source cards show
+publication dates, publisher metadata where supplied, and the feed's article
+link. Redirect decoding and full-page crawling are not performed.
 
-Google, Brave, DuckDuckGo and fallback provider Bing receive **model-generated search queries** and the
-connection's public IP address. The local planner reads the conversation,
-attachments and earlier tool results. Its queries can therefore contain personal
-information from any of those sources, including personal-knowledge results.
-The native consent explicitly explains this before enabling web search. Full
-files, embeddings and the complete conversation are not uploaded by the search
-bridge, but generated queries are not guaranteed to omit their private content.
-Keep web search off when working with information you do not want to share.
+## Normal browser search
 
-Only generated query strings (up to 1,000 characters) and the interface language
-reach the native search bridge. Search snippets, rather than full pages, are
-returned. Search does not crawl result URLs or load favicons.
+General queries open a **visible Android WebView**, using its default user agent,
+Chromium networking, JavaScript and a real browser session on the phone. Google,
+Brave and DuckDuckGo can be selected on the page. News also falls back to this
+browser if its feeds fail. There is no user-agent/TLS impersonation, automated
+CAPTCHA solving, IP rotation or use of an external scraping proxy.
 
-The native confirmation explains this before enabling the tool. A visible badge
-and composer label remain while search is enabled. Offline/network/CAPTCHA
-failures are shown in the action history and returned to the model. It can try
-another query within the same budget or explain the missing evidence. A provider outage can produce useful partial results with a notice. If the
-primary group produces no usable snippets, one Bing lookup is attempted. DNS,
-certificate/TLS, CAPTCHA, rate-limit, timeout and internal runtime failures have
-separate fixed diagnostics, without raw URLs or exception text.
+If a provider asks for confirmation, the page stays open for the user. Extraction
+resumes after confirmation. The reader collects at most six visible result
+headings/snippets, deduplicates URLs and excludes ads. It does not click article
+links. The browser session is separate from Chrome and does not import Chrome
+cookies or passwords. A successful browser request is still not guaranteed:
+providers can reject an IP or require a verification the WebView cannot complete.
 
-## Android runtime
+No native JavaScript interface is attached to remote pages. File/content access,
+mixed content, downloads, popups, camera/microphone/geolocation permissions and
+third-party cookies are disabled. Search navigation is limited to the supported
+search/consent origins. The temporary browser view is destroyed after extraction;
+cache/history are cleared. Search cookies and provider storage are cleared when
+web consent is revoked, the chat closes or the vault locks. The browser window
+also uses screen-capture protection.
 
-This is upstream SearXNG running in the app, with its actual engine request
-builders, parsers, aggregation and duplicate handling. No public SearXNG instance,
-user-supplied server URL, Termux installation, container or companion app is
-required. `search-runtime.lock.json` pins SearXNG revision
-`15b0c8ef3ab02a86131040e5eabc0d5b82bb9470` (2026-09-04), the last revision
-before its curl_cffi transport migration, so the existing bundled CPython 3.12
-can be reused. All dependencies and source archives have exact SHA-256 pins.
+## Agent and resource limits
 
-The build cross-compiles msgspec 0.21.1 and lxml 6.1.2, statically linking
-libxml2 2.15.3 and libxslt 1.1.45 with NDK r28c and 16 KB segment alignment.
-Target Python headers are generated from the bundled Android interpreter's own
-configuration. Universal Python packages and all executable bytes ship inside
-the APK. No code is downloaded, installed by pip or compiled on the phone.
+The model writes each query and inspects returned evidence within the
+[mobile agent budget](AGENT.md). Search is not automatically run for greetings
+or offline instructions. Normal failure messages are produced by the app rather
+than paraphrased by a small model into technical error codes.
 
-The short-lived child listens on a random `127.0.0.1` port. Its 256-bit
-capability is passed on stdin and required in a POST header. Browser Origin,
-unrecognized arguments and oversized requests are rejected. No web UI or
-unauthenticated search route is exposed. Only the three primary engines and backup Bing
-are initialized; there are no startup network probes. Engine caches use shared
-in-memory SQLite; HTTP/query logging is disabled. Search output is stored only
-as part of the app's existing encrypted chat history.
+The SearXNG child and connection pools are reused only within the current turn.
+It is retired before the final LLM generation or local embedding. Engine stages
+have bounded timeouts. Browser confirmation allows up to 90 seconds and can be
+cancelled immediately. Native consent, vault epoch and cancellation are checked
+throughout; restoring chat history cannot grant consent.
 
-The process is killed after lookup, cancellation, Activity destruction, consent
-revocation or a vault session change. A 60-second alarm bounds orphaned work.
-Search runs separately from inference and does not unload the chat model.
+## Privacy
 
-## Build and verify
+Generated queries (up to 1,000 characters) and the public IP go to the selected
+providers. Queries may include private details from conversation, attachments
+or knowledge results. Browser pages also load their normal remote resources.
+No complete file, embedding or full chat object is uploaded by the search bridge.
+Keep the tool off for information you do not want shared. Actions and snippets
+are saved in the existing encrypted chat history.
 
-Run `scripts/prepare-video.py`, then set `ANDROID_NDK_HOME` to NDK
-`28.2.13676358` and run `scripts/prepare-search.py`. The standard runtime
-preparation and all distribution builders include and verify search assets.
-The generated bundle contains upstream Python source, licenses and a complete
-`SOURCES.json`. The adapter is AGPL-3.0-or-later; see
-`notices/SearXNG-AGPL-3.0.txt` and `notices/SearXNG.txt`.
+## Runtime and verification
 
-Web search ships in the regular Pocket update. The community APK keeps
-`dev.pocketllama`, the existing signing identity and the complete speech/OCR
-model set. Install it over your existing community app to keep its encrypted
-vault, chat history, recordings, scans, notes and personal knowledge index.
+`search-runtime.lock.json` pins upstream SearXNG revision
+`15b0c8ef3ab02a86131040e5eabc0d5b82bb9470` and its CPython dependencies. The
+RSS adapter uses the real SearXNG scheduler, network stack, parsers and result
+container. XML parsing does not fetch DTDs or expand entities. Its authenticated
+loopback server rejects browser Origin, unknown parameters and oversized input;
+engine caches are in memory and provider/query logging is disabled.
 
-Checks include Java URL/context/cancellation tests, WebView consent and rendering
-tests, the real SearXNG pipeline with deterministic upstream-response fixtures,
-and an x86_64 Android probe running the actual Bionic interpreter, lxml, msgspec,
-DNS, verified HTTPS, untrusted-certificate rejection, SQLite cache and cancellation. Fixtures are included only in the diagnostic
-test APK. Live provider availability and performance on an ARM64 phone remain
-separate device acceptance checks.
+Build with `scripts/prepare-video.py` and `scripts/prepare-search.py` using pinned
+NDK 28.2.13676358. All distribution builders validate all four search assets,
+including the browser reader. Licenses/source pins remain in the Python bundle
+and `notices/SearXNG*`.
+
+Tests cover the HTTP/SSE agent protocol, real TLS and certificate rejection,
+RSS dates/headline limits, browser DOM reading, consent, cancellation and safe
+source rendering. The Android probe executes actual Bionic CPython and an actual
+Android WebView. Its browser pages and manual-confirmation button are synthetic;
+it never solves a real CAPTCHA. `scripts/test-search-live.py --news-only` separately
+queries real public news providers with no mocked responses and writes sanitized
+counts/latency evidence. Physical-phone availability still depends on its network.

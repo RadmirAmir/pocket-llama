@@ -33,7 +33,7 @@ with tempfile.TemporaryDirectory() as directory:
             result = server.search(app, 'Pocket native parser fixture', 'en')
             assert len(result['sources']) == 1, result
             assert result['sources'][0]['text'] == 'Android SearXNG runtime works.'
-            assert 'bing' not in result['attemptedEngines'], 'fallback must not leak a successful query'
+            assert 'google news rss' not in result['attemptedEngines'], 'general queries must not contact news feeds'
         print('PASS: real TLS rejection' if '--bad-certificate' in sys.argv else 'PASS: real DNS, TCP, verified TLS and SearXNG parsing')
     finally:
         app.pocket_fixture.shutdown()

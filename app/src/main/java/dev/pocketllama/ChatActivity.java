@@ -49,6 +49,7 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
     private volatile ChatApi request;
     private volatile dev.pocketllama.rag.RagManager rag;
     private volatile dev.pocketllama.search.WebSearch webSearch;
+    private volatile dev.pocketllama.search.BrowserSearch browserSearch;
     // Consent is native, bound to this unlocked Activity, and never restored from JS/history.
     private volatile boolean webConnected;
     private volatile long webConsentEpoch=-1;
@@ -128,6 +129,7 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
         @JavascriptInterface public void stop() {
             stopRequested.set(true);
             dev.pocketllama.search.WebSearch online=webSearch;if(online!=null)online.cancel();
+            dev.pocketllama.search.BrowserSearch browser=browserSearch;if(browser!=null)browser.close();
             dev.pocketllama.rag.RagManager search=rag;if(search!=null)search.cancel();
             ChatApi active = request;
             if (active != null) active.cancel();
@@ -139,7 +141,7 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
                 if(generating.get())return;
                 long epoch=dev.pocketllama.security.GateSession.epoch();
                 new AlertDialog.Builder(ChatActivity.this).setTitle(I18n.t("Включить интернет-поиск?"))
-                    .setMessage(I18n.t("SearXNG работает внутри Pocket на вашем телефоне. Помощник сам составляет запросы и может искать несколько раз. Google, Brave, DuckDuckGo и резервный Bing увидят поисковые запросы и ваш IP-адрес. В запросы могут попасть личные сведения из переписки, вложений и результатов базы знаний. Приложение отправляет поисковые запросы длиной до 1000 символов. Включайте интернет-поиск только для данных, которые готовы передать поисковикам. При новом диалоге и повторном открытии чата поиск выключается."))
+                    .setMessage(I18n.t("Поиск работает на вашем телефоне. Google, Brave, DuckDuckGo или Bing получают поисковые запросы и ваш IP-адрес. В запросы могут попасть личные сведения из переписки, вложений и результатов базы знаний. Новости читаются из RSS; обычный поиск открывает браузерную страницу. Если нужна CAPTCHA, подтвердите запрос на этой странице. Браузер использует отдельную от Chrome сессию; поисковые cookies удаляются при отключении инструмента, закрытии или блокировке чата. Включайте поиск только для данных, которые готовы передать поисковикам."))
                     .setNegativeButton(I18n.t("Отмена"),(d,w)->emit("webState",object("enabled",false)))
                     .setOnCancelListener(d->emit("webState",object("enabled",false)))
                     .setPositiveButton(I18n.t("Включить поиск"),(d,w)->{
@@ -195,7 +197,7 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
         }
     }
 
-    private void disconnectWeb(){webConnected=false;webConsentEpoch=-1;dev.pocketllama.search.WebSearch task=webSearch;if(task!=null)task.cancel();emit("webState",object("enabled",false));}
+    private void disconnectWeb(){webConnected=false;webConsentEpoch=-1;dev.pocketllama.search.WebSearch task=webSearch;if(task!=null)task.cancel();dev.pocketllama.search.BrowserSearch browser=browserSearch;if(browser!=null)browser.close();dev.pocketllama.search.BrowserSearch.clearSession();emit("webState",object("enabled",false));}
     private void ragStatus(){try{emit("ragState",dev.pocketllama.rag.RagManager.status(this));}catch(Exception e){fail(e);}}
     private void ragWork(String action) {
         if(!dev.pocketllama.security.GateSession.isOpen()||destroyed||generating.get()||!ragOperation.compareAndSet(false,true))return;
@@ -251,13 +253,16 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
             JSONObject body = ChatApi.request(input.getJSONArray("messages"), input.optBoolean("thinking", false),
                     input.optInt("max_tokens", 512), caps.optBoolean("vision", false),RuntimeState.chatProfile);
             int context=caps.optInt("context",config.contextPerSlot);
+            final boolean news=dev.pocketllama.agent.SearchIntent.from(body).news;
             if(personal||online)body.getJSONArray("messages").getJSONObject(0).put("content",body.getJSONArray("messages").getJSONObject(0).getString("content")+"\nCurrent device date: "+java.time.LocalDate.now()+". Time zone: "+java.time.ZoneId.systemDefault()+". Use this date for today/current searches; do not invent current events.");
             if(personal||online)body=new dev.pocketllama.agent.ChatAgent(client,new dev.pocketllama.agent.ChatAgent.Host(){
                 public void check()throws Exception {access.run();if(online&&(!webConnected||webConsentEpoch!=epoch))throw new InterruptedException("Ответ остановлен");}
                 public void event(String type,JSONObject data)throws Exception {check();data.put("id",id);emit(type,data);}
+                public String language(){return I18n.language();}
                 public JSONObject call(String tool,String query)throws Exception {
                     check();
                     if(tool.equals(dev.pocketllama.agent.ChatAgent.KNOWLEDGE)&&personal){
+                        dev.pocketllama.search.WebSearch search=webSearch;if(search!=null){webSearch=null;search.close();}
                         dev.pocketllama.rag.RagManager task=new dev.pocketllama.rag.RagManager(ChatActivity.this,this::check,s->{try{s.put("id",id);}catch(Exception ignored){}emit("ragProgress",s);});rag=task;
                         try {
                             JSONObject reply=new dev.pocketllama.rag.RagMcp(task::search).handle(dev.pocketllama.rag.RagMcp.call(query),true);check();
@@ -267,12 +272,21 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
                         }finally{if(rag==task)rag=null;}
                     }
                     if(tool.equals(dev.pocketllama.agent.ChatAgent.WEB)&&online){
-                        dev.pocketllama.search.WebSearch task=new dev.pocketllama.search.WebSearch(ChatActivity.this,this::check);webSearch=task;
-                        try{return task.search(query,I18n.language());}finally{task.close();if(webSearch==task)webSearch=null;}
+                        JSONObject rss=null;
+                        if(news){
+                            dev.pocketllama.search.WebSearch task=webSearch;if(task==null){task=new dev.pocketllama.search.WebSearch(ChatActivity.this,this::check);webSearch=task;}
+                            try{rss=task.search(query,I18n.language(),"news");if(rss.getJSONArray("sources").length()>0)return rss;}
+                            catch(InterruptedException e){throw e;}catch(Exception e){check();}
+                        }
+                        dev.pocketllama.search.WebSearch child=webSearch;if(child!=null){webSearch=null;child.close();}
+                        check();dev.pocketllama.search.BrowserSearch browser=new dev.pocketllama.search.BrowserSearch(ChatActivity.this,this::check,()->{stopRequested.set(true);ChatApi active=request;if(active!=null)active.cancel();});browserSearch=browser;
+                        try{JSONObject result=browser.search(query,I18n.language());if(rss!=null)for(String field:new String[]{"failedEngines","diagnostics"})if(rss.has(field))result.put(field,rss.get(field));return result;}
+                        finally{browser.close();if(browserSearch==browser)browserSearch=null;}
                     }
                     throw new IOException("Tool is disabled");
                 }
             },personal,online).prepare(body,context);
+            dev.pocketllama.search.WebSearch search=webSearch;if(search!=null){webSearch=null;search.close();}
             access.run();
             RuntimeState.log(dev.pocketllama.I18n.t("Чат запрос: профиль=")+RuntimeState.chatProfile.id+" · thinking="+input.optBoolean("thinking",false)
                     +" · min_p="+body.optDouble("min_p")+" · temperature="+body.optDouble("temperature")
@@ -307,6 +321,8 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
             outcome[0] = object("id", id, "message", detail);
             }
         } finally {
+            dev.pocketllama.search.WebSearch search=webSearch;if(search!=null){webSearch=null;search.close();}
+            dev.pocketllama.search.BrowserSearch browser=browserSearch;if(browser!=null){browserSearch=null;browser.close();}
             if (client != null && outcome[0] != null) {
                 JSONObject metrics = client.statistics();
                 try { outcome[0].put("metrics", metrics); } catch (Exception ignored) { }
@@ -408,6 +424,7 @@ public final class ChatActivity extends dev.pocketllama.security.SecureActivity 
     @Override public void onConfigurationChanged(android.content.res.Configuration c) { super.onConfigurationChanged(c);if(!secureInitialized())return;UiHost.colors(this,root,web);web.getSettings().setTextZoom(Math.round(100*c.fontScale)); }
     @Override protected void onResume() { super.onResume();if(!secureInitialized()||!dev.pocketllama.security.GateSession.isOpen())return; if(webConnected&&webConsentEpoch!=dev.pocketllama.security.GateSession.epoch())disconnectWeb();UiHost.syncLanguage(web);handler.post(refresh); }
     @Override protected void onPause() {if(!secureInitialized()){super.onPause();return;} handler.removeCallbacks(refresh); super.onPause(); }
+    @Override protected void onVaultLocked(){if(webConnected||webSearch!=null||browserSearch!=null)disconnectWeb();}
     @Override protected void onDestroy() {
         disconnectWeb();
         destroyed = true; handler.removeCallbacks(refresh);

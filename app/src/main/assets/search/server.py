@@ -14,14 +14,82 @@ import os
 import re
 import signal
 import sys
+from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import urlencode, urlsplit, urlunsplit
 
 MAX_QUERY = 1000
 MAX_BODY = 8192
 PRIMARY_ENGINES = ("google", "brave", "duckduckgo")
-ENGINES = PRIMARY_ENGINES + ("bing",)
+RSS_ENGINES = ("google news rss", "bing news rss", "bing rss")
+ENGINES = PRIMARY_ENGINES + RSS_ENGINES
+ENGINE_TIMEOUT = 5.0
+MAX_RESPONSE = 1024 * 1024
+
+
+def news_query(query):
+    return bool(re.search(r"новост|\bnews\b|что (?:происходит|произошло)", query, re.I))
+
+
+def rss_request(name):
+    def request(query, params):
+        russian = str(params.get("language", "")).startswith("ru")
+        if name == "google news rss":
+            # The public news feed supplies dates and headlines without scraping
+            # a browser search page. Do not silently narrow explicit dated queries.
+            if not re.search(r"\b(?:when|after|before):|\b20\d\d\b", query):
+                query += " when:1d" if re.search(r"сегодня|сутки|\btoday\b", query, re.I) else " when:7d"
+            fields = {"q": query, "hl": "ru" if russian else "en-US",
+                      "gl": "RU" if russian else "US", "ceid": "RU:ru" if russian else "US:en"}
+            params["url"] = "https://news.google.com/rss/search?" + urlencode(fields)
+        else:
+            path = "/news/search" if name == "bing news rss" else "/search"
+            params["url"] = "https://www.bing.com" + path + "?" + urlencode({
+                "q": query, "format": "rss", "setlang": "ru-RU" if russian else "en-US",
+                "mkt": "ru-RU" if russian else "en-US"})
+        params["method"] = "GET"
+        params["headers"]["Accept"] = "application/rss+xml, application/xml;q=0.9, text/xml;q=0.8"
+        return params
+    return request
+
+
+def rss_response(response):
+    from lxml import etree
+    from searx.network import raise_for_httperror
+    raise_for_httperror(response)
+    raw = response.content
+    if len(raw) > MAX_RESPONSE:
+        raise ValueError("oversized RSS")
+    # Never load DTDs, resolve entities, fetch linked pages or decode Google
+    # article redirects. Provider content stays quoted, bounded evidence.
+    parser = etree.XMLParser(resolve_entities=False, load_dtd=False, no_network=True)
+    root = etree.fromstring(raw, parser)
+    if root.tag != "rss" or root.find("channel") is None:
+        raise ValueError("not an RSS response")
+    results = []
+    for item in root.findall("./channel/item")[:100]:
+        url = public_url(item.findtext("link", ""))
+        title = clean_text(item.findtext("title", ""), 240)
+        if not url or not title:
+            continue
+        content = clean_text(item.findtext("description", ""), 1200)
+        source = clean_text(item.findtext("source", ""), 120)
+        # Google News descriptions are a list of related headlines, not an
+        # article body. Keep only the supplied headline and publication metadata.
+        headline_only = urlsplit(url).hostname == "news.google.com" or not content
+        result = {"url": url, "title": title, "content": title if headline_only else content,
+                  "pocket_headline_only": headline_only, "pocket_publisher": source}
+        try:
+            published = parsedate_to_datetime(item.findtext("pubDate", ""))
+            if published.tzinfo is None:
+                published = published.replace(tzinfo=timezone.utc)
+            result["publishedDate"] = published
+        except (ValueError, TypeError, OverflowError):
+            pass
+        results.append(result)
+    return results
 
 
 def clean_text(value, limit):
@@ -85,6 +153,8 @@ def failure_reason(error):
         return "dns"
     if any(isinstance(e, (httpx.TimeoutException, TimeoutError)) for e in chain):
         return "timeout"
+    if any(type(e).__name__ in ("XMLSyntaxError", "ValueError") for e in chain):
+        return "invalid_response"
     for e in chain:
         if isinstance(e, httpx.HTTPStatusError):
             code = e.response.status_code
@@ -122,11 +192,16 @@ def initialize():
         "search": {"autocomplete": "", "formats": ["json"], "safe_search": 0},
         "server": {"secret_key": "pocket-search-has-no-web-session", "limiter": False,
                    "public_instance": False, "image_proxy": False},
-        "outgoing": {"request_timeout": 8.0, "max_request_timeout": 10.0,
+        "outgoing": {"request_timeout": ENGINE_TIMEOUT, "max_request_timeout": ENGINE_TIMEOUT + 1,
                      "pool_connections": 6, "pool_maxsize": 3, "enable_http2": True},
         "valkey": {"url": False},
         "ui": {"static_path": str(empty_ui), "templates_path": str(empty_ui)},
-        "engines": [{"name": name, "disabled": False, "timeout": 8.0} for name in ENGINES],
+        "engines": ([{"name": name, "disabled": False, "timeout": ENGINE_TIMEOUT} for name in PRIMARY_ENGINES] +
+                    [{"name": name, "engine": "xpath", "search_url": "https://news.google.com/rss/search?q={query}" if name == "google news rss" else "https://www.bing.com/search?format=rss&q={query}",
+                      "url_xpath": ".//link/text()", "title_xpath": ".//title/text()", "content_xpath": ".//description/text()",
+                      "shortcut": {"google news rss": "pgn", "bing news rss": "pbn", "bing rss": "pbr"}[name],
+                      "categories": ["general"], "disabled": False, "timeout": ENGINE_TIMEOUT}
+                     for name in RSS_ENGINES]),
     }
     # This file contains public configuration only, never the query or token.
     config = Path(__file__).with_name("settings.json")
@@ -148,6 +223,10 @@ def initialize():
     searx.cache.ExpireCacheCfg.__post_init__ = memory_cache
     import searx.search
     searx.search.initialize(check_network=False, enable_metrics=False)
+    from searx.search.processors import PROCESSORS
+    for name in RSS_ENGINES:
+        PROCESSORS[name].engine.request = rss_request(name)
+        PROCESSORS[name].engine.response = rss_response
     install_diagnostics()
     from flask import Flask
     from flask_babel import Babel
@@ -156,30 +235,44 @@ def initialize():
     return app
 
 
-def search(app, query, language):
+def search(app, query, language, mode="auto"):
     from searx.search import Search
     from searx.search.models import SearchQuery, EngineRef
     # A user cannot select engines, invoke bangs or turn a result into a fetch.
     sources, seen, failed, diagnostics, attempted = [], set(), set(), {}, []
-    # A blocked primary group must not make the whole tool unusable. Bing is
-    # contacted only when the three primary engines returned no usable evidence.
+    # At most three bounded stages, never repeat a blocked provider in a lookup.
+    # News feeds go first for news requests, not after three failed HTML engines.
+    news = mode == "news" or (mode == "auto" and news_query(query))
+    stages = (("google news rss",), ("bing news rss",)) if news else (("bing rss",), PRIMARY_ENGINES)
     with app.test_request_context("/search", method="POST"):
-        for engines in (PRIMARY_ENGINES, ("bing",)):
+        for engines in stages:
             attempted.extend(engines)
             request = SearchQuery(query, [EngineRef(name, "general") for name in engines],
                                   lang="ru-RU" if language == "ru" else "en-US",
-                                  safesearch=0, pageno=1, timeout_limit=10.0)
+                                  safesearch=0, pageno=1, timeout_limit=ENGINE_TIMEOUT + 1)
             result = Search(request).search()
-            for hit in result.get_ordered_results():
+            hits = result.get_ordered_results()
+            if news:
+                hits = sorted(hits, key=lambda hit: hit.get("publishedDate") or datetime.min.replace(tzinfo=timezone.utc), reverse=True)
+            for hit in hits:
                 url = public_url(hit.get("url", ""))
                 if not url or url in seen:
                     continue
                 text = clean_text(hit.get("content", ""), 1200)
-                if not text:
+                title = clean_text(hit.get("title", ""), 240)
+                if not text and not title:
                     continue
                 seen.add(url)
-                sources.append({"citation": "W" + str(len(sources) + 1), "url": url,
-                                "title": clean_text(hit.get("title", ""), 240), "text": text})
+                source = {"citation": "W" + str(len(sources) + 1), "url": url,
+                          "title": title, "text": text or title}
+                if hit.get("pocket_headline_only") or not text:
+                    source["headlineOnly"] = True
+                published = hit.get("publishedDate")
+                if isinstance(published, datetime):
+                    source["published"] = published.isoformat()
+                if hit.get("pocket_publisher"):
+                    source["publisher"] = clean_text(hit["pocket_publisher"], 120)
+                sources.append(source)
                 if len(sources) == 6:
                     break
             failures = getattr(result, "pocket_failures", {})
@@ -193,7 +286,8 @@ def search(app, query, language):
             raise SearchFailure("engines_unavailable", details)
         return {"query": query, "sources": sources, "failedEngines": sorted(failed),
                 "diagnostics": details, "attemptedEngines": attempted,
-                "engine": "SearXNG", "noEvidence": not sources}
+                "engine": "SearXNG", "noEvidence": not sources, "mode": "news" if news else "general",
+                "retryable": not sources and len(failed) < len(attempted)}
 
 
 def serve(app, token):
@@ -220,18 +314,18 @@ def serve(app, token):
                 if not 0 < size <= MAX_BODY:
                     raise ValueError()
                 body = json.loads(self.rfile.read(size))
-                query, language = body.get("query"), body.get("language", "ru")
+                query, language, mode = body.get("query"), body.get("language", "ru"), body.get("mode", "auto")
                 if (not isinstance(query, str) or not query.strip()
                         or len(query) > MAX_QUERY or language not in ("ru", "en")
-                        or set(body) - {"query", "language"}):
+                        or mode not in ("auto", "news", "general") or set(body) - {"query", "language", "mode"}):
                     raise ValueError()
             except (ValueError, TypeError, AttributeError):
                 self.reply(400, {"error": "invalid_query"})
                 return
             try:
-                self.reply(200, search(app, query.strip(), language))
+                self.reply(200, search(app, query.strip(), language, mode))
             except SearchFailure as error:
-                self.reply(502, {"error": error.code, "diagnostics": error.diagnostics})
+                self.reply(502, {"error": error.code, "diagnostics": error.diagnostics, "retryable": False})
             except Exception:
                 self.reply(502, {"error": "search_internal_error"})
 

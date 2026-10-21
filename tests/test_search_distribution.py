@@ -20,6 +20,7 @@ class SearchDistributionTests(unittest.TestCase):
         self.assets = self.root / 'app/src/main/assets/search'
         self.assets.mkdir(parents=True)
         (self.assets / 'server.py').write_bytes(b'fixture server')
+        (self.assets / 'browser-extract.js').write_bytes(b'fixture browser parser')
         (self.assets / 'python.zip').write_bytes(b'fixture source and native modules')
         sha = hashlib.sha256((self.assets / 'python.zip').read_bytes()).hexdigest()
         (self.assets / 'runtime-id.txt').write_text(sha + '\n')
@@ -41,7 +42,7 @@ class SearchDistributionTests(unittest.TestCase):
                 for item in self.files:
                     z.write(self.root / item['path'], prefix + item['path'].removeprefix('app/src/main/'))
             with zipfile.ZipFile(archive) as z:
-                self.assertEqual(search_bundle.validate_archive(z, self.files, prefix), 3)
+                self.assertEqual(search_bundle.validate_archive(z, self.files, prefix), 4)
 
     def test_missing_or_tampered_file_stops_packaging(self):
         for name in search_bundle.ASSETS:

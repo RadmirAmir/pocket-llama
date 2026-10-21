@@ -199,8 +199,8 @@ function webSourceCards(result){
  var details=node('details','rag-sources web-sources'),sources=Array.isArray(result.sources)?result.sources:[];
  details.appendChild(node('summary','',_t('Интернет')+' · '+sources.length+_t(' источников')));
  (result.queries||[result.query||'']).forEach(function(query){details.appendChild(node('p','knowledge-hint',_t('Поисковый запрос: ')+query));});
- if(!sources.length)details.appendChild(node('p','knowledge-hint',_t('Подходящих фрагментов не найдено.')));
- sources.forEach(function(source){var card=node('div','rag-source'),button=node('button','source-open','['+source.citation+'] '+(source.title||source.url));button.onclick=function(){bridge('openWebSource',source.url);};card.appendChild(button);card.appendChild(node('small','',source.url||''));card.appendChild(node('p','',source.text||''));details.appendChild(card);});
+ if(!sources.length)details.appendChild(node('p','knowledge-hint',result.message||_t('Подходящих фрагментов не найдено.')));
+ sources.forEach(function(source){var card=node('div','rag-source'),button=node('button','source-open','['+source.citation+'] '+(source.title||source.url));button.onclick=function(){bridge('openWebSource',source.url);};card.appendChild(button);card.appendChild(node('small','',source.url||''));var date=source.published?new Date(source.published):null,metadata=[source.publisher||'',date&&!isNaN(date.getTime())?date.toLocaleString(document.documentElement.lang||'ru'):'' ].filter(Boolean).join(' · ');if(metadata)card.appendChild(node('small','',metadata));card.appendChild(node('p','',source.text||''));if(source.headlineOnly)card.appendChild(node('small','knowledge-hint',_t('Только заголовок и дата; текст статьи не загружался.')));details.appendChild(card);});
  if(result.failedEngines&&result.failedEngines.length)details.appendChild(node('p','knowledge-hint',_t('Часть поисковиков недоступна: ')+result.failedEngines.join(', ')));
  if(result.contextLimited)details.appendChild(node('p','knowledge-hint',_t('Часть источников не поместилась в контекст модели.')));return details;
 }
@@ -211,7 +211,7 @@ function agentCards(agent){
  (agent.steps||[]).forEach(function(step){
   var row=node('div','agent-action');row.appendChild(node('b','',step.step+'. '+(step.tool==='web_search'?_t('Интернет-поиск'):_t('База знаний'))));
   row.appendChild(node('p','agent-query',step.query));
-  var status=step.state==='running'?_t('Поиск…'):step.state==='done'?_t('Найдено фрагментов: ')+Number(step.count||0):step.state==='cancelled'?_t('Ответ остановлен'):window.PocketI18n.status(step.error||_t('Ошибка поиска'));
+  var status=step.state==='running'?_t('Поиск…'):step.state==='done'?_t('Найдено фрагментов: ')+Number(step.count||0):step.state==='empty'?_t('Подходящих результатов не найдено.'):step.state==='cancelled'?_t('Ответ остановлен'):window.PocketI18n.status(step.error||_t('Ошибка поиска'));
   row.appendChild(node('small',step.state==='error'?'error':'',status));details.appendChild(row);
  });
  var end=agent.reason==='limit'?_t('Достигнут лимит шагов. Ответ по собранным данным.'):agent.reason==='invalid'?_t('Модель не смогла выбрать действие. Ответ по доступным данным.'):!(agent.steps||[]).length&&agent.reason==='answer'?_t('Инструменты не понадобились.'):'';
