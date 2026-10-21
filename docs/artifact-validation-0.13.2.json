@@ -27,5 +27,16 @@
     "upgradeFrom0131": true,
     "notesRagSqlcipherVideoRegression": true,
     "device": "Android 36 x86_64 emulator; ARM64 LLM performance not measured"
+  },
+  "followupSearchProbe": {
+    "commit": "1b9896a2145057bd2f5317d21e3b89212a20eba3",
+    "runUrl": "https://github.com/RadmirAmir/pocket-llama/actions/runs/39630243801",
+    "jobId": 119326251063,
+    "passed": true,
+    "ruNewsSources": 6,
+    "enGeneralSources": 6,
+    "searchWindowOpened": false,
+    "diagnosticFocusStartupFixed": true,
+    "publishedApkUnchanged": true
   }
 }

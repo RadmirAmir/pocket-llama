@@ -35,3 +35,9 @@ protocol or emulator checks.
 
 Exact signed APK acceptance passed: https://github.com/RadmirAmir/pocket-llama/actions/runs/39628125888
 Fresh installation/startup, in-place upgrades from 0.11.0 RC.3 and 0.13.1, notes/RAG/SQLCipher/video regression passed on Android 36 emulator.
+
+Follow-up native search passed after stabilizing the diagnostic activity's initial focus:
+https://github.com/RadmirAmir/pocket-llama/actions/runs/39630243801
+It again returned six public RU news sources and six general EN sources without
+opening a search window; certificate rejection and cancellation passed. This
+changes only the test harness; the published signed APK is unchanged.
