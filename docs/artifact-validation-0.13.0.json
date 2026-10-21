@@ -5,8 +5,29 @@
     "searchFilesVerified": 3,
     "channel": "community",
     "suryaBundled": false,
-    "bytes": 662331132
+    "bytes": 662331132,
+    "sha256": "1c330031c1c92dbffdd37232e438b9927993d72fd9d2e9a85338ee51eb0306e7",
+    "nativeBackends": [
+      "cpu",
+      "cpu-fast",
+      "vulkan"
+    ],
+    "nativeFilesVerified": 14
   },
   "legacyCertificateMatches": true,
-  "legacyCertificateSha256": "ef3cea40110c13d179cc7e1f1e570aeb2f870cb7d46f16273eb5d733cf9b2ed0"
+  "legacyCertificateSha256": "ef3cea40110c13d179cc7e1f1e570aeb2f870cb7d46f16273eb5d733cf9b2ed0",
+  "sourceCommit": "02ce96630ad8740591ee696b401690d48dc8e3d3",
+  "nativeBaselineSha256": "fd5e7679f750e523c86bca3535eeefeaecf8b35cc1484dabfe85ef54c0136afa",
+  "signedApkVerification": {
+    "workflowRun": "https://github.com/RadmirAmir/pocket-llama/actions/runs/39559885767",
+    "conclusion": "success",
+    "upgradeBaseline": "0.11.0-rc.3",
+    "freshInstall": true,
+    "startup": true,
+    "inPlaceUpgrade": true,
+    "knowledgeChecks": 6,
+    "notesChecks": 21,
+    "sqlCipherKnowledgeChecks": 20,
+    "videoMigrationChecks": 34
+  }
 }

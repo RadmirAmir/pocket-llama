@@ -31,11 +31,11 @@ jobs:
       - uses: android-actions/setup-android@v3
         with:
           packages: platform-tools
-      - name: Download and verify the signed candidate before publication
+      - name: Download and verify the exact signed release candidate
         env:
           GH_TOKEN: ${{ github.token }}
-          CANDIDATE_TAG: ${{ inputs.candidate_tag || 'v0.12.0-rc.1' }}
-          CANDIDATE_SHA256: ${{ inputs.candidate_sha256 || 'fd5e7679f750e523c86bca3535eeefeaecf8b35cc1484dabfe85ef54c0136afa' }}
+          CANDIDATE_TAG: ${{ inputs.candidate_tag || 'v0.13.0-rc.1' }}
+          CANDIDATE_SHA256: ${{ inputs.candidate_sha256 || '1c330031c1c92dbffdd37232e438b9927993d72fd9d2e9a85338ee51eb0306e7' }}
         run: |
           [[ "$CANDIDATE_TAG" =~ ^v[0-9][0-9A-Za-z.-]*$ ]]
           [[ "$CANDIDATE_SHA256" =~ ^[a-f0-9]{64}$ ]]
