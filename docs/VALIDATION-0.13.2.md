@@ -32,3 +32,6 @@ signed-APK notes/RAG/SQLCipher/video regression to pass first.
 Physical
 ARM64 LLM performance and every GGUF's answer quality are not established by
 protocol or emulator checks.
+
+Exact signed APK acceptance passed: https://github.com/RadmirAmir/pocket-llama/actions/runs/39628125888
+Fresh installation/startup, in-place upgrades from 0.11.0 RC.3 and 0.13.1, notes/RAG/SQLCipher/video regression passed on Android 36 emulator.

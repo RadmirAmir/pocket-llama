@@ -14,5 +14,18 @@
   "sourceCommit": "b8677e9d35e9e33cfaa4c548718c640d237cf515",
   "unchangedNativeLibraries": 14,
   "searchBrowserClassesPackaged": false,
-  "diagnosticClassesPackaged": false
+  "diagnosticClassesPackaged": false,
+  "signedApkAcceptance": {
+    "accepted": true,
+    "runId": "39628125888",
+    "runUrl": "https://github.com/RadmirAmir/pocket-llama/actions/runs/39628125888",
+    "sourceCommit": "b8677e9d35e9e33cfaa4c548718c640d237cf515",
+    "sha256": "bf451871743f9063368e8c3bddb5e3fb277d02a42dfa498998acd3df9060f6ce",
+    "freshInstall": true,
+    "startup": true,
+    "upgradeFrom0110RC3": true,
+    "upgradeFrom0131": true,
+    "notesRagSqlcipherVideoRegression": true,
+    "device": "Android 36 x86_64 emulator; ARM64 LLM performance not measured"
+  }
 }

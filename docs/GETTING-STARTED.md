@@ -4,9 +4,9 @@
 
 ## Install and protect your space
 
-Download **[PocketLlama-0.13.1-community-arm64.apk](https://github.com/RadmirAmir/pocket-llama/releases/download/v0.13.1-rc.1/PocketLlama-0.13.1-community-arm64.apk)** from this repository's release. You need Android 10+ with a 64-bit ARM system. The APK is approximately 662 MB; both speech models and OCR account for most of the size.
+Download **[PocketLlama-0.13.2-community-arm64.apk](https://github.com/RadmirAmir/pocket-llama/releases/download/v0.13.2-rc.1/PocketLlama-0.13.2-community-arm64.apk)** from this repository's release. You need Android 10+ with a 64-bit ARM system. The APK is approximately 662 MB; both speech models and OCR account for most of the size.
 
-Open it on your phone and allow installation from the browser or file manager when Android asks. You can turn that installation permission off again afterward. The `.aab` file is for Play publishers and cannot be installed directly like an APK. The release includes [SHA-256 checksums](https://github.com/RadmirAmir/pocket-llama/releases/download/v0.13.1-rc.1/SHA256SUMS.txt).
+Open it on your phone and allow installation from the browser or file manager when Android asks. You can turn that installation permission off again afterward. The `.aab` file is for Play publishers and cannot be installed directly like an APK. The release includes [SHA-256 checksums](https://github.com/RadmirAmir/pocket-llama/releases/download/v0.13.2-rc.1/SHA256SUMS.txt).
 
 On first launch, create and repeat a **six-digit PIN**. It controls access to your recordings, notes, scans and chat. Remember it: there is no account-based recovery. Microphone and camera permissions are used for the corresponding tools; grant them when you want to record or scan.
 
@@ -45,6 +45,10 @@ Choose **Download**, review the size and confirm **Download**. Wi-Fi is useful f
 Open **Chat**. If the model is stopped, use the activation control. Wait for **Model ready**, then send a short question. Chat and summaries now work without an internet connection. Smaller models can lose track of long conversations; start a new chat when you change subjects.
 
 Already have a compatible model? Use **Import your own GGUF** in Settings. Compatibility and memory still matter; an arbitrary GGUF or image model is not guaranteed to work. The supplied catalog is the easiest starting point.
+
+## Background web search
+
+Open **Chat → Tools → Web search** and review the search notice. The local model chooses queries, reads results and can refine its search. RSS feeds and public APIs run in the background; actions and source links appear in Chat. The stop button cancels the whole turn. A new conversation starts with web search off. [Search details →](SEARCH.md)
 
 ## Search your own materials in Chat
 
