@@ -11,7 +11,8 @@ speech, OCR, notes, video, encrypted vault, RAG and embedded SearXNG features.
 - SHA-256: `1c330031c1c92dbffdd37232e438b9927993d72fd9d2e9a85338ee51eb0306e7`
 - Certificate SHA-256: `ef3cea40110c13d179cc7e1f1e570aeb2f870cb7d46f16273eb5d733cf9b2ed0`
 - Android 36 community build and artifact validation passed: all 16 model
-  assets, 6 video files, 3 search files, current UI and original update key.
+  assets, 6 video files, 3 search files, all 14 native libraries, current UI
+  and original update key.
   [Machine-readable validation](artifact-validation-0.13.0.json).
 
 ## Restored build provenance
@@ -27,6 +28,20 @@ CPU, CPU-fast and Vulkan native libraries were restored from the published
 Native sources, patches and `llama.lock` are unchanged between the releases.
 The recovered SDK, pinned dependencies and these runtimes can build the full
 community APK again; the new hash above replaces the earlier lost candidate.
+
+## Exact signed APK installation and upgrade
+
+[Signed-release verification](https://github.com/RadmirAmir/pocket-llama/actions/runs/39559885767) passed on Android 36 with the exact published APK and SHA-256 above:
+
+- Fresh installation and successful app startup.
+- In-place update over the signed 0.11.0 RC.3 community package, followed by startup.
+- 6 signed-DEX knowledge checks, 21 notes persistence/search/encryption checks,
+  20 SQLCipher knowledge checks and 34 video/migration checks.
+
+The restored workspace also passed the 38 agent checks, 27 web checks and all
+9 SearXNG host tests, including real DNS/TCP/TLS transport and rejection of an
+untrusted certificate. Android SDK/NDK, JDK, pinned build dependencies and native
+source/configuration are restored.
 
 ## Checks completed
 
@@ -51,9 +66,9 @@ revocation. [Android network evidence](https://github.com/RadmirAmir/pocket-llam
   state, source links, RU/EN controls and narrow mobile layouts.
 - Existing RU/EN interface and RAG UI regressions pass.
 
-These checks use deterministic model decisions to validate the loop. They do
-not measure how well every GGUF chooses queries. Physical ARM64 acceptance,
-live-provider availability and an installation test of this exact signed
-candidate remain device checks. The previous 0.12.0 signed release passed fresh
-installation and in-place upgrade verification; this candidate retains its
-package and certificate but has not yet repeated that emulator run.
+The agent tests use deterministic model decisions; query quality varies by GGUF.
+Physical ARM64 inference and live-provider availability on the user's phone
+remain device checks. The restored sandbox cannot resolve public search-engine
+hosts under its network policy; the new diagnostics report DNS failures for
+that case. Exact signed-APK installation, startup and upgrade passed as recorded
+above.
