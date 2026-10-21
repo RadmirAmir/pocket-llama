@@ -20,9 +20,15 @@ public final class AndroidSearchProbe extends Activity {
     @Override public void onWindowFocusChanged(boolean hasFocus){super.onWindowFocusChanged(hasFocus);if(hasFocus)focused.countDown();else if(checkingSearch.get())lostFocus.set(true);}
     private static Object field(Object value,String name)throws Exception{Field f=value.getClass().getDeclaredField(name);f.setAccessible(true);return f.get(value);}
     private static void check(boolean value,String label){if(!value)throw new AssertionError(label);}
-    @Override public void onCreate(Bundle state){super.onCreate(state);if(!started.compareAndSet(false,true))return;new Thread(()->{
+    @Override public void onCreate(Bundle state){super.onCreate(state);
+        // Give the headless emulator a real, awake window before checking that
+        // background search does not steal focus. No search starts before focus.
+        setTurnScreenOn(true);setShowWhenLocked(true);
+        getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        android.widget.TextView status=new android.widget.TextView(this);status.setText("Pocket search runtime test");setContentView(status);
+        if(!started.compareAndSet(false,true))return;new Thread(()->{
         try{
-            check(focused.await(15,TimeUnit.SECONDS),"search probe has window focus");checkingSearch.set(true);
+            check(focused.await(30,TimeUnit.SECONDS),"search probe has window focus");checkingSearch.set(true);
             WebSearch task=new WebSearch(this,()->{});
             JSONObject result=task.search("Pocket native parser fixture","en");
             JSONArray sources=result.getJSONArray("sources");
