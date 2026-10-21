@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.13.2 — accurate agent evidence status
+
+- Preserve the original answer prompt when the agent chooses no tool; avoid extra final-context tokenization in that case.
+- Say web evidence is available only when usable Internet sources are included in the final prompt. Personal-knowledge results do not imply Internet access.
+- Keep the actual search failure when a required web lookup fails after local retrieval; do not misreport it as a context overflow. Optional failed web lookups can still answer from relevant personal evidence.
+- Cover these cases in the production HTTP/SSE agent suite, now 63 checks. Preserve the complete main app, signing identity and existing two-call mobile budget; version code 35.
+
 ## 0.13.1 — mobile agent and on-device browser search
 
 - Require a lookup for explicit web and current-news requests when the tool is enabled; preserve the topic for short search follow-ups and respect offline/private-source scope.
