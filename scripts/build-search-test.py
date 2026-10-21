@@ -60,7 +60,11 @@ def main():
     diagnostic_browser = work / 'diagnostic/BrowserSearch.java'
     browser = (java / 'search/BrowserSearch.java').read_text()
     assert browser.count('view.loadUrl(url);') == 1
-    diagnostic_browser.write_text(browser.replace('view.loadUrl(url);', 'view.loadDataWithBaseURL(url,dev.pocketllama.searchtest.BrowserFixture.PAGE,"text/html","UTF-8",null);'))
+    browser = browser.replace('view.loadUrl(url);', 'view.loadDataWithBaseURL(url,dev.pocketllama.searchtest.BrowserFixture.PAGE,"text/html","UTF-8",url);')
+    browser = browser.replace('private void extract(int current){', 'private void extract(int current){android.util.Log.i("PocketBrowserProbe","scan="+current+" navigation="+navigation+" url="+(view==null?"none":view.getUrl()));')
+    browser = browser.replace('view.evaluateJavascript(script,raw->{', 'view.evaluateJavascript(script,raw->{android.util.Log.i("PocketBrowserProbe","fixture DOM="+raw);')
+    browser = browser.replace('}catch(Exception e){done.countDown();}', '}catch(Exception e){android.util.Log.e("PocketBrowserProbe","fixture UI",e);done.countDown();}')
+    diagnostic_browser.write_text(browser)
     sources = [*sorted((java / 'core').glob('*.java')), java / 'ChatApi.java',
                java / 'video/VideoRuntime.java', *sorted(p for p in (java / 'search').glob('*.java') if p.name not in ('WebSearch.java','BrowserSearch.java')), diagnostic_bridge, diagnostic_browser,
                ROOT / 'tests/android-search/AndroidSearchProbe.java', ROOT / 'tests/android-search/BrowserFixture.java']

@@ -31,7 +31,7 @@ public final class BrowserSearch implements AutoCloseable {
     private volatile WebView view;
     private TextView status;
     private String language,query,script;
-    private int provider,navigation;
+    private int provider,navigation,pollingNavigation=-1;
     private boolean evaluating;
 
     public BrowserSearch(Activity activity,WebPrompt.Check access,Runnable onCancel){this.activity=activity;this.access=access;this.onCancel=onCancel;}
@@ -52,7 +52,7 @@ public final class BrowserSearch implements AutoCloseable {
         if(closed.get()||activity.isFinishing()){done.countDown();return;}
         try{
             dialog=new Dialog(activity);LinearLayout layout=new LinearLayout(activity);layout.setOrientation(LinearLayout.VERTICAL);layout.setBackgroundColor(Color.WHITE);
-            int padding=(int)(12*activity.getResources().getDisplayMetrics().density);layout.setPadding(padding,padding,padding,padding);
+            int padding=(int)(12*activity.getResources().getDisplayMetrics().density);layout.setPadding(padding,padding,padding,padding);layout.setFitsSystemWindows(true);
             TextView title=new TextView(activity);title.setText(t("Поиск на вашем телефоне","Search on your phone"));title.setTextColor(Color.BLACK);title.setTextSize(18);layout.addView(title);
             status=new TextView(activity);status.setTextColor(Color.DKGRAY);status.setText(t("Загружается обычная поисковая страница…","Loading the search page…"));layout.addView(status);
             LinearLayout controls=new LinearLayout(activity);
@@ -68,8 +68,8 @@ public final class BrowserSearch implements AutoCloseable {
             // No native JavascriptInterface is exposed to these untrusted pages.
             view.setWebViewClient(new WebViewClient(){
                 @Override public boolean shouldOverrideUrlLoading(WebView w,WebResourceRequest r){return r.isForMainFrame()&&!allowedNavigation(r.getUrl().toString());}
-                @Override public void onPageStarted(WebView w,String url,android.graphics.Bitmap icon){navigation++;evaluating=false;status.setText(t("Загружается поисковая страница…","Loading search page…"));}
-                @Override public void onPageFinished(WebView w,String url){int current=navigation;ui.postDelayed(()->extract(current),700);}
+                @Override public void onPageStarted(WebView w,String url,android.graphics.Bitmap icon){navigation++;evaluating=false;status.setText(t("Загружается поисковая страница…","Loading search page…"));beginScan(navigation);}
+                @Override public void onPageFinished(WebView w,String url){beginScan(navigation);}
                 @Override public void onReceivedError(WebView w,WebResourceRequest r,WebResourceError e){if(r.isForMainFrame())status.setText(t("Не удалось загрузить страницу. Проверьте сеть или выберите другой поисковик.","Could not load the page. Check the connection or choose another engine."));}
             });
             layout.addView(view,new LinearLayout.LayoutParams(-1,0,1));dialog.setContentView(layout);dialog.setOnCancelListener(v->cancel());dialog.show();dialog.getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);dialog.getWindow().setLayout(-1,-1);load();
@@ -87,8 +87,10 @@ public final class BrowserSearch implements AutoCloseable {
             status.setText(t("Загружается поисковая страница…","Loading search page…"));view.loadUrl(url);
         }catch(Exception e){done.countDown();}
     }
+    private void beginScan(int current){if(current!=pollingNavigation){pollingNavigation=current;ui.postDelayed(()->extract(current),700);}}
     private void extract(int current){
-        if(closed.get()||view==null||evaluating||current!=navigation||!allowedNavigation(view.getUrl()))return;evaluating=true;
+        if(closed.get()||view==null||evaluating||current!=navigation)return;
+        if(!allowedNavigation(view.getUrl())){ui.postDelayed(()->extract(current),700);return;}evaluating=true;
         view.evaluateJavascript(script,raw->{
             evaluating=false;if(closed.get()||current!=navigation)return;
             try{
@@ -106,5 +108,5 @@ public final class BrowserSearch implements AutoCloseable {
     public void cancel(){cancelled=true;onCancel.run();done.countDown();close();}
     @Override public void close(){if(!closed.compareAndSet(false,true))return;ui.post(()->{if(view!=null){view.stopLoading();view.clearHistory();view.clearCache(true);view.destroy();view=null;}if(dialog!=null){dialog.setOnCancelListener(null);dialog.dismiss();dialog=null;}});}
     /** Search cookies are confined to the unlocked chat session, separate from Chrome. */
-    public static void clearSession(){new Handler(Looper.getMainLooper()).post(()->{try{CookieManager.getInstance().removeAllCookies(null);CookieManager.getInstance().flush();for(String origin:new String[]{"https://www.google.com","https://google.com","https://consent.google.com","https://search.brave.com","https://duckduckgo.com"})WebStorage.getInstance().deleteOrigin(origin);}catch(Exception ignored){}});}
+    public static void clearSession(){new Handler(Looper.getMainLooper()).post(()->{try{CookieManager.getInstance().removeAllCookies(null);CookieManager.getInstance().flush();for(String origin:new String[]{"https://www.google.com","https://google.com","https://consent.google.com","https://accounts.google.com","https://search.brave.com","https://duckduckgo.com","https://www.duckduckgo.com"})WebStorage.getInstance().deleteOrigin(origin);}catch(Exception ignored){}});}
 }
