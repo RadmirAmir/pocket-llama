@@ -50,16 +50,18 @@ class SearchServerTests(unittest.TestCase):
 
         def fixture(params):
             cls.calls.append(params['url'])
-            html = '''<html><div class="snippet web"><a href="https://example.org/pocket">
-                <div class="title">Pocket &amp; SearXNG</div></a>
-                <div class="content"><span>Real parser fixture. Local server, external search.</span></div></div>
-                <div class="snippet web"><a href="http://127.0.0.1/private"><div class="title">Private</div></a>
-                <div class="content"><span>This result must not be opened.</span></div></div></html>'''
-            return SXNG_Response(200, text=html, request=httpx.Request('GET', params['url']))
+            rss = '<rss><channel><item><title>Pocket &amp; SearXNG</title><link>https://example.org/pocket</link><description>Real parser fixture. Local server, external search.</description></item><item><title>Private</title><link>http://127.0.0.1/private</link><description>Must not be opened.</description></item></channel></rss>'
+            return SXNG_Response(200, text=rss, request=httpx.Request('GET', params['url']))
 
-        cls.patches.append(patch.object(PROCESSORS['brave'], '_send_http_request', side_effect=fixture))
-        for name in ('google', 'duckduckgo', *search.RSS_ENGINES):
-            cls.patches.append(patch.object(PROCESSORS[name].engine, 'request', side_effect=httpx.ConnectError('fixture offline')))
+        def wiki_fixture(params):
+            cls.calls.append(params['url'])
+            data = {'query': {'search': [{'pageid': 123, 'title': 'Pocket', 'snippet': 'Public encyclopedia evidence.'}]}}
+            return SXNG_Response(200, json=data, request=httpx.Request('GET', params['url']))
+
+        cls.patches.append(patch.object(PROCESSORS['bing rss'], '_send_http_request', side_effect=fixture))
+        cls.patches.append(patch.object(PROCESSORS['wikipedia'], '_send_http_request', side_effect=wiki_fixture))
+        for name in ('google news rss', 'bing news rss'):
+            cls.patches.append(patch.object(PROCESSORS[name], '_send_http_request', side_effect=httpx.ConnectError('fixture offline')))
         for p in cls.patches:
             p.start()
         real_server, cls.http_server = search.HTTPServer, None
@@ -107,22 +109,16 @@ class SearchServerTests(unittest.TestCase):
         for processor in PROCESSORS.values():
             processor.suspended_status.resume()
 
-    def test_bing_fallback_after_primary_failure(self):
+    def test_api_fallback_after_feed_failure(self):
         import httpx
         from searx.search.processors import PROCESSORS
-        from searx.extended_types import SXNG_Response
-
-        def fallback(params):
-            html = '<rss><channel><item><title>Fallback</title><link>https://example.org/fallback</link><description>Evidence from the backup engine.</description></item></channel></rss>'
-            return SXNG_Response(200, text=html, request=httpx.Request('GET', params['url']))
-
-        with patch.object(PROCESSORS['brave'], '_send_http_request', side_effect=httpx.ConnectError('offline')):
-            with patch.object(PROCESSORS['bing rss'].engine, 'request', side_effect=search.rss_request('bing rss')):
-                with patch.object(PROCESSORS['bing rss'], '_send_http_request', side_effect=fallback):
-                    code, result = self.request()
+        with patch.object(PROCESSORS['bing rss'], '_send_http_request', side_effect=httpx.ConnectError('offline')):
+            code, result = self.request()
         self.assertEqual(code, 200)
-        self.assertEqual(result['sources'][0]['url'], 'https://example.org/fallback')
-        self.assertEqual(result['attemptedEngines'], ['bing rss'])
+        self.assertEqual(result['sources'][0]['url'], 'https://en.wikipedia.org/?curid=123')
+        self.assertEqual(result['sources'][0]['text'], 'Public encyclopedia evidence.')
+        self.assertEqual(result['attemptedEngines'], ['bing rss', 'wikipedia'])
+        self.assertEqual(result['failedEngines'], ['bing rss'])
 
     def test_failure_categories_never_include_private_details(self):
         import httpx
@@ -132,11 +128,11 @@ class SearchServerTests(unittest.TestCase):
                 raise socket.gaierror(-2, 'PRIVATE_QUERY_URL')
             except socket.gaierror as cause:
                 raise httpx.ConnectError('PRIVATE_QUERY_URL') from cause
-        with patch.object(PROCESSORS['brave'], '_send_http_request', side_effect=dns):
-            with patch.object(PROCESSORS['bing rss'], '_send_http_request', side_effect=dns):
+        with patch.object(PROCESSORS['bing rss'], '_send_http_request', side_effect=dns):
+            with patch.object(PROCESSORS['wikipedia'], '_send_http_request', side_effect=dns):
                 code, result = self.request()
         self.assertEqual(code, 502)
-        self.assertIn({'engine': 'brave', 'reason': 'dns'}, result['diagnostics'])
+        self.assertIn({'engine': 'bing rss', 'reason': 'dns'}, result['diagnostics'])
         self.assertNotIn('PRIVATE', json.dumps(result))
         with patch.object(search, 'search', side_effect=RuntimeError('PRIVATE_INTERNAL')):
             self.assertEqual(self.request()[1], {'error': 'search_internal_error'})
@@ -150,9 +146,14 @@ class SearchServerTests(unittest.TestCase):
         code, result = self.request()
         self.assertEqual(code, 200)
         self.assertEqual(result['query'], 'Pocket SearXNG')
-        self.assertEqual(result['sources'], [{'citation': 'W1', 'url': 'https://example.org/pocket',
-                         'title': 'Pocket & SearXNG', 'text': 'Real parser fixture. Local server, external search.'}])
-        self.assertEqual(set(result['failedEngines']), {'google', 'duckduckgo', 'bing rss'})
+        sources = {item['url']: item for item in result['sources']}
+        self.assertEqual(set(sources), {'https://example.org/pocket', 'https://en.wikipedia.org/?curid=123'})
+        self.assertEqual(sources['https://example.org/pocket']['title'], 'Pocket & SearXNG')
+        self.assertEqual(sources['https://example.org/pocket']['text'], 'Real parser fixture. Local server, external search.')
+        self.assertEqual(len({item['citation'] for item in result['sources']}), 2)
+        self.assertEqual(result['failedEngines'], [])
+        self.assertEqual(result['attemptedEngines'], ['bing rss', 'wikipedia'])
+
 
 
     def test_news_rss_dates_and_headline_only(self):

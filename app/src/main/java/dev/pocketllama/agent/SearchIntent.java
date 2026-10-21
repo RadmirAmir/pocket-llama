@@ -28,7 +28,7 @@ public final class SearchIntent {
         boolean localScope=personal&&!publicSearch;
         boolean news=NEWS.matcher(task).find()&&!definition&&!localScope;
         boolean greeting=latest.trim().toLowerCase(Locale.ROOT).matches("(?:привет|здравствуй(?:те)?|спасибо|hello|hi|thanks|thank you)[!.,\\s]*");
-        return new SearchIntent(!forbidden&&!localScope&&(search||news||CURRENT.matcher(task).find()&&!definition),news,forbidden,greeting);
+        return new SearchIntent(!forbidden&&!localScope&&(search||news||CURRENT.matcher(task).find()&&!definition),news,forbidden||localScope,greeting);
     }
     public static String text(JSONObject message){
         Object content=message.opt("content");if(content instanceof String)return (String)content;

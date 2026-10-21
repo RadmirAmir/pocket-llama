@@ -22,11 +22,12 @@ from urllib.parse import urlencode, urlsplit, urlunsplit
 
 MAX_QUERY = 1000
 MAX_BODY = 8192
-PRIMARY_ENGINES = ("google", "brave", "duckduckgo")
+PRIMARY_ENGINES = ("wikipedia",)
 RSS_ENGINES = ("google news rss", "bing news rss", "bing rss")
 ENGINES = PRIMARY_ENGINES + RSS_ENGINES
-ENGINE_TIMEOUT = 5.0
+ENGINE_TIMEOUT = 7.0
 MAX_RESPONSE = 1024 * 1024
+APP_AGENT = "PocketLlama/0.13.2 (+https://github.com/RadmirAmir/pocket-llama)"
 
 
 def news_query(query):
@@ -50,6 +51,7 @@ def rss_request(name):
                 "q": query, "format": "rss", "setlang": "ru-RU" if russian else "en-US",
                 "mkt": "ru-RU" if russian else "en-US"})
         params["method"] = "GET"
+        params["headers"]["User-Agent"] = APP_AGENT
         params["headers"]["Accept"] = "application/rss+xml, application/xml;q=0.9, text/xml;q=0.8"
         return params
     return request
@@ -89,6 +91,40 @@ def rss_response(response):
         except (ValueError, TypeError, OverflowError):
             pass
         results.append(result)
+    return results
+
+
+def wiki_request(query, params):
+    language = "ru" if str(params.get("language", "")).startswith("ru") else "en"
+    params["url"] = "https://" + language + ".wikipedia.org/w/api.php?" + urlencode({
+        "action": "query", "list": "search", "srsearch": query, "srlimit": 6,
+        "srprop": "snippet", "format": "json", "utf8": 1})
+    params["method"] = "GET"
+    params["headers"]["User-Agent"] = APP_AGENT
+    params["headers"]["Accept"] = "application/json"
+    return params
+
+
+def wiki_response(response):
+    from searx.network import raise_for_httperror
+    raise_for_httperror(response)
+    if len(response.content) > MAX_RESPONSE:
+        raise ValueError("oversized API response")
+    host = urlsplit(str(response.url)).hostname
+    if host not in ("ru.wikipedia.org", "en.wikipedia.org"):
+        raise ValueError("unexpected API origin")
+    rows = response.json()["query"]["search"]
+    results = []
+    for row in rows[:6]:
+        page = int(row["pageid"])
+        if page < 1:
+            continue
+        title = clean_text(row["title"], 240)
+        content = clean_text(row.get("snippet", ""), 1200)
+        if title:
+            results.append({"url": "https://" + host + "/?curid=" + str(page),
+                            "title": title, "content": content or title,
+                            "pocket_headline_only": not content, "pocket_publisher": "Wikipedia"})
     return results
 
 
@@ -227,6 +263,8 @@ def initialize():
     for name in RSS_ENGINES:
         PROCESSORS[name].engine.request = rss_request(name)
         PROCESSORS[name].engine.response = rss_response
+    PROCESSORS["wikipedia"].engine.request = wiki_request
+    PROCESSORS["wikipedia"].engine.response = wiki_response
     install_diagnostics()
     from flask import Flask
     from flask_babel import Babel
@@ -240,10 +278,9 @@ def search(app, query, language, mode="auto"):
     from searx.search.models import SearchQuery, EngineRef
     # A user cannot select engines, invoke bangs or turn a result into a fetch.
     sources, seen, failed, diagnostics, attempted = [], set(), set(), {}, []
-    # At most three bounded stages, never repeat a blocked provider in a lookup.
-    # News feeds go first for news requests, not after three failed HTML engines.
+    # Public feeds/APIs only. Search never loads a browser SERP or opens UI.
     news = mode == "news" or (mode == "auto" and news_query(query))
-    stages = (("google news rss",), ("bing news rss",)) if news else (("bing rss",), PRIMARY_ENGINES)
+    stages = (("google news rss",), ("bing news rss",)) if news else (("bing rss", "wikipedia"),)
     with app.test_request_context("/search", method="POST"):
         for engines in stages:
             attempted.extend(engines)

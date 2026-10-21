@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.13.2 — background search and native agent turns
+
+- Remove the search WebView, browser-session/CAPTCHA handoff and browser-page fallback. Use embedded SearXNG RSS/public API requests entirely in the background.
+- Continue native action/result turns after tool execution: read evidence, refine or switch tools, then answer. Cap the mobile loop at three tool calls, five decisions, 1,024 planning input tokens and 96 output tokens.
+- Fit at most six deduplicated passages, prioritizing web evidence for current facts. Explicit personal-source scope excludes Internet actions.
+- Preserve the original prompt when no tool runs; do not claim web success from local-only evidence or mislabel required-web failure as context overflow.
+- Extend real Android acceptance to public news/general HTTPS and absence of extra search windows. Keep the complete main app, original certificate and existing features; version code 35.
+
 ## 0.13.1 — mobile agent and on-device browser search
 
 - Require a lookup for explicit web and current-news requests when the tool is enabled; preserve the topic for short search follow-ups and respect offline/private-source scope.

@@ -31,12 +31,11 @@ Personal knowledge is an optional chat tool. Its index contains copies of saved 
 The Play Data safety form must reflect the final SDKs and the voluntary report endpoint. Do not mark “no data collected” solely because inference is local: a submitted report contains user-selected text. Review Google Play's definitions and exceptions for the actual published configuration.
 
 
-### Search browser in 0.13.1
+### Background search in 0.13.2
 
-News uses embedded SearXNG RSS; general search uses a visible Android WebView
-with its own search session, separate from Chrome. A CAPTCHA is handed to the
-user. Remote pages have no native JavaScript bridge or file/content access.
-They can load normal browser resources from providers and third parties.
-Queries can contain personal details selected by the local model. Search
-cookies/provider storage are cleared on web disconnect, chat closure and vault
-lock; temporary browser cache/history are cleared after extraction.
+Search uses embedded SearXNG feeds and public APIs without opening remote
+browser pages. No search cookies, provider local storage or third-party browser
+resources are created. Providers receive model-written queries and the public
+IP; queries can include private context selected by the model. Full chat/file
+objects are not attached. Search starts off for a new chat, requires native
+consent and stops on cancellation, consent revocation or vault lock.

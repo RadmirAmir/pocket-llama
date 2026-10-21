@@ -11,7 +11,7 @@ public final class SearchErrors {
     public static JSONArray diagnostics(JSONObject failure){
         JSONArray result=new JSONArray(),raw=failure.optJSONArray("diagnostics");if(raw==null)return result;
         for(int i=0;i<Math.min(8,raw.length());i++){
-            JSONObject item=raw.optJSONObject(i);if(item==null||!java.util.Arrays.asList("google","brave","duckduckgo","bing rss","google news rss","bing news rss").contains(item.optString("engine")))continue;
+            JSONObject item=raw.optJSONObject(i);if(item==null||!java.util.Arrays.asList("google","brave","duckduckgo","bing rss","google news rss","bing news rss","wikipedia").contains(item.optString("engine")))continue;
             String reason=item.optString("reason");if(!java.util.Arrays.asList("dns","certificate","tls","captcha","rate_limited","access_denied","timeout","connection","http_error","invalid_response","internal").contains(reason))reason="internal";
             try{result.put(new JSONObject().put("engine",item.getString("engine")).put("reason",reason));}catch(JSONException ignored){}
         }

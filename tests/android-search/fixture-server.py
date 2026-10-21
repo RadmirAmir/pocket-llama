@@ -26,12 +26,10 @@ def initialize():
         def do_GET(self):
             if "slow" in self.path:
                 time.sleep(20)
-            html = b'''<html><div class="snippet web"><a href="https://example.org/native">
-                <div class="title">Native Android fixture</div></a>
-                <div class="content"><span>Android SearXNG runtime works.</span></div></div></html>'''
+            html = b'<rss><channel><item><title>Native Android fixture</title><link>https://example.org/native</link><description>Android SearXNG runtime works.</description></item></channel></rss>'
             try:
                 self.send_response(200)
-                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Type", "application/rss+xml; charset=utf-8")
                 self.send_header("Content-Length", str(len(html)))
                 self.end_headers()
                 self.wfile.write(html)
@@ -48,17 +46,26 @@ def initialize():
     def offline(*_):
         raise httpx.ConnectError("fixture offline")
 
-    build = PROCESSORS["brave"].engine.request
+    originals = {name: PROCESSORS[name].engine.request for name in pocket_server.ENGINES}
 
-    def request(query, params):
-        build(query, params)
-        if "certificate" in query and original_ca:
-            os.environ["SSL_CERT_FILE"] = original_ca
-        params["url"] = "https://localhost:" + str(server.server_port) + "/?" + urlsplit(params["url"]).query
+    def routed(name):
+        def request(query, params):
+            # Public synthetic acceptance queries use the unmodified production
+            # providers, parser and TLS trust. No public response is mocked.
+            if query in ("Нефтекамск новости", "llama.cpp"):
+                os.environ["SSL_CERT_FILE"] = original_ca
+                return originals[name](query, params)
+            if name != "bing rss":
+                return offline()
+            originals[name](query, params)
+            if "certificate" in query and original_ca:
+                os.environ["SSL_CERT_FILE"] = original_ca
+            params["url"] = "https://localhost:" + str(server.server_port) + "/?" + urlsplit(params["url"]).query
+            return params
+        return request
 
-    PROCESSORS["brave"].engine.request = request
-    for name in ("google", "duckduckgo", *pocket_server.RSS_ENGINES):
-        PROCESSORS[name].engine.request = offline
+    for name in pocket_server.ENGINES:
+        PROCESSORS[name].engine.request = routed(name)
     return app
 
 

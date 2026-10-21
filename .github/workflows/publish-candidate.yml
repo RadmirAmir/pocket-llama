@@ -1,0 +1,96 @@
+name: Accept and publish frozen 0.13.2 APK
+on:
+  push:
+    paths:
+      - '.github/workflows/publish-candidate.yml'
+      - 'distribution/release-candidates/**'
+      - 'scripts/reconstruct-release-apk.py'
+      - 'scripts/publish-verified-candidate.py'
+      - 'scripts/release-candidate-evidence.py'
+      - 'scripts/test-candidate-android.sh'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: publish-pocket-llama-0.13.2
+  cancel-in-progress: false
+jobs:
+  acceptance:
+    if: github.repository == 'RadmirAmir/pocket-llama'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+      - name: Reconstruct and audit the already signed exact candidate
+        run: |
+          python3 -m unittest discover -s tests -p test_release_reconstruction.py
+          mkdir -p build/release-candidate
+          curl --fail --location --retry 3 --output build/release-candidate/baseline-source.apk https://github.com/RadmirAmir/pocket-llama/releases/download/v0.13.1-rc.1/PocketLlama-0.13.1-community-arm64.apk
+          python3 scripts/reconstruct-release-apk.py --manifest distribution/release-candidates/0.13.2.json --baseline build/release-candidate/baseline-source.apk --output build/release-candidate/candidate.apk
+          python3 scripts/release-candidate-evidence.py
+          curl --fail --location --retry 3 --output build/release-candidate/baseline.apk https://github.com/RadmirAmir/pocket-llama/releases/download/v0.11.0-rc.3/PocketLlama-0.11.0-community-arm64.apk
+          echo 'fe9e47e9ea489a27549a9b760af29df70c7f4303df852273775d8bf2f40c0464  build/release-candidate/baseline.apk' | sha256sum --check
+          sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+          python3 scripts/prepare-security.py
+          python3 scripts/prepare-video.py
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Signed fresh install, both upgrades and notes/RAG/video regression
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          profile: pixel_7_pro
+          ram-size: 3072M
+          disk-size: 8192M
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
+          script: bash scripts/test-candidate-android.sh
+      - name: Record this run's successful acceptance
+        run: python3 scripts/release-candidate-evidence.py --accepted
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: accepted-release
+          path: build/release-candidate/evidence/
+  publish:
+    needs: acceptance
+    if: github.repository == 'RadmirAmir/pocket-llama'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: accepted-release
+          path: build/accepted-release
+      - name: Publish only the exact APK accepted by the read-only Android job
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p build/release-candidate
+          curl --fail --location --retry 3 --output build/release-candidate/baseline-source.apk https://github.com/RadmirAmir/pocket-llama/releases/download/v0.13.1-rc.1/PocketLlama-0.13.1-community-arm64.apk
+          python3 scripts/publish-verified-candidate.py
