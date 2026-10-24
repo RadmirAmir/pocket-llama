@@ -15,9 +15,10 @@ import org.json.*;
 /** Runs the packaged Bionic CPython/extensions and real SearXNG on Android. */
 public final class AndroidSearchProbe extends Activity {
     private static final AtomicBoolean started=new AtomicBoolean();
-    private final CountDownLatch focused=new CountDownLatch(1);
-    private final AtomicBoolean checkingSearch=new AtomicBoolean(),lostFocus=new AtomicBoolean();
-    @Override public void onWindowFocusChanged(boolean hasFocus){super.onWindowFocusChanged(hasFocus);if(hasFocus)focused.countDown();else if(checkingSearch.get())lostFocus.set(true);}
+    private final CountDownLatch drawn=new CountDownLatch(1);
+    private final AtomicBoolean checkingSearch=new AtomicBoolean(),extraWindow=new AtomicBoolean();
+    private final java.util.Set<android.view.View> searchWindows=java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<android.view.View,Boolean>());
+    private void inspectWindows(){for(android.view.View root:android.view.inspector.WindowInspector.getGlobalWindowViews())if(!searchWindows.contains(root))extraWindow.set(true);}
     private static Object field(Object value,String name)throws Exception{Field f=value.getClass().getDeclaredField(name);f.setAccessible(true);return f.get(value);}
     private static void check(boolean value,String label){if(!value)throw new AssertionError(label);}
     @Override public void onCreate(Bundle state){super.onCreate(state);
@@ -26,9 +27,14 @@ public final class AndroidSearchProbe extends Activity {
         setTurnScreenOn(true);setShowWhenLocked(true);
         getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         android.widget.TextView status=new android.widget.TextView(this);status.setText("Pocket search runtime test");setContentView(status);
+        status.getViewTreeObserver().addOnPreDrawListener(new android.view.ViewTreeObserver.OnPreDrawListener(){public boolean onPreDraw(){status.getViewTreeObserver().removeOnPreDrawListener(this);searchWindows.addAll(android.view.inspector.WindowInspector.getGlobalWindowViews());drawn.countDown();return true;}});
         if(!started.compareAndSet(false,true))return;new Thread(()->{
         try{
-            check(focused.await(30,TimeUnit.SECONDS),"search probe has window focus");checkingSearch.set(true);
+            check(drawn.await(30,TimeUnit.SECONDS),"search probe drew its window");checkingSearch.set(true);
+            // Inspect this process's actual windows. System UI overlays can take
+            // global focus during boot and are unrelated to a search popup.
+            android.os.Handler main=new android.os.Handler(android.os.Looper.getMainLooper());
+            main.post(new Runnable(){public void run(){if(!checkingSearch.get())return;inspectWindows();main.postDelayed(this,50);}});
             WebSearch task=new WebSearch(this,()->{});
             JSONObject result=task.search("Pocket native parser fixture","en");
             JSONArray sources=result.getJSONArray("sources");
@@ -60,9 +66,10 @@ public final class AndroidSearchProbe extends Activity {
                 JSONObject general=live.search("llama.cpp","en","general");check(general.getJSONArray("sources").length()>0,"live public general search returned sources");
                 Log.i("PocketSearchTest","Live background search: RU news="+dated.length()+", EN general="+general.getJSONArray("sources").length());
             }finally{live.close();}
-            check(!lostFocus.get(),"background search never opens another window");checkingSearch.set(false);
+            CountDownLatch inspected=new CountDownLatch(1);main.post(()->{inspectWindows();checkingSearch.set(false);inspected.countDown();});
+            check(inspected.await(5,TimeUnit.SECONDS),"final window inspection completed");check(!extraWindow.get(),"background search never opens another app window");
             Log.i("PocketSearchTest","PASS: native CPython, public DNS/verified HTTPS, background RSS/API search without windows, certificate rejection, real SearXNG and lock cancellation");
-        }catch(Throwable e){Log.e("PocketSearchTest","FAIL",e);}
+        }catch(Throwable e){Log.e("PocketSearchTest","FAIL",e);}finally{checkingSearch.set(false);}
     },"pocket-search-test").start();}
 
 }
