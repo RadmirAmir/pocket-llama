@@ -16,5 +16,19 @@
   "studioAssetsMatchSource": true,
   "searchBrowserClassesPackaged": false,
   "diagnosticClassesPackaged": false,
-  "unchangedNativeLibraries": 14
+  "unchangedNativeLibraries": 14,
+  "signedApkAcceptance": {
+    "accepted": true,
+    "runId": "40131927433",
+    "runUrl": "https://github.com/RadmirAmir/pocket-llama/actions/runs/40131927433",
+    "workflowCommit": "dd58353be1e072b3768dbc2963c7d14955a867f3",
+    "sourceCommit": "4147f62200698d31207919173a6558f95af4941e",
+    "sha256": "06a5b7af6b851b4dc68dd788af4ca47ae85374ac1f53ab856d92074ec3664374",
+    "freshInstall": true,
+    "startup": true,
+    "upgradeFrom0110RC3": true,
+    "upgradeFrom0133": true,
+    "notesRagSqlcipherVideoRegression": true,
+    "device": "Android 36 x86_64 emulator; ARM64 LLM performance not measured"
+  }
 }

@@ -42,3 +42,11 @@ context; the latter exercises map/reduce. The repeated 84-turn amount/deadline/
 qualification regression also passes at 2048. Captured outputs and model pins:
 `tests/fixtures/video-summary-minicpm5-0.13.4.json`. Output budget: 192 tokens;
 source-ID lookup cache: bounded to 512 entries to avoid repeated SQLite queries.
+
+Exact signed APK acceptance passed: https://github.com/RadmirAmir/pocket-llama/actions/runs/40131927433
+Fresh installation/startup, in-place upgrades from 0.11.0 RC.3 and 0.13.3, notes/RAG/SQLCipher/video regression passed on Android 36 emulator.
+
+All four source CI jobs passed: https://github.com/RadmirAmir/pocket-llama/actions/runs/40131671584
+Frozen source: 4147f62200698d31207919173a6558f95af4941e.
+Published APK: 662343420 bytes; SHA-256 06a5b7af6b851b4dc68dd788af4ca47ae85374ac1f53ab856d92074ec3664374.
+Original update certificate, all 16 bundled models and 14 unchanged native libraries verified.
