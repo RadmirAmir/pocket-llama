@@ -1408,5 +1408,8 @@
   "Поиск выполняется в фоне. Внешние сайты получают поисковые запросы и ваш IP-адрес. Модель может включить в запрос личные сведения из переписки, вложений и подключённой базы знаний. Включайте поиск только для данных, которые готовы отправить в интернет.": "Search runs in the background. External sites receive search queries and your IP address. The model may include personal details from the conversation, attachments and connected personal knowledge. Enable search only for data you are willing to send to the Internet.",
   "Открыть реплику ": "Open source turn ",
   "Модель вернула названия фрагментов вместо содержательных итогов. Создайте конспект заново [SUMMARY_CONTENT]": "The model returned fragment labels instead of substantive takeaways. Regenerate the summary [SUMMARY_CONTENT]",
-  "уточняем содержание": "checking the content"
+  "уточняем содержание": "checking the content",
+  "Обновите итоги: сохранённая расшифровка уже готова, распознавать видео заново не нужно.": "Update the takeaways using the saved transcript. No need to transcribe the video again.",
+  "Обновить итоги": "Update takeaways",
+  "Не удалось выбрать содержательные высказывания из расшифровки. Создайте конспект заново [SUMMARY_CONTENT]": "Could not select substantive statements from the transcript. Regenerate the summary [SUMMARY_CONTENT]"
 }

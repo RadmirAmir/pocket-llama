@@ -32,9 +32,10 @@ public final class SummaryPipelineTests {
             // escaping overhead deliberately included on the conservative side.
             int tokens=(body.getJSONArray("messages").toString().length()+1)/2;
             if(tokens+body.getInt("max_tokens")+64>2048)throw new AssertionError("Context overflow");
-            requests++;JSONArray ids=body.getJSONObject("response_format").getJSONObject("json_schema").getJSONObject("schema").getJSONObject("properties").getJSONObject("brief").getJSONObject("items").getJSONObject("properties").getJSONObject("sources").getJSONObject("items").getJSONArray("enum");
+            requests++;JSONObject properties=body.getJSONObject("response_format").getJSONObject("json_schema").getJSONObject("schema").getJSONObject("properties");boolean video=properties.has("points");
+            JSONArray ids=video?new JSONArray().put(1):properties.getJSONObject("brief").getJSONObject("items").getJSONObject("properties").getJSONObject("sources").getJSONObject("items").getJSONArray("enum");
             JSONObject fact=new JSONObject().put("text","Автор привёл два аргумента.").put("sources",new JSONArray().put(badCitation?99999:ids.getInt(0)));
-            String json=new JSONObject().put("brief",new JSONArray().put(fact)).put("decisions",new JSONArray().put(fact)).put("tasks",new JSONArray()).put("questions",new JSONArray()).toString();
+            String json=(video?new JSONObject().put("points",new JSONArray().put(1)):new JSONObject().put("brief",new JSONArray().put(fact)).put("decisions",new JSONArray().put(fact)).put("tasks",new JSONArray()).put("questions",new JSONArray())).toString();
             String chunk=new JSONObject().put("choices",new JSONArray().put(new JSONObject().put("delta",new JSONObject().put("content",json)))).toString();
             String end=new JSONObject().put("choices",new JSONArray().put(new JSONObject().put("delta",new JSONObject()).put("finish_reason","stop"))).toString();
             reply(e,"data: "+chunk+"\n\ndata: "+end+"\n\ndata: [DONE]\n\n","text/event-stream");
@@ -51,13 +52,13 @@ public final class SummaryPipelineTests {
             try{stopped.summarize(s->{});throw new AssertionError("Cancelled summary continued");}catch(InterruptedException expected){}
             if(requests!=count)throw new AssertionError("Cancel still made inference calls");
             Source video=new Source();video.data.add("[#1] В лекции приведены два аргумента.\n");String videoSummary=new LocalSummary(video,port,"test",2048,true).summarize(s->{});
-            if(!videoSummary.contains("Ключевые тезисы")||videoSummary.contains("Практические выводы")||videoSummary.contains("Ответственный:")||videoSummary.contains("Не зафиксировано"))throw new AssertionError("Video should contain only substantive sections");
+            if(!videoSummary.contains("В лекции приведены два аргумента.")||videoSummary.contains("Практические выводы")||videoSummary.contains("Ответственный:")||videoSummary.contains("Не зафиксировано"))throw new AssertionError("Video should contain the actual speech");
             Source english=new Source();english.data.add("[#1] Анна: запуск в пятницу.\n");
             String englishSummary=new LocalSummary(english,port,"test",2048,false,true).summarize(s->{});
             if(!englishSummary.contains("## Overview")||!englishSummary.contains("## Decisions")||!englishSummary.contains("Not recorded.")||!englishSummary.contains("[#1]"))throw new AssertionError("English summary labels or references lost");
             Source englishVideo=new Source();englishVideo.data.add("[#1] Пример из лекции.\n");
             String englishVideoSummary=new LocalSummary(englishVideo,port,"test",2048,true,true).summarize(s->{});
-            if(!englishVideoSummary.contains("## Key points")||englishVideoSummary.contains("## Practical takeaways")||englishVideoSummary.contains("## Decisions"))throw new AssertionError("English video should omit empty sections and meeting labels");
+            if(!englishVideoSummary.contains("## Overview")||!englishVideoSummary.contains("Пример из лекции.")||englishVideoSummary.contains("## Practical takeaways")||englishVideoSummary.contains("## Decisions"))throw new AssertionError("Video uses localized labels and original speech");
             System.out.println("PASS: Russian and English meeting/video summary formats");
             System.out.println("PASS: long summary budgets, hierarchical reduction, checkpoint reuse, citation rejection, cancellation; inference calls="+requests);
         }finally{server.stop(0);}

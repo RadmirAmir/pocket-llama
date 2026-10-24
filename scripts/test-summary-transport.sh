@@ -7,7 +7,7 @@ mkdir -p "$test_dir"
 javac --release 11 --add-modules jdk.httpserver -cp "$CHAT_JSON_JAR" -d "$test_dir" \
  "$project_dir"/app/src/main/java/dev/pocketllama/core/{SseReader,TextAttachment,LoopbackHttp,GgufMetadata,GenerationProfile}.java \
  "$project_dir/app/src/main/java/dev/pocketllama/ChatApi.java" \
- "$project_dir"/app/src/main/java/dev/pocketllama/voice/{SummarySource,LocalSummary}.java \
+ "$project_dir"/app/src/main/java/dev/pocketllama/voice/{SummarySource,VideoSummaryEvidence,LocalSummary}.java \
  "$project_dir/tests/SummaryTransportTests.java"
 fixture="$project_dir/tests/fixtures/summary-0.6.2-checkpoint.json"
 java --add-modules jdk.httpserver -cp "$test_dir:$CHAT_JSON_JAR" SummaryTransportTests --checkpoint "$fixture"

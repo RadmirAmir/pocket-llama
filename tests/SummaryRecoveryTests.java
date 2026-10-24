@@ -49,8 +49,10 @@ public final class SummaryRecoveryTests {
             int count=(body.getJSONArray("messages").toString().length()+1)/2;
             if(count+body.getInt("max_tokens")+64>2048)throw new AssertionError("Generation exceeds allocated context");
             if(!body.getString("reasoning_effort").equals("none")||body.getInt("reasoning_budget_tokens")!=0||body.getJSONObject("chat_template_kwargs").getBoolean("enable_thinking"))throw new AssertionError("Reasoning not disabled");
-            requests++;modeRequests++;bodies.add(body);String src=source(body);sawTail|=src.contains("TAIL_UNIQUE");
+            requests++;modeRequests++;bodies.add(body);
             JSONObject schema=body.getJSONObject("response_format").getJSONObject("json_schema").getJSONObject("schema");
+            if(schema.getJSONObject("properties").has("points")){reply(e,event("{\"points\":[1]}","","stop")+"data: [DONE]\n\n","text/event-stream");return;}
+            String src=source(body);sawTail|=src.contains("TAIL_UNIQUE");
             JSONArray ids=schema.getJSONObject("properties").getJSONObject("brief").getJSONObject("items").getJSONObject("properties").getJSONObject("sources").getJSONObject("items").getJSONArray("enum");
             int id=ids.getInt(0);
             boolean left=src.contains("LEFT_MARKER"),right=src.contains("RIGHT_MARKER");

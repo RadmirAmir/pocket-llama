@@ -62,6 +62,9 @@ public final class VoiceActivity extends dev.pocketllama.security.SecureActivity
             } catch (Exception e) { reject(request,e); }
         }
     }
+    private static void summaryFreshness(JSONObject job)throws Exception{
+        job.put("summaryNeedsUpdate",!job.optString("video_url").isEmpty()&&!job.optString("summary").isEmpty()&&!job.optString("summary_key").startsWith(LocalSummary.version(true)+"|video|"));
+    }
     private JSONObject data(String action, JSONObject a) throws Exception {
         dev.pocketllama.security.GateSession.requireOpen();
         String id = a.optString("id");
@@ -70,13 +73,13 @@ public final class VoiceActivity extends dev.pocketllama.security.SecureActivity
                 JSONObject result=object("recording",VoiceState.recording,"recordId",VoiceState.id,"busy",dev.pocketllama.photo.PhotoStore.busy(this)||store.anyBusy(),"modelAvailable",!config.load().modelName.isEmpty(),"importing",importing);
                 if(a.optBoolean("library")) result.put("library", library(a.optString("query"),a.optInt("limit",100)));
                 if(!id.isEmpty()) {
-                    JSONObject j=store.get(id); String summary=j.optString("summary"); j.remove("summary"); j.put("imported",(!j.optString("source_uri").isEmpty()||!j.optString("video_url").isEmpty())); j.remove("source_uri"); j.remove("summary_key");
+                    JSONObject j=store.get(id);summaryFreshness(j); String summary=j.optString("summary"); j.remove("summary"); j.put("imported",(!j.optString("source_uri").isEmpty()||!j.optString("video_url").isEmpty())); j.remove("source_uri"); j.remove("summary_key");
                     j.put("summaryTag",summary.length()+":"+summary.hashCode()); j.put("has_summary",!summary.isEmpty()); j.put("turnCount", countTurns(id,"")); result.put("meeting",j);
                 }
                 return result;
             }
             case "detail": {
-                JSONObject j=store.get(id); j.put("imported",(!j.optString("source_uri").isEmpty()||!j.optString("video_url").isEmpty()));j.remove("source_uri"); j.remove("summary_key"); j.put("turnCount",countTurns(id,""));j.put("summaryTag",j.optString("summary").length()+":"+j.optString("summary").hashCode());
+                JSONObject j=store.get(id);summaryFreshness(j); j.put("imported",(!j.optString("source_uri").isEmpty()||!j.optString("video_url").isEmpty()));j.remove("source_uri"); j.remove("summary_key"); j.put("turnCount",countTurns(id,""));j.put("summaryTag",j.optString("summary").length()+":"+j.optString("summary").hashCode());
                 JSONArray names=new JSONArray(); for(int n=0;n<=12;n++) names.put(store.speaker(id,n)); j.put("names",names); return j;
             }
             case "turns": return turns(id,a.optString("query"),a.optInt("offset"));
