@@ -92,12 +92,12 @@ public final class VoiceStore extends SQLiteOpenHelper {
         }int best=0;double v=0;for(int i=1;i<votes.length;i++)if(votes[i]>v){v=votes[i];best=i;}return best;
     }
     public boolean partDone(String id,int idx){try(Cursor c=getReadableDatabase().rawQuery("SELECT 1 FROM parts WHERE mid=? AND idx=?",new String[]{id,""+idx})){return c.moveToFirst();}}
-    public void part(String id,int idx,List<SpeechModels.Word> words,boolean diarize,long coreStart,long coreEnd,boolean last)throws Exception{
+    public void part(String id,int idx,List<SpeechRecognizer.Word> words,boolean diarize,long coreStart,long coreEnd)throws Exception{
         SQLiteDatabase d=getWritableDatabase();d.beginTransaction();try{
             d.delete("words","mid=? AND part=?",new String[]{id,""+idx});int n=0;
             String lastText="";long lastEnd=-10000;
             try(Cursor c=d.rawQuery("SELECT text,end FROM words WHERE mid=? AND part<? ORDER BY part DESC,idx DESC LIMIT 1",new String[]{id,""+idx})){if(c.moveToFirst()){lastText=c.getString(0);lastEnd=c.getLong(1);}}
-            for(SpeechModels.Word w:words){long midpoint=(w.startMs+w.endMs)/2;if(midpoint<coreStart||midpoint>=coreEnd)continue;
+            for(SpeechRecognizer.Word w:words){long midpoint=(w.startMs+w.endMs)/2;if(midpoint<coreStart||midpoint>=coreEnd)continue;
                 if(n==0&&w.text.equalsIgnoreCase(lastText)&&w.startMs<=lastEnd)continue;
                 ContentValues v=new ContentValues();v.put("mid",id);v.put("part",idx);v.put("idx",n++);v.put("start",w.startMs);v.put("end",w.endMs);v.put("speaker",diarize?speakerAt(id,midpoint):1);v.put("text",w.text);d.insertOrThrow("words",null,v);lastText=w.text;lastEnd=w.endMs;
             }

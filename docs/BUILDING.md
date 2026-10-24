@@ -2,6 +2,9 @@
 
 [Product overview](../README.md) · [Release and signing guide](RELEASE.md) · [Licenses](LICENSING.md)
 
+[Architecture and extension boundaries](ARCHITECTURE.md) documents resource
+ownership, speech checkpoint compatibility, UI transport and future platform work.
+
 Use JDK 17, Python 3.11+, Android SDK platform 36, build-tools 36.0.0 and NDK r28.2.13676358. Native builds require CMake and Ninja. The Gradle wrapper pins its distribution SHA-256.
 
 ```bash
@@ -32,6 +35,26 @@ An unsigned bundle is for structural validation. Upload requires the publisher's
 The free community profile enables Surya for personal, noncommercial use. The VLM is downloaded from the author after the user accepts the full model terms. Play keeps Surya disabled by default. See [the license inventory](LICENSING.md). A personal package's vault does not automatically migrate to the public package.
 
 ## Verification
+
+For speech orchestration and the shared UI request client (JDK 17 and Node;
+no Android SDK, model weights or browser required):
+
+```bash
+bash scripts/test-voice-core.sh
+node scripts/test-native-rpc.cjs
+```
+
+For the affected screens, with Playwright and Chromium installed:
+
+```bash
+node scripts/test-studio-ui.cjs
+node scripts/test-notes-ui.cjs
+node scripts/test-scanner-ui.cjs
+node scripts/test-i18n-ui.cjs
+```
+
+Set `CHAT_QA_BROWSER` if Chromium is installed outside Playwright's cache.
+UI tests use synthetic data and native responses; they do not run phone models.
 
 ```bash
 CHAT_JSON_JAR=/path/to/json.jar bash scripts/test-distribution.sh

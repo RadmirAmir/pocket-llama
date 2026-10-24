@@ -15,12 +15,12 @@ import java.util.concurrent.*;
 public final class SpeechService extends Service {
     public static final String PROCESS="dev.pocketllama.voice.PROCESS",CANCEL="dev.pocketllama.voice.CANCEL_ASR";
     private final ExecutorService executor=Executors.newSingleThreadExecutor();
-    private volatile boolean cancelled;private volatile SpeechModels.Recognizer activeAsr;
+    private volatile boolean cancelled;private volatile SpeechRecognizer activeAsr;
     private Future<?> task;private String id;private VoiceStore store;private PowerManager.WakeLock wake;
     private long lastHeartbeat;private String importUri;
     @Override public void onCreate(){super.onCreate();if(dev.pocketllama.security.Vault.ready(this))store=new VoiceStore(this);else stopSelf();}
     @Override public int onStartCommand(Intent i,int flags,int startId){if(store==null){stopSelf();return START_NOT_STICKY;}
-        if(i==null||CANCEL.equals(i.getAction())){cancelled=true;SpeechModels.Recognizer a=activeAsr;if(a!=null)a.cancel();if(task==null)stopSelf();return START_NOT_STICKY;}
+        if(i==null||CANCEL.equals(i.getAction())){cancelled=true;SpeechRecognizer a=activeAsr;if(a!=null)a.cancel();if(task==null)stopSelf();return START_NOT_STICKY;}
         if(task!=null)return START_NOT_STICKY;
         id=i.getStringExtra("id");importUri=i.getStringExtra("uri");cancelled=false;
         if(Build.VERSION.SDK_INT>=34)startForeground(3,VoiceNotifications.build(this,"Подготовка распознавания…",SpeechService.class,CANCEL),ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
@@ -53,7 +53,7 @@ public final class SpeechService extends Service {
             }
         }
     }catch(Throwable e){if(began){try{store.rebuildTurns(id);store.state(id,"interrupted",cancelled?"Обработка остановлена. Можно продолжить с контрольной точки.":"Обработка прервана: "+message(e),0);}catch(Throwable ignored){}}}
-        finally{SpeechModels.Recognizer a=activeAsr;activeAsr=null;if(a!=null)try{a.close();}catch(Exception ignored){}if(wake!=null&&wake.isHeld())wake.release();if(automaticSummary&&!cancelled)try{startForegroundService(new Intent(this,SummaryService.class).setAction(SummaryService.START).putExtra("id",id));}catch(Exception e){store.state(id,"done","Расшифровка готова. Нажмите «Создать конспект», чтобы продолжить.",1);}new Handler(Looper.getMainLooper()).post(()->{stopForeground(STOP_FOREGROUND_REMOVE);stopSelf();});}
+        finally{if(wake!=null&&wake.isHeld())wake.release();if(automaticSummary&&!cancelled)try{startForegroundService(new Intent(this,SummaryService.class).setAction(SummaryService.START).putExtra("id",id));}catch(Exception e){store.state(id,"done","Расшифровка готова. Нажмите «Создать конспект», чтобы продолжить.",1);}new Handler(Looper.getMainLooper()).post(()->{stopForeground(STOP_FOREGROUND_REMOVE);stopSelf();});}
     }
     private ModelLease awaitLease()throws Exception{long until=SystemClock.elapsedRealtime()+30000;while(true){guard();try{return new ModelLease(getFilesDir());}catch(IOException e){if(SystemClock.elapsedRealtime()>until)throw e;Thread.sleep(100);}}}
     private void guard()throws Exception{
@@ -95,18 +95,31 @@ public final class SpeechService extends Service {
     }
     private void transcribe(PcmFile audio,File models,boolean diarize,String language)throws Exception{
         progress(language.equals("en")?"Loading Moonshine Streaming Medium…":"Загрузка GigaAM v3…",0.32);
-        try(SpeechModels.Recognizer asr=language.equals("en")?new MoonshineAsr(MoonshineAssets.prepare(this)):new SpeechModels.Asr(models,2);Cursor regions=store.regions(id)){
-            activeAsr=asr;int idx=0;
-            while(regions.moveToNext()){long start=regions.getLong(1),end=regions.getLong(2);
-                for(long core=start;core<end;core+=192000){long coreEnd=Math.min(end,core+192000);
-                    if(!store.partDone(id,idx)){guard();long left=Math.max(0,core-3840),right=Math.min(audio.samples(),coreEnd+3840);List<SpeechModels.Word> words=asr.recognize(audio.read(left,(int)(right-left)),left/16);guard();store.part(id,idx,words,diarize,core/16,coreEnd/16,coreEnd==end);}
-                    idx++;progress("Распознавание · "+VoiceStore.time(coreEnd/16)+" / "+VoiceStore.time(audio.samples()/16),0.32+0.68*coreEnd/audio.samples());
+        try (SpeechRecognizer asr = language.equals("en")
+                ? new MoonshineAsr(MoonshineAssets.prepare(this)) : new SpeechModels.Asr(models, 2)) {
+            activeAsr = asr;
+            try (Cursor regions = store.regions(id)) {
+                Transcription transcription = new Transcription(audio.samples(), audio::read, asr,
+                    new Transcription.Checkpoints() {
+                        @Override public boolean contains(int part) { return store.partDone(id, part); }
+                        @Override public void commit(int part, List<SpeechRecognizer.Word> words,
+                                                     long startMs, long endMs) throws Exception {
+                            store.part(id, part, words, diarize, startMs, endMs);
+                        }
+                    }, this::guard, (end, total) -> progress(
+                        "Распознавание · " + VoiceStore.time(end / 16) + " / " + VoiceStore.time(total / 16),
+                        0.32 + 0.68 * end / total));
+                while (regions.moveToNext()) {
+                    transcription.region(regions.getLong(1), regions.getLong(2));
                 }
+            } finally {
+                // The try-with-resources owner closes exactly once, including failures.
+                activeAsr = null;
             }
-            activeAsr=null;
         }
     }
+
     private static String message(Throwable e){String m=e.getMessage();return m==null?e.getClass().getSimpleName():m;}
-    @Override public void onDestroy(){cancelled=true;SpeechModels.Recognizer a=activeAsr;if(a!=null)a.cancel();executor.shutdownNow();if(wake!=null&&wake.isHeld())wake.release();store.close();super.onDestroy();android.os.Process.killProcess(android.os.Process.myPid());}
+    @Override public void onDestroy(){cancelled=true;SpeechRecognizer a=activeAsr;if(a!=null)a.cancel();executor.shutdownNow();if(wake!=null&&wake.isHeld())wake.release();store.close();super.onDestroy();android.os.Process.killProcess(android.os.Process.myPid());}
     @Override public IBinder onBind(Intent i){return null;}
 }
