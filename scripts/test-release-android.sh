@@ -28,7 +28,7 @@ with zipfile.ZipFile(candidate) as z:
     for group in ['speech','moonshine','ocr']:
         for item in json.loads((root/'app/src/main/assets'/group/'manifest.json').read_text())['files']:
             assert z.getinfo('assets/'+group+'/'+item['name']).file_size==item['bytes']
-    for name in ['chat.html','chat.css','i18n-en.json','search/server.py','rag/model.json']:
+    for name in ['chat.html','chat.css','studio.js','studio.css','i18n-en.json','search/server.py','rag/model.json']:
         assert z.read('assets/'+name)==(root/'app/src/main/assets'/name).read_bytes(),name
     assert z.getinfo('assets/search/python.zip').file_size>1000000
     assert json.loads(z.read('assets/distribution.json'))['channel']=='community'

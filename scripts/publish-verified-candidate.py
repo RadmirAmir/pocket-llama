@@ -27,15 +27,18 @@ def api(method, path, body=None):
 def main():
     if os.environ.get('GITHUB_REPOSITORY') != REPO or not os.environ.get('GH_TOKEN'):
         raise ValueError('Publishing is restricted to this repository')
-    plan, _ = copy.load_plan(ROOT/'distribution/release-candidates/0.13.2.json')
+    plan, _ = copy.load_plan(ROOT/'distribution/release-candidates/0.13.3.json')
     accepted = ROOT/'build/accepted-release'
     report = json.loads((accepted/'accepted.json').read_text())
     if (report.get('accepted') is not True or report.get('runId') != os.environ['GITHUB_RUN_ID']
             or report.get('sha256') != plan['candidate']['sha256']
-            or report.get('sourceCommit') != plan['sourceCommit']):
+            or report.get('sourceCommit') != plan['sourceCommit']
+            or report.get('workflowCommit') != os.environ['GITHUB_SHA']):
         raise ValueError('Android acceptance does not match this candidate/run')
+    protected = ['app','native','distribution/release.json','distribution/model-catalog.json','llama.lock','rag-model.lock.json','*runtime.lock.json','scripts/build-apk.py','scripts/prepare-distribution.py','scripts/video_bundle.py','scripts/search_bundle.py']
+    subprocess.run(['git','diff','--exit-code',plan['sourceCommit'],os.environ['GITHUB_SHA'],'--',*protected], cwd=ROOT, check=True)
     output = ROOT/'build/release-publication'/plan['candidate']['name']
-    copy.reconstruct(ROOT/'distribution/release-candidates/0.13.2.json',
+    copy.reconstruct(ROOT/'distribution/release-candidates/0.13.3.json',
                      ROOT/'build/release-candidate/baseline-source.apk', output)
     # Read all authenticated release metadata through gh; no credentials reach
     # artifact storage or any external provider.
@@ -47,15 +50,16 @@ def main():
             raise ValueError('Refusing to replace a different published APK')
         print('Exact accepted release is already published.')
         return
-    notes = (ROOT/'docs/RELEASE-NOTES-0.13.2.md').read_text()
-    notes = notes.replace('(VALIDATION-0.13.2.md)', '(https://github.com/'+REPO+'/blob/main/docs/VALIDATION-0.13.2.md)')
+    notes = (ROOT/'docs/RELEASE-NOTES-0.13.3.md').read_text()
+    notes = notes.replace('(VALIDATION-0.13.3.md)', '(https://github.com/'+REPO+'/blob/main/docs/VALIDATION-0.13.3.md)')
     notes += '\nAPK SHA-256: `'+plan['candidate']['sha256']+'`.\n\n'
+    notes += 'App source: `'+plan['sourceCommit']+'`.\n\n'
     notes += 'Signed installation/upgrade acceptance: '+report['runUrl']+'.\n'
-    body = {'tag_name': plan['tag'], 'target_commitish': plan['sourceCommit'],
-            'name': 'Pocket Llama 0.13.2 RC.1 — background search and native agent',
+    body = {'tag_name': plan['tag'], 'target_commitish': os.environ['GITHUB_SHA'],
+            'name': 'Pocket Llama 0.13.3 RC.1 — video summaries and direct sources',
             'body': notes, 'draft': True, 'prerelease': True}
     release = api('PATCH', '/releases/'+str(existing['id']), body) if existing else api('POST', '/releases', body)
-    upload = [str(output)] + [str(accepted/name) for name in ('SHA256SUMS.txt','VALIDATION-0.13.2.md','artifact-validation-0.13.2.json')]
+    upload = [str(output)] + [str(accepted/name) for name in ('SHA256SUMS.txt','VALIDATION-0.13.3.md','artifact-validation-0.13.3.json')]
     # --clobber is used only for an unpublished draft owned by this run.
     subprocess.run(['gh', 'release', 'upload', plan['tag'], '--repo', REPO, '--clobber', *upload], check=True)
     release = api('GET', '/releases/'+str(release['id']))
