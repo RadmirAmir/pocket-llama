@@ -16,5 +16,19 @@
   "videoSummaryVersion": "summary-v4-video-facts",
   "studioAssetsMatchSource": true,
   "searchBrowserClassesPackaged": false,
-  "diagnosticClassesPackaged": false
+  "diagnosticClassesPackaged": false,
+  "signedApkAcceptance": {
+    "accepted": true,
+    "runId": "40116475724",
+    "runUrl": "https://github.com/RadmirAmir/pocket-llama/actions/runs/40116475724",
+    "workflowCommit": "3c2ab8d46cf0ca207cf79625f9cea08e3d787ba6",
+    "sourceCommit": "d88132972914a0e5c60320fb87fba2d503054bb1",
+    "sha256": "59024ef5da94be8f7591e9041f735f4496612e335694da63023c44853f0941ee",
+    "freshInstall": true,
+    "startup": true,
+    "upgradeFrom0110RC3": true,
+    "upgradeFrom0132": true,
+    "notesRagSqlcipherVideoRegression": true,
+    "device": "Android 36 x86_64 emulator; ARM64 LLM performance not measured"
+  }
 }
