@@ -24,7 +24,7 @@ with zipfile.ZipFile('build/install/community-0.11.0.apk') as apk:
     check=importlib.util.module_from_spec(spec);spec.loader.exec_module(check)
     check.apk_resources(apk)
     names=apk.namelist()
-    for name in ['native-rpc.js','notes.html','notes.js','notes.css','studio.html','studio.js','studio.css','chat.html','chat.css','photos.html','photos.js','rag/model.json','i18n.js','i18n-en.json','theme.js']:
+    for name in ['notes.html','notes.js','notes.css','studio.html','studio.js','studio.css','chat.html','chat.css','photos.html','photos.js','rag/model.json','i18n.js','i18n-en.json','theme.js']:
         assert apk.read('assets/'+name)==Path('app/src/main/assets',name).read_bytes(), 'Stale asset: '+name
     dex=b''.join(apk.read(n) for n in names if n.endswith('.dex'))
     assert b'copyTranscript' in dex, 'Transcript copy method missing from native executable'

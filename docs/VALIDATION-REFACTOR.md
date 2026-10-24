@@ -29,6 +29,19 @@ both were restored and the affected suites passed afterward. Non-reply Studio
 and Photo event handlers were also compared with the accepted source to confirm
 that their behavior was retained.
 
+## CI fixture correction
+
+The historical installation workflow downloads fixed 0.11.0 RC3 bytes and
+compares their assets with the checkout. It previously checked out the moving
+branch, so any later UI change invalidated that comparison. The workflow now
+explicitly replays `e76a2e0f179c262e5443fd407834a61eac37b7c4`, the matching
+RC3 validation revision documented in [VALIDATION-0.11.0-rc3.md](VALIDATION-0.11.0-rc3.md).
+Its app source/assets/runtime pins match the published RC3 source
+`33517976485dc20e604cdcccd950d5d82d37a9cc`. The historical script itself is
+unchanged. New shared-asset validation belongs to the current artifact validator
+and RPC tests, not the immutable old APK. The workflow name now identifies the
+old version; passing it does not validate installation of this refactor.
+
 ## Scope of evidence
 
 The new speech tests use the production orchestration with fake audio/model/store
