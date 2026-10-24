@@ -12,12 +12,14 @@ import threading
 import urllib.request
 
 ROOT=Path(__file__).resolve().parents[1]
-p=argparse.ArgumentParser();p.add_argument('--server',required=True);p.add_argument('--model',required=True);p.add_argument('--json-jar',required=True);p.add_argument('--inject-length',action='store_true',help='Force the first real model response to end at 32 tokens; exercise recovery');args=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--server',required=True);p.add_argument('--model',required=True);p.add_argument('--json-jar',required=True);p.add_argument('--inject-length',action='store_true',help='Force the first real model response to end at 32 tokens; exercise recovery');p.add_argument('--video-regression',action='store_true',help='Check substantive video content and citations across 84 synthetic turns');p.add_argument('--context',type=int);args=p.parse_args()
+context=args.context or (8192 if args.video_regression else 2048)
+test_class='VideoSummaryIntegration' if args.video_regression else 'LocalSummaryIntegration'
 build=ROOT/'build/summary-live';build.mkdir(exist_ok=True,parents=True)
-sources=[ROOT/'app/src/main/java/dev/pocketllama'/s for s in ['core/SseReader.java','core/TextAttachment.java','core/LoopbackHttp.java','core/GgufMetadata.java','core/GenerationProfile.java','ChatApi.java','voice/SummarySource.java','voice/LocalSummary.java']]+[ROOT/'tests/LocalSummaryIntegration.java']
+sources=[ROOT/'app/src/main/java/dev/pocketllama'/s for s in ['core/SseReader.java','core/TextAttachment.java','core/LoopbackHttp.java','core/GgufMetadata.java','core/GenerationProfile.java','ChatApi.java','voice/SummarySource.java','voice/LocalSummary.java']]+[ROOT/'tests'/(test_class+'.java')]
 subprocess.run(['javac','--release','11','-cp',args.json_jar,'-d',str(build),*map(str,sources)],check=True)
 with open(build/'server.log','w') as log:
-    server=subprocess.Popen([args.server,'--model',args.model,'--ctx-size','2048','--threads','4','--batch-size','128','--ubatch-size','32','--host','127.0.0.1','--port','18080','--parallel','1','--api-key','test-voice','--no-webui','--jinja','--reasoning-budget','0','--no-warmup'],stdout=log,stderr=subprocess.STDOUT)
+    server=subprocess.Popen([args.server,'--model',args.model,'--ctx-size',str(context),'--threads','4','--batch-size','128','--ubatch-size','32','--host','127.0.0.1','--port','18080','--parallel','1','--api-key','test-voice','--no-webui','--jinja','--reasoning-budget','0','--no-warmup'],stdout=log,stderr=subprocess.STDOUT)
     try:
         for _ in range(150):
             try:
@@ -45,7 +47,7 @@ with open(build/'server.log','w') as log:
                 def log_message(self,*args):pass
             proxy=http.server.ThreadingHTTPServer(('127.0.0.1',0),Proxy);threading.Thread(target=proxy.serve_forever,daemon=True).start()
         try:
-            subprocess.run(['java','-XX:-UsePerfData','-cp',str(build)+':'+args.json_jar,'LocalSummaryIntegration',str(proxy.server_port if proxy else 18080),str(build/'control-summary.md')],check=True,timeout=180)
+            subprocess.run(['java','-XX:-UsePerfData','-cp',str(build)+':'+args.json_jar,test_class,str(proxy.server_port if proxy else 18080),str(build/('video-summary.md' if args.video_regression else 'control-summary.md')),str(context)],check=True,timeout=300 if args.video_regression else 180)
             if args.inject_length:
                 if len(calls)<2:raise AssertionError('Injected real length did not exercise retry')
                 print('PASS: injected 32-token native length recovered; real inference calls='+str(len(calls)))

@@ -25,6 +25,8 @@ jobs:
         run: |
           bash scripts/test-core.sh
           bash scripts/test-voice-core.sh
+          bash scripts/test-summary-pipeline.sh
+          bash scripts/test-summary-transport.sh
           bash scripts/test-distribution.sh
           python3 scripts/release-check.py
           bash scripts/test-search-core.sh

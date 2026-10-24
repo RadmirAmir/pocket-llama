@@ -1405,5 +1405,8 @@
   "внутренняя ошибка поиска": "internal search error",
   "Только заголовок и дата; текст статьи не загружался.": "Headline and date only; article text was not downloaded.",
   "Подходящих результатов не найдено.": "No matching results found.",
-  "Поиск выполняется в фоне. Внешние сайты получают поисковые запросы и ваш IP-адрес. Модель может включить в запрос личные сведения из переписки, вложений и подключённой базы знаний. Включайте поиск только для данных, которые готовы отправить в интернет.": "Search runs in the background. External sites receive search queries and your IP address. The model may include personal details from the conversation, attachments and connected personal knowledge. Enable search only for data you are willing to send to the Internet."
+  "Поиск выполняется в фоне. Внешние сайты получают поисковые запросы и ваш IP-адрес. Модель может включить в запрос личные сведения из переписки, вложений и подключённой базы знаний. Включайте поиск только для данных, которые готовы отправить в интернет.": "Search runs in the background. External sites receive search queries and your IP address. The model may include personal details from the conversation, attachments and connected personal knowledge. Enable search only for data you are willing to send to the Internet.",
+  "Открыть реплику ": "Open source turn ",
+  "Модель вернула названия фрагментов вместо содержательных итогов. Создайте конспект заново [SUMMARY_CONTENT]": "The model returned fragment labels instead of substantive takeaways. Regenerate the summary [SUMMARY_CONTENT]",
+  "уточняем содержание": "checking the content"
 }

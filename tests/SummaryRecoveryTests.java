@@ -122,7 +122,7 @@ public final class SummaryRecoveryTests {
             reset("normal");Source changed=shortSource();run(changed,port);before=requests;changed.data.set(0,"[#1] Мария: Перенесли пилот на вторник.\n");run(changed,port);
             check(requests==before+1,"changed source invalidates its cached generation");
             before=requests;String video=new LocalSummary(changed,port,"test",2048,true).summarize(x->{});
-            check(requests==before+1&&video.contains("Ключевые тезисы"),"video and meeting checkpoints stay distinct");
+            check(requests==before+1&&video.contains("## Кратко")&&!video.contains("## Решения"),"video and meeting checkpoints stay distinct");
             System.out.println("PASS: "+checks+" adaptive summary recovery checks; inference calls="+requests);
         }finally{server.stop(0);}
     }

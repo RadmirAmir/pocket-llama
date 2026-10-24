@@ -35,3 +35,5 @@ html{overflow:hidden}body{overflow:hidden}#app{height:100%;max-width:760px;margi
 .bottom-nav button>span{max-width:100%;white-space:nowrap;overflow-wrap:normal;overflow:hidden;text-overflow:ellipsis;line-height:1.35}
 @media(max-width:340px){.bottom-nav button{font-size:.625rem}}
 .transcript-tools{align-items:center;flex-wrap:wrap;gap:10px}.transcript-tools .search{flex-basis:180px}.transcript-tools .text-button{margin-left:auto;min-height:44px;padding:8px 5px;font-size:.6875rem;white-space:nowrap}
+
+.summary-footer{flex-wrap:wrap}

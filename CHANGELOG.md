@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.13.3 — substantive video summaries and direct source navigation
+
+- Require concrete video claims rather than topic labels such as «Фрагмент про…». Repair malformed content once within the existing inference budget and reject persistent placeholders.
+- Keep up to five distinct key points, preserve amounts/dates/qualifications, and omit empty video sections. Keep the existing meeting-summary checkpoints.
+- Deduplicate source references in generated and previously saved summaries. Source taps open the actual transcript turn directly, retaining its page through refreshes.
+- Add Regenerate below saved summaries so old output can be rebuilt from the transcript with the new video prompt/cache version.
+- Preserve the complete dev.pocketllama app and original signing identity; version code 36.
+
 ## 0.13.2 — background search and native agent turns
 
 - Remove the search WebView, browser-session/CAPTCHA handoff and browser-page fallback. Use embedded SearXNG RSS/public API requests entirely in the background.
