@@ -1,0 +1,20 @@
+{
+  "community": {
+    "modelsVerified": 16,
+    "videoFilesVerified": 6,
+    "searchFilesVerified": 3,
+    "channel": "community",
+    "suryaBundled": false,
+    "bytes": 662343420
+  },
+  "legacyCertificateMatches": true,
+  "legacyCertificateSha256": "ef3cea40110c13d179cc7e1f1e570aeb2f870cb7d46f16273eb5d733cf9b2ed0",
+  "apk": "PocketLlama-0.13.4-community-arm64.apk",
+  "sha256": "06a5b7af6b851b4dc68dd788af4ca47ae85374ac1f53ab856d92074ec3664374",
+  "sourceCommit": "4147f62200698d31207919173a6558f95af4941e",
+  "videoSummaryVersion": "summary-v5-video-evidence",
+  "studioAssetsMatchSource": true,
+  "searchBrowserClassesPackaged": false,
+  "diagnosticClassesPackaged": false,
+  "unchangedNativeLibraries": 14
+}

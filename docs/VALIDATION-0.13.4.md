@@ -33,3 +33,12 @@ The new synthetic fixture contains 84 unique ASR-style turns across six fictiona
 local news stories, amounts, dates, negations and uncertainty. It checks topic
 coverage and the exact selected speech/citation binding. This is not a physical
 phone performance measurement or a guarantee of perfect importance ranking.
+
+Passed locally: 35 dedicated video-content/budget/recovery checks, the existing
+pipeline and 26 adaptive-recovery checks, 36 transport-recovery checks, 55 Studio
+UI checks and 50 notes UI checks; EN/RU, core and distribution checks pass.
+Actual pinned MiniCPM inference covers all six topics at both 4096 and 2048
+context; the latter exercises map/reduce. The repeated 84-turn amount/deadline/
+qualification regression also passes at 2048. Captured outputs and model pins:
+`tests/fixtures/video-summary-minicpm5-0.13.4.json`. Output budget: 192 tokens;
+source-ID lookup cache: bounded to 512 entries to avoid repeated SQLite queries.
