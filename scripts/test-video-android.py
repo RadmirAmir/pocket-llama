@@ -21,6 +21,7 @@ def main():
  source=ROOT/'app/src/main/java/dev/pocketllama'
  files=[source/n for n in ['I18n.java','core/SpeechLanguage.java','notes/NoteStore.java','notes/NoteText.java','security/ChunkedFile.java','security/DatabaseSettings.java','voice/SpeechRecognizer.java','voice/VoiceStore.java','voice/VoiceState.java','voice/PcmFile.java','voice/SincResampler.java','voice/AudioImporter.java','video/VideoUrl.java','video/VideoRuntime.java','video/VideoDownloader.java','video/EncryptedMediaSource.java']]+sorted((ROOT/'tests/android-video').glob('*.java'))
  files += [source/'rag'/(name+'.java') for name in ['RagText','RagMcp','RagStore','RagSources']]
+ files += [source/'voice/SpeakerDiarization.java']
  files += [source/'photo'/(name+'.java') for name in ['PhotoStore','DocumentStore','PhotoKey','EncryptedFiles','ScanGeometry']]
  run([jdk/'bin/javac','--release','11','-cp',os.pathsep.join(map(str,[android]+jars)),'-d',build/'classes']+files)
  run([jdk/'bin/java','-cp',tools/'lib/d8.jar','com.android.tools.r8.D8','--release','--min-api','29','--lib',android,'--output',build/'dex']+sorted((build/'classes').rglob('*.class'))+jars)

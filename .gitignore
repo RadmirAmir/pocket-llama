@@ -18,6 +18,7 @@ __pycache__/
 *.part
 app/libs/*.jar
 app/src/main/assets/speech/*.onnx
+app/src/main/assets/diarization/*.gguf
 app/src/main/assets/ocr/*.onnx
 app/src/main/assets/surya/*.onnx
 app/src/main/assets/surya/bundled/

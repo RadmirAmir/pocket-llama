@@ -31,10 +31,22 @@ public final class VoiceStore extends SQLiteOpenHelper {
     }
     private void videos(SQLiteDatabase d){for(String definition:new String[]{"video_url TEXT DEFAULT ''","video_platform TEXT DEFAULT ''","video_duration INTEGER DEFAULT 0","video_stage TEXT DEFAULT ''","auto_summary INTEGER DEFAULT 0"})d.execSQL("ALTER TABLE meetings ADD COLUMN "+definition);}
     private void languages(SQLiteDatabase d){d.execSQL("ALTER TABLE meetings ADD COLUMN asr_language TEXT NOT NULL DEFAULT 'ru'");}
+    @Override public void onOpen(SQLiteDatabase d){
+        super.onOpen(d);
+        // Additive candidate extension: retain user_version=4 so the accepted
+        // 0.13.4 helper can still open the encrypted database after a rollback.
+        d.beginTransaction();try{
+            boolean present=false;try(Cursor c=d.rawQuery("PRAGMA table_info(meetings)",null)){while(c.moveToNext())if("diarization_engine".equals(c.getString(1)))present=true;}
+            if(!present)d.execSQL("ALTER TABLE meetings ADD COLUMN diarization_engine TEXT NOT NULL DEFAULT 'cam++'");
+            d.execSQL("CREATE TABLE IF NOT EXISTS speaker_segments(mid TEXT REFERENCES meetings(id) ON DELETE CASCADE,idx INTEGER,start INTEGER NOT NULL,end INTEGER NOT NULL,speaker INTEGER NOT NULL CHECK(speaker BETWEEN 1 AND 8),PRIMARY KEY(mid,idx))");
+            d.execSQL("CREATE INDEX IF NOT EXISTS speaker_segment_time ON speaker_segments(mid,start,end)");
+            d.setTransactionSuccessful();
+        }finally{d.endTransaction();}
+    }
     @Override public void onUpgrade(SQLiteDatabase d,int a,int b){if(a<1||b>4)throw new IllegalStateException("Unknown voice database version");if(a<2)folded(d);if(a<3)videos(d);if(a<4)languages(d);}
     public static boolean busy(String state){return state.equals("recording")||state.equals("paused")||state.equals("preparing")||state.equals("processing")||state.equals("summarizing")||state.equals("downloading");}
     public synchronized String create(String title,boolean diarize,int expected){return create(title,diarize,expected,"ru");}
-    public synchronized String create(String title,boolean diarize,int expected,String language){if(!language.equals("en")&&!language.equals("ru"))throw new IllegalArgumentException("Invalid speech language");String id=UUID.randomUUID().toString();ContentValues v=new ContentValues();v.put("id",id);v.put("title",title);v.put("title_fold",title.toLowerCase(Locale.ROOT));v.put("created",System.currentTimeMillis());v.put("diarize",diarize?1:0);v.put("expected",expected);v.put("asr_language",language);getWritableDatabase().insertOrThrow("meetings",null,v);return id;}
+    public synchronized String create(String title,boolean diarize,int expected,String language){if(!language.equals("en")&&!language.equals("ru"))throw new IllegalArgumentException("Invalid speech language");String id=UUID.randomUUID().toString();ContentValues v=new ContentValues();v.put("id",id);v.put("title",title);v.put("title_fold",title.toLowerCase(Locale.ROOT));v.put("created",System.currentTimeMillis());v.put("diarize",diarize?1:0);v.put("expected",expected);v.put("asr_language",language);v.put("diarization_engine",expected>1?SpeakerDiarization.LEGACY:SpeakerDiarization.NEMOTRON);getWritableDatabase().insertOrThrow("meetings",null,v);return id;}
     /** A fresh job follows the selected language; resumed chunks keep their original engine. */
     public String recognitionLanguage(String id,String requested)throws Exception {
         if(!requested.equals("en")&&!requested.equals("ru"))throw new IllegalArgumentException("Invalid speech language");
@@ -67,18 +79,23 @@ public final class VoiceStore extends SQLiteOpenHelper {
     public String speaker(String id,int n){try(Cursor c=getReadableDatabase().rawQuery("SELECT name FROM names WHERE mid=? AND speaker=?",new String[]{id,""+n})){if(c.moveToFirst()&&!c.getString(0).isEmpty())return c.getString(0);}return n==0?dev.pocketllama.I18n.t("Спикер не определён"):dev.pocketllama.I18n.t("Спикер ")+n;}
     public void clearSummary(String id){getWritableDatabase().delete("notes","mid=?",new String[]{id});ContentValues v=new ContentValues();v.put("summary","");update(id,v);}
     public void configure(String id,boolean diarize,int expected)throws Exception{
+        configure(id,diarize,expected,get(id).getString("diarization_engine"));
+    }
+    public void configure(String id,boolean diarize,int expected,String engine)throws Exception{
+        if(!SpeakerDiarization.supported(engine)||expected<0||expected>12)throw new IllegalArgumentException("Invalid speaker settings");
+        if(SpeakerDiarization.NEMOTRON.equals(engine)&&expected>1)throw new IOException("Nemotron определяет число спикеров автоматически (до 8). Для заданного лимита выберите CAM++");
         JSONObject j=get(id);if(busy(j.getString("state")))throw new IOException("Задача уже выполняется");
-        if(j.getInt("diarize")== (diarize?1:0)&&j.getInt("expected")==expected)return;
+        if(j.getInt("diarize")== (diarize?1:0)&&j.getInt("expected")==expected&&engine.equals(j.getString("diarization_engine")))return;
         SQLiteDatabase d=getWritableDatabase();d.beginTransaction();try{
-            for(String t:new String[]{"embeddings","words","turns","parts","notes","names","edits"})d.delete(t,"mid=?",new String[]{id});
-            ContentValues v=new ContentValues();v.put("diarize",diarize?1:0);v.put("expected",expected);v.put("speakers_done",0);v.put("asr_done",0);v.put("summary","");update(id,v);d.setTransactionSuccessful();
+            for(String t:new String[]{"embeddings","speaker_segments","words","turns","parts","notes","names","edits"})d.delete(t,"mid=?",new String[]{id});
+            ContentValues v=new ContentValues();v.put("diarize",diarize?1:0);v.put("expected",expected);v.put("diarization_engine",engine);v.put("speakers_done",0);v.put("asr_done",0);v.put("summary","");v.put("summary_key","");update(id,v);d.setTransactionSuccessful();
         }finally{d.endTransaction();}
     }
     /** Explicit user-requested restart; leaves the original PCM and import URI intact. */
     public void restartRecognition(String id)throws Exception {
         if(anyBusy())throw new IOException("Сначала завершите текущую задачу");
         SQLiteDatabase d=getWritableDatabase();d.beginTransaction();try {
-            for(String table:new String[]{"regions","embeddings","words","turns","parts","notes","names","edits"})d.delete(table,"mid=?",new String[]{id});
+            for(String table:new String[]{"regions","embeddings","speaker_segments","words","turns","parts","notes","names","edits"})d.delete(table,"mid=?",new String[]{id});
             ContentValues v=new ContentValues();v.put("vad_done",0);v.put("speakers_done",0);v.put("asr_done",0);v.put("summary","");v.put("summary_key","");v.put("progress",0);update(id,v);d.setTransactionSuccessful();
         }finally{d.endTransaction();}
     }
@@ -87,6 +104,24 @@ public final class VoiceStore extends SQLiteOpenHelper {
     public void embedding(String id,int idx,long start,long end,float[] vector){ByteBuffer b=ByteBuffer.allocate(vector.length*4).order(ByteOrder.LITTLE_ENDIAN);for(float x:vector)b.putFloat(x);ContentValues v=new ContentValues();v.put("mid",id);v.put("idx",idx);v.put("start",start);v.put("end",end);v.put("vector",b.array());getWritableDatabase().insertWithOnConflict("embeddings",null,v,SQLiteDatabase.CONFLICT_IGNORE);}
     public static float[] vector(byte[] b){FloatBuffer f=ByteBuffer.wrap(b).order(ByteOrder.LITTLE_ENDIAN).asFloatBuffer();float[] v=new float[f.remaining()];f.get(v);return v;}
     public int speakerAt(String id,long time){
+        try(Cursor c=getReadableDatabase().rawQuery("SELECT diarization_engine FROM meetings WHERE id=?",new String[]{id})){
+            if(c.moveToFirst()&&SpeakerDiarization.NEMOTRON.equals(c.getString(0)))return nemotronSpeakerAt(id,time);
+        }
+        return legacySpeakerAt(id,time);
+    }
+    private int nemotronSpeakerAt(String id,long time){
+        // One transcript word has one label. Overlap uses the most recent onset;
+        // the full overlapping speaker map remains available in speaker_segments.
+        try(Cursor c=getReadableDatabase().rawQuery("SELECT speaker FROM speaker_segments WHERE mid=? AND start<=? AND end>? ORDER BY start DESC,speaker ASC LIMIT 1",new String[]{id,""+time,""+time})){return c.moveToFirst()?c.getInt(0):0;}
+    }
+    public void speakerSegments(String id,List<SpeakerDiarization.Segment> segments){
+        SQLiteDatabase d=getWritableDatabase();d.beginTransaction();try{
+            d.delete("speaker_segments","mid=?",new String[]{id});int index=0;
+            for(SpeakerDiarization.Segment s:segments){ContentValues v=new ContentValues();v.put("mid",id);v.put("idx",index++);v.put("start",s.startMs);v.put("end",s.endMs);v.put("speaker",s.speaker);d.insertOrThrow("speaker_segments",null,v);}
+            flag(id,"speakers_done",true);d.setTransactionSuccessful();
+        }finally{d.endTransaction();}
+    }
+    private int legacySpeakerAt(String id,long time){
         double[] votes=new double[13];try(Cursor c=getReadableDatabase().rawQuery("SELECT start,end,speaker,score FROM embeddings WHERE mid=? AND start<=? AND end>?",new String[]{id,""+time,""+time})){
             while(c.moveToNext()){int n=c.getInt(2);if(n>0&&n<votes.length){double half=(c.getLong(1)-c.getLong(0))/2.0,center=c.getLong(0)+half;votes[n]+=Math.max(0.1,1-Math.abs(time-center)/half)*Math.max(0,c.getDouble(3));}}
         }int best=0;double v=0;for(int i=1;i<votes.length;i++)if(votes[i]>v){v=votes[i];best=i;}return best;

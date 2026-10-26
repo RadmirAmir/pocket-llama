@@ -34,9 +34,11 @@ class SuryaDistributionTests(unittest.TestCase):
             (assets / 'rag').mkdir(parents=True)
             (assets / 'rag/model.json').write_bytes((ROOT / 'app/src/main/assets/rag/model.json').read_bytes())
             (root / 'rag-model.lock.json').write_bytes((ROOT / 'rag-model.lock.json').read_bytes())
-            for group in ['speech', 'moonshine', 'ocr']:
+            for group in ['speech', 'moonshine', 'ocr', 'diarization']:
                 (assets / group).mkdir(parents=True)
                 (assets / group / 'manifest.json').write_text('{"files": []}')
+            (root / 'diarization.lock.json').write_bytes((ROOT / 'diarization.lock.json').read_bytes())
+            (assets / 'diarization/manifest.json').write_bytes((ROOT / 'app/src/main/assets/diarization/manifest.json').read_bytes())
             (assets / 'surya').mkdir()
             (assets / 'surya/line-detector.onnx').write_bytes(b'stale developer weight')
             (assets / 'surya/manifest.json').write_text('{"stale": true}')

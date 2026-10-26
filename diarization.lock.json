@@ -1,0 +1,21 @@
+{
+  "engine": "nemotron-q8-v1",
+  "runtime": {
+    "source": "https://github.com/NVIDIA/NeMo-Speech.cpp.git",
+    "commit": "e680fc30ac7404ba3acd58532f713becf8625894",
+    "llamaCommit": "bd4f514db14d87fded667787a7a963bfbaa98e89",
+    "license": "Apache-2.0",
+    "library": "libpocket_nemotron.so",
+    "backend": "portable ARMv8-A CPU; two threads; static private ggml",
+    "preset": "v3-offline"
+  },
+  "model": {
+    "source": "https://huggingface.co/nvidia/Nemotron-3-Diarization/resolve/f667ed73aee57d40cc39428eb768b4fd87a0a29e/Nemotron-3-Diarization.q8_0.gguf",
+    "name": "Nemotron-3-Diarization.q8_0.gguf",
+    "bytes": 107012128,
+    "sha256": "08456d9e22cd9a323c0364d98375f3746d6e68507ebb705cd46438c534c7a3a1",
+    "license": "OpenMDW-1.1",
+    "speakers": 8,
+    "sampleRate": 16000
+  }
+}

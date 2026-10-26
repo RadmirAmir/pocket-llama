@@ -149,8 +149,8 @@ public final class VoiceActivity extends dev.pocketllama.security.SecureActivity
             case "stopRecord": command(RecorderService.class,RecorderService.STOP,id); break;
             case "process": {
                 if(dev.pocketllama.rag.RagManager.busy()||store.anyBusy()||dev.pocketllama.photo.PhotoStore.busy(this)||VoiceState.busy||importing) throw new IOException(dev.pocketllama.I18n.t("Сначала завершите текущую задачу"));
+                store.configure(id,a.optBoolean("diarize",true),bounded(a.optInt("expected"),0,12),a.optString("diarization_engine",store.get(id).getString("diarization_engine")));
                 if(a.optBoolean("restart"))store.restartRecognition(id);
-                store.configure(id,a.optBoolean("diarize",true),bounded(a.optInt("expected"),0,12));
                 store.recognitionLanguage(id,I18n.language());
                 JSONObject source=store.get(id);
                 if(!source.optString("video_url").isEmpty()&&!VoiceStore.audio(this,id).isFile()){startForegroundService(new Intent(this,VideoImportService.class).setAction(VideoImportService.START).putExtra("id",id));break;}

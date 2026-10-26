@@ -1411,5 +1411,11 @@
   "уточняем содержание": "checking the content",
   "Обновите итоги: сохранённая расшифровка уже готова, распознавать видео заново не нужно.": "Update the takeaways using the saved transcript. No need to transcribe the video again.",
   "Обновить итоги": "Update takeaways",
-  "Не удалось выбрать содержательные высказывания из расшифровки. Создайте конспект заново [SUMMARY_CONTENT]": "Could not select substantive statements from the transcript. Regenerate the summary [SUMMARY_CONTENT]"
+  "Не удалось выбрать содержательные высказывания из расшифровки. Создайте конспект заново [SUMMARY_CONTENT]": "Could not select substantive statements from the transcript. Regenerate the summary [SUMMARY_CONTENT]",
+  "Определение спикеров": "Speaker detection",
+  "Nemotron · до 8 голосов": "Nemotron · up to 8 voices",
+  "CAM++ · до 12 голосов": "CAM++ · up to 12 voices",
+  "Nemotron автоматически определяет до 8 голосов. Всё обрабатывается на телефоне.": "Nemotron automatically detects up to 8 voices. Everything is processed on your phone.",
+  "Загрузка Nemotron · спикеры…": "Loading Nemotron · speakers…",
+  "Nemotron определяет число спикеров автоматически (до 8). Для заданного лимита выберите CAM++": "Nemotron automatically detects up to 8 speakers. Choose CAM++ to set a speaker limit."
 }

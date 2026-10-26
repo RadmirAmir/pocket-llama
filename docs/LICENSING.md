@@ -9,6 +9,8 @@ Pocket's own code is Apache-2.0. Preserve all third-party notices. This document
 | Moonshine Voice 0.1.5 and English Streaming Medium | MIT; runtime, word-alignment decoder, model mirror revision and hashes are pinned in `moonshine-runtime.lock.json` and `moonshine-models.lock.json`; see `notices/MOONSHINE.txt` |
 | Silero VAD | MIT; preserve the bundled notice |
 | CAM++ / 3D-Speaker | Retains its upstream notice; the exact conversion is pinned in `speech-models.lock.json` |
+| Nemotron 3 Diarization Q8 | OpenMDW-1.1, with the complete agreement and NVIDIA origin notice in `notices/Nemotron-3-Diarization.txt`; model bytes/revision pinned in `diarization.lock.json` |
+| NeMo-Speech.cpp diarization runtime | Apache-2.0 with derived MIT portions; the upstream license/notice inventory and ggml license are bundled in `notices/NeMo-Speech.txt` and `notices/NeMo-ggml.txt` |
 | PaddleOCR and OpenCV | Apache-2.0; preserve notices |
 | SQLCipher, AndroidX, Kotlin, jsoup | Retain the notices and source links in `notices/` |
 | Video runtime | Mixed upstream licenses, including the GPL-3.0 notice supplied by the runtime project. Preserve source links, build recipes and modifications; distribution review must cover corresponding-source obligations. Pocket does not relicense this runtime. |

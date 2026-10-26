@@ -33,13 +33,13 @@ public final class AndroidVideoRegression {
   try(ChunkedFile encrypted=new ChunkedFile(media,false,Vault.key(c))){byte[] bytes=new byte[(int)encrypted.length()];encrypted.read(0,bytes,0,bytes.length);StringBuilder sha=new StringBuilder();for(byte b:MessageDigest.getInstance("SHA-256").digest(bytes))sha.append(String.format(Locale.ROOT,"%02x",b&255));check(sha.toString().equals(args[1]),"decrypted download is byte-identical to fixture");encrypted.verifyAll();checks++;}
   File audio=Vault.audio(c,"ba585069-fde2-4e86-ac81-4c8dddb8da6a");long samples;try(EncryptedMediaSource source=new EncryptedMediaSource(media,Vault.key(c))){samples=AudioImporter.decode(c,source,audio,n->{});}check(samples>=47000&&samples<51000,"Android MediaExtractor/MediaCodec decode encrypted M4A at 16 kHz");
   try(PcmFile pcm=new PcmFile(audio,false,Vault.key(c))){float[] sound=pcm.read(16000,16000);double energy=0;for(float f:sound)energy+=f*f;check(energy>1,"decoded signal contains fixture tone");check(pcm.samples()==samples,"encrypted PCM reopens after decode");}
-  for(int old:new int[]{1,2}){
+  for(int old:new int[]{1,2,4}){
    Context legacy=context(new File(root,"upgrade"+old),nativeDir,assets);String id;
-   try(net.zetetic.database.sqlcipher.SQLiteOpenHelper h=old==1?new LegacyVoiceStore1(legacy):new LegacyVoiceStore2(legacy)){
+   try(net.zetetic.database.sqlcipher.SQLiteOpenHelper h=old==1?new LegacyVoiceStore1(legacy):old==2?new LegacyVoiceStore2(legacy):new LegacyVoiceStore4(legacy)){
     net.zetetic.database.sqlcipher.SQLiteDatabase db=h.getWritableDatabase();id=UUID.randomUUID().toString();db.execSQL("INSERT INTO meetings(id,title,summary,created,samples,state) VALUES(?,?,?,?,?,?)",new Object[]{id,"Старая запись · тест","Сохранённый конспект",1,32000,"done"});db.execSQL("INSERT INTO turns(mid,idx,start,end,speaker,text) VALUES(?,?,?,?,?,?)",new Object[]{id,1,0,1000,1,"Не потерять эту реплику"});
    }
    try(VoiceStore store=new VoiceStore(legacy)){
-    check(store.getWritableDatabase().getVersion()==4,"v"+old+" upgrades to schema 4");JSONObject row=store.get(id);check(row.optString("asr_language").equals("ru"),"legacy transcript keeps Russian ASR default");check(row.getString("title").equals("Старая запись · тест")&&row.getString("summary").equals("Сохранённый конспект"),"v"+old+" keeps original text and summary");check(row.optString("video_url").isEmpty()&&row.optInt("auto_summary")==0,"legacy row has neutral video defaults");
+    check(store.getWritableDatabase().getVersion()==4,"v"+old+" upgrades to schema 4");JSONObject row=store.get(id);check(row.getString("diarization_engine").equals("cam++"),"legacy speaker engine preserved");check(row.optString("asr_language").equals("ru"),"legacy transcript keeps Russian ASR default");check(row.getString("title").equals("Старая запись · тест")&&row.getString("summary").equals("Сохранённый конспект"),"v"+old+" keeps original text and summary");check(row.optString("video_url").isEmpty()&&row.optInt("auto_summary")==0,"legacy row has neutral video defaults");
     try(Cursor turns=store.turns(id)){check(turns.moveToFirst()&&turns.getString(4).contains("Не потерять"),"v"+old+" retains transcript");}
     String video=store.create("Новый ролик",false,0);ContentValues meta=new ContentValues();meta.put("video_url",url);meta.put("auto_summary",1);store.update(video,meta);store.startJob(video,"downloading");check(store.anyBusy()&&VoiceStore.busy("downloading"),"download reserves cross-process job slot");
     boolean rejected=false;try{store.startJob(id,"processing");}catch(IOException e){rejected=true;}check(rejected,"ASR cannot overlap another video job");
@@ -51,6 +51,7 @@ public final class AndroidVideoRegression {
   check(!new String(Files.readAllBytes(Vault.database(c).toPath()),java.nio.charset.StandardCharsets.ISO_8859_1).startsWith("SQLite format 3"),"database stays encrypted");
   File published=new File(root,"published.apk");
   if(published.isFile())AndroidPublishedKnowledgeRegression.run(published);
+  AndroidDiarizationRegression.run(c);
   AndroidNotesRegression.run(c);
   AndroidKnowledgeRegression.run(c);
   System.out.println("PASS: "+checks+" Android video and migration checks");

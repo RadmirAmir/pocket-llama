@@ -46,7 +46,13 @@ public final class SpeechService extends Service {
                 if(audio.samples()<8000)throw new IOException("Запись короче половины секунды");
                 if(job.getInt("vad_done")==0)vad(audio,models);
                 guard();
-                if(job.getInt("speakers_done")==0){if(diarize)speakers(audio,models,job.getInt("expected"));store.flag(id,"speakers_done",true);}
+                if(job.getInt("speakers_done")==0){
+                    if(diarize){
+                        if(SpeakerDiarization.NEMOTRON.equals(job.getString("diarization_engine")))nemotronSpeakers(audio);
+                        else speakers(audio,models,job.getInt("expected"));
+                    }
+                    guard();store.flag(id,"speakers_done",true);
+                }
                 guard();
                 if(job.getInt("asr_done")==0)transcribe(audio,models,diarize,language);
                 store.rebuildTurns(id);store.flag(id,"asr_done",true);store.state(id,"done","Расшифровка готова. Можно слушать реплики и создать конспект.",1);automaticSummary=job.optInt("auto_summary")==1&&!job.optString("video_url").isEmpty();
@@ -92,6 +98,15 @@ public final class SpeechService extends Service {
         try(Cursor c=store.getReadableDatabase().rawQuery("SELECT idx,vector FROM embeddings WHERE mid=? ORDER BY idx",new String[]{id})){
             while(c.moveToNext()){guard();SpeakerClusters.Match m=clusters.match(VoiceStore.vector(c.getBlob(1)));ContentValues v=new ContentValues();v.put("speaker",m.speaker);v.put("score",m.similarity);store.getWritableDatabase().update("embeddings",v,"mid=? AND idx=?",new String[]{id,""+c.getInt(0)});}
         }
+    }
+    private void nemotronSpeakers(PcmFile audio)throws Exception{
+        progress("Загрузка Nemotron · спикеры…",0.08);
+        List<SpeakerDiarization.Segment> segments;
+        try(NemotronDiarizer model=new NemotronDiarizer(DiarizationAssets.prepare(this))){
+            segments=SpeakerDiarization.run(audio.samples(),audio::read,model,this::guard,
+                (end,total)->progress("Nemotron · "+VoiceStore.time(end/16)+" / "+VoiceStore.time(total/16),0.08+0.24*end/total));
+        }
+        guard();store.speakerSegments(id,segments);
     }
     private void transcribe(PcmFile audio,File models,boolean diarize,String language)throws Exception{
         progress(language.equals("en")?"Loading Moonshine Streaming Medium…":"Загрузка GigaAM v3…",0.32);

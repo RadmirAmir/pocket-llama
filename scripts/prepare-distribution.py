@@ -43,7 +43,9 @@ def prepare(channel,with_surya=None,bundle_surya=None):
  search=search_bundle.inventory(ROOT)
  allowed={'video':set(video_bundle.ASSETS),'search':set(search_bundle.ASSETS),'rag':{'model.json'}}
  if json.loads((assets/'rag/model.json').read_text())!=json.loads((ROOT/'rag-model.lock.json').read_text()):raise SystemExit('Embedding model metadata does not match its reviewed pin')
- for group in ['speech','ocr','moonshine']:
+ diar=json.loads((ROOT/'diarization.lock.json').read_text())
+ if json.loads((assets/'diarization/manifest.json').read_text())!={'engine':diar['engine'],'files':[diar['model']]}:raise SystemExit('Diarization metadata does not match its reviewed pin')
+ for group in ['speech','ocr','moonshine','diarization']:
   manifest=json.loads((assets/group/'manifest.json').read_text())
   allowed[group]={'manifest.json'}|{f['name'] for f in manifest['files']}
   for f in manifest['files']:checked(assets/group/f['name'],f['bytes'],f['sha256'])
@@ -60,7 +62,7 @@ def prepare(channel,with_surya=None,bundle_surya=None):
   if any(part.startswith('.') for part in rel.parts):continue
   if rel.parts[0] in allowed and rel.name not in allowed[rel.parts[0]]:continue
   if rel.parts[0]=='surya':continue  # Only explicitly staged GGUF files may be bundled.
-  if channel=='play' and rel.parts[0] in ['speech','ocr','moonshine','surya']:continue
+  if channel=='play' and rel.parts[0] in ['speech','ocr','moonshine','diarization','surya']:continue
   copy(p,common/rel)
  for p in (ROOT/'notices').glob('*.txt'):copy(p,common/'notices'/p.name)
  runtime={'channel':channel,'suryaEnabled':with_surya,'catalogUrl':config['publisher']['catalogUrl'],'reportingUrl':config['publisher']['reportingUrl'],'privacyPolicyUrl':config['publisher']['privacyPolicyUrl'],'supportEmail':config['publisher']['supportEmail']}
@@ -70,7 +72,7 @@ def prepare(channel,with_surya=None,bundle_surya=None):
   for pack_name in ['speech_pack','ocr_pack']:
    pack=ROOT/pack_name/'src/main/assets'
    if pack.exists():shutil.rmtree(pack)
-  for group,pack_name in [('speech','speech_pack'),('moonshine','speech_pack'),('ocr','ocr_pack')]:
+  for group,pack_name in [('speech','speech_pack'),('moonshine','speech_pack'),('diarization','speech_pack'),('ocr','ocr_pack')]:
    pack=ROOT/pack_name/'src/main/assets'
    for p in (assets/group).rglob('*'):
     if p.is_file() and p.name in allowed[group]:copy(p,pack/group/p.relative_to(assets/group))

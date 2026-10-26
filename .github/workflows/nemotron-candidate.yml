@@ -1,0 +1,107 @@
+name: Verify and publish frozen Nemotron test APK
+on:
+  push:
+    branches: ['feature/nemotron-diarization']
+    paths:
+      - '.github/workflows/nemotron-candidate.yml'
+      - 'distribution/release-candidates/0.14.0-nemotron.1*'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: nemotron-0140-candidate
+  cancel-in-progress: false
+jobs:
+  acceptance:
+    if: github.repository == 'RadmirAmir/pocket-llama'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+      - name: Reconstruct and authenticate the exact signed candidate
+        run: |
+          mkdir -p build/release-candidate/evidence
+          cat distribution/release-candidates/0.14.0-nemotron.1.literal.part* > distribution/release-candidates/0.14.0-nemotron.1.literal.bin
+          curl --fail --location --retry 3 --output build/release-candidate/baseline.apk https://github.com/RadmirAmir/pocket-llama/releases/download/v0.13.4-refactor.31a36b0/PocketLlama-0.13.4-refactor-31a36b0-arm64.apk
+          python3 scripts/prepare-diarization.py
+          python3 scripts/reconstruct-diarization-apk.py --manifest distribution/release-candidates/0.14.0-nemotron.1.json --baseline build/release-candidate/baseline.apk --model app/src/main/assets/diarization/Nemotron-3-Diarization.q8_0.gguf --output build/release-candidate/candidate.apk
+          python3 - <<'PY'
+          from pathlib import Path
+          import json,subprocess
+          p=json.loads(Path('distribution/release-candidates/0.14.0-nemotron.1.json').read_text())
+          assert not subprocess.check_output(['git','diff',p['sourceCommit'],'HEAD','--','app','native','distribution/release.json','diarization.lock.json'],text=True).strip(), 'APK application source differs from sourceCommit'
+          Path('build/release-candidate/evidence/source-commit.txt').write_text(p['sourceCommit']+'\n')
+          PY
+          sdkmanager 'platforms;android-36' 'build-tools;36.0.0' 'ndk;28.2.13676358'
+          export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/28.2.13676358"
+          python3 -m pip install cmake==3.31.6 ninja==1.11.1.3
+          python3 scripts/build-diarization.py --abi x86_64
+          python3 scripts/prepare-security.py
+          python3 scripts/prepare-video.py
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Signed upgrade, fresh installation and encrypted speaker/notes/knowledge checks
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          profile: pixel_7_pro
+          ram-size: 3072M
+          disk-size: 8192M
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
+          script: |
+            bash -o pipefail -c 'python3 scripts/test-diarization-android.py --sdk "$ANDROID_HOME" --jdk "$JAVA_HOME" | tee build/release-candidate/evidence/native-nemotron.txt'
+            bash scripts/test-release-android.sh
+      - name: Stage accepted bytes
+        run: |
+          cp build/release-candidate/candidate.apk build/release-candidate/PocketLlama-0.14.0-nemotron.1-arm64.apk
+          cd build/release-candidate
+          sha256sum PocketLlama-0.14.0-nemotron.1-arm64.apk > SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nemotron-accepted-candidate
+          path: |
+            build/release-candidate/PocketLlama-0.14.0-nemotron.1-arm64.apk
+            build/release-candidate/SHA256SUMS.txt
+            build/release-candidate/evidence/
+          retention-days: 7
+  publish:
+    needs: acceptance
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: nemotron-accepted-candidate
+          path: build/accepted-nemotron
+      - name: Publish new prerelease without replacing an existing asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd build/accepted-nemotron
+          sha256sum --check SHA256SUMS.txt
+          cd ../..
+          source_commit="$(python3 -c "import json;print(json.load(open('distribution/release-candidates/0.14.0-nemotron.1.json'))['sourceCommit'])")"
+          gh release create v0.14.0-nemotron.1 --target "$source_commit" --prerelease --latest=false --title 'Pocket Llama 0.14.0 — Nemotron test' --notes-file docs/RELEASE-NOTES-0.14.0-nemotron.1.md build/accepted-nemotron/PocketLlama-0.14.0-nemotron.1-arm64.apk build/accepted-nemotron/SHA256SUMS.txt

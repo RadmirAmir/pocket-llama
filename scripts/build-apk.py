@@ -30,7 +30,7 @@ def package_assets(archive, assets):
         relative = asset.relative_to(assets)
         if 'line-detector' in relative.name or relative.name.startswith('Surya-detector-'):
             raise SystemExit('Retired scanner asset in APK input: ' + str(relative))
-        archive.write(asset, 'assets/' + relative.as_posix())
+        archive.write(asset, 'assets/' + relative.as_posix(), compress_type=zipfile.ZIP_STORED if asset.suffix=='.gguf' else zipfile.ZIP_DEFLATED)
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -63,6 +63,7 @@ def main():
         if not path.is_file(): parser.error('Missing SDK / JDK component: ' + str(path))
     libs = ROOT / 'app/src/main/jniLibs/arm64-v8a'
     if not (libs / 'libllama_cpu.so').is_file(): parser.error('Run scripts/build-native.sh cpu first')
+    if not (libs / 'libpocket_nemotron.so').is_file(): parser.error('Run python3 scripts/build-diarization.py first')
     speech = ROOT / 'app/src/main/assets/speech'
     manifest_path = speech / 'manifest.json'
     if not manifest_path.is_file(): parser.error('Missing speech manifest; restore sources')

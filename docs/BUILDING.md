@@ -11,10 +11,14 @@ Use JDK 17, Python 3.11+, Android SDK platform 36, build-tools 36.0.0 and NDK r2
 python3 -m pip install -r requirements-build.txt
 python3 scripts/prepare-runtime.py
 bash scripts/build-native.sh cpu
+python3 scripts/build-diarization.py
 ./gradlew -Ppocket.channel=community assembleDebug
 ```
 
 The bootstrap downloads locked runtime dependencies and verifies the pinned speech/OCR assets. Model weights, native outputs, caches and signing credentials are excluded from git. The portable public CPU build targets ARMv8-A Android ARM64.
+
+The Nemotron candidate bundles an additional pinned Q8 speaker model and a
+separate portable CPU JNI library. See [DIARIZATION.md](DIARIZATION.md).
 
 For an unsigned Play bundle:
 
