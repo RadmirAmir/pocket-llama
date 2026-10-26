@@ -1,0 +1,48 @@
+name: Deliver signed refactor APK 31a36b0
+on:
+  push:
+    branches: ['build/apk-31a36b0']
+    paths:
+      - '.github/workflows/deliver-refactor-apk.yml'
+      - 'distribution/test-builds/31a36b0/**'
+      - 'scripts/deliver-refactor-apk.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: deliver-refactor-apk-31a36b0
+  cancel-in-progress: false
+jobs:
+  deliver:
+    if: github.repository == 'RadmirAmir/pocket-llama'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: 'build-tools;36.0.0'
+      - name: Reconstruct and check the exact signed APK
+        run: |
+          mkdir -p build/delivery
+          curl --fail --location --retry 3 --output build/delivery/baseline.apk https://github.com/RadmirAmir/pocket-llama/releases/download/v0.13.4-rc.1/PocketLlama-0.13.4-community-arm64.apk
+          cat distribution/test-builds/31a36b0/payload.part* > distribution/test-builds/31a36b0/payload.bin
+          python3 -m unittest discover -s tests -p test_release_reconstruction.py
+          python3 scripts/reconstruct-release-apk.py --manifest distribution/test-builds/31a36b0/manifest.json --baseline build/delivery/baseline.apk --output build/delivery/PocketLlama-0.13.4-refactor-31a36b0-arm64.apk
+      - name: Verify source and signing identity, then publish test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/deliver-refactor-apk.py

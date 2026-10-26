@@ -1,0 +1,22 @@
+{
+  "modelsVerified": 16,
+  "videoFilesVerified": 6,
+  "searchFilesVerified": 3,
+  "channel": "community",
+  "suryaBundled": false,
+  "bytes": 662347582,
+  "sourceCommit": "31a36b00e07bed005f37416244600776a4510cb8",
+  "sha256": "939511be3fd9b2d37140edea14f67425e743d2cf8ee27451e23699feedd5395e",
+  "applicationId": "dev.pocketllama",
+  "versionName": "0.13.4",
+  "versionCode": 37,
+  "legacyCertificateMatches": true,
+  "legacyCertificateSha256": "ef3cea40110c13d179cc7e1f1e570aeb2f870cb7d46f16273eb5d733cf9b2ed0",
+  "unchangedNativeLibraries": 14,
+  "allStagedAssetsVerified": 85,
+  "debuggable": false,
+  "zipAlignmentVerified": true,
+  "sourceCI": "https://github.com/RadmirAmir/pocket-llama/actions/runs/40142889366",
+  "installationTested": false,
+  "physicalDeviceTested": false
+}
