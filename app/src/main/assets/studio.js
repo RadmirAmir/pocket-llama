@@ -2,7 +2,7 @@
 'use strict';
 var _t=window.PocketI18n.t;window.PocketI18n.template(document.documentElement);
 var $=function(id){return document.getElementById(id);};
-var native=window.Studio||null,serial=0,pending=new Map(),screen='library',selected='',meeting=null,configData=null;
+var native=window.Studio||null,screen='library',selected='',meeting=null,configData=null;
 var libraryKey='',detailKey='',summaryKey='',turnKey='',libraryLimit=100,libraryQuery='',transcriptQuery='',turns=[],turnTotal=0,tab='summary';
 var turnNodes=new Map(),highlightedTurn=null,startingUntil=0,viewActive=true,pollAgain=false,turnsAgain=false,saveAdvanced=null;
 var polling=false,detailsLoading=false,turnsLoading=false,recordPending=false,recording=false,recordId='',paused=false,position=0,duration=0,playing=false,speed=1,seekDragging=false;
@@ -24,7 +24,14 @@ function el(tag,cls,text){var n=document.createElement(tag);if(cls)n.className=c
 function button(text,cls,fn,ic){var b=el('button',cls);b.type='button';if(ic)b.appendChild(icon(ic));if(text)b.appendChild(el('span','',text));if(fn)b.onclick=fn;return b;}
 function setIcon(node,name){if(node._icon===name)return;node._icon=name;node.replaceChildren(icon(name));}
 function text(node,value){if(node.textContent!==value)node.textContent=value;}
-function call(action,args){return new Promise(function(resolve,reject){if(!native){reject(new Error(_t('Откройте приложение Pocket Llama на телефоне.')));return;}var id=String(++serial),timer=setTimeout(function(){pending.delete(id);reject(new Error(_t('Действие занимает больше времени. Попробуйте ещё раз.')));},30000);pending.set(id,{resolve:resolve,reject:reject,timer:timer});try{native.call(id,action,JSON.stringify(args||{}));}catch(e){clearTimeout(timer);pending.delete(id);reject(e);}});}
+var rpc=window.PocketRpc.create({
+ send:native?function(request,action,payload){native.call(request,action,payload);}:null,
+ timeoutMs:30000,
+ unavailableMessage:_t('Откройте приложение Pocket Llama на телефоне.'),
+ timeoutMessage:_t('Действие занимает больше времени. Попробуйте ещё раз.'),
+ formatError:window.PocketI18n.status
+});
+function call(action,args){return rpc.call(action,args);}
 function toast(text,error){clearTimeout(toastTimer);$('toast').textContent=text;$('toast').classList.toggle('error-toast',!!error);$('toast').hidden=false;toastTimer=setTimeout(function(){$('toast').hidden=true;},error?7000:3000);}
 function fail(e){toast(window.PocketI18n.status(e.message||String(e)),true);}
 function time(ms,pad){var n=Math.max(0,Math.floor((ms||0)/1000)),s=String(n%60).padStart(2,'0'),m=String(Math.floor(n/60)%60);return n>=3600?Math.floor(n/3600)+':'+m.padStart(2,'0')+':'+s:(pad?m.padStart(2,'0'):m)+':'+s;}
@@ -180,7 +187,7 @@ function projectorMenu(){var box=el('div');configData.projectors.forEach(functio
 async function inspectSheet(){try{var data=await call('inspect'),box=el('div');box.append(el('p','sheet-copy',modelLabel(data.model)+' · '+data.architecture+' · '+bytes(data.bytes)),el('p','sheet-copy',data.memory),el('pre','logs',JSON.stringify(data.metadata,null,2)));openSheet(_t('О модели'),box);}catch(e){fail(e);}}
 async function logsSheet(){try{var data=await call('logs'),box=el('div');box.append(el('p','sheet-copy',data.memory||_t('Диагностика локального движка')),el('pre','logs',data.logs||_t('Журнал пока пуст.')));if(data.endpoint)box.append(el('p','sheet-copy',data.endpoint));box.append(button(_t('Скопировать журнал'),'secondary full',function(){call('copy',{text:data.logs}).then(function(){toast(_t('Журнал скопирован'));}).catch(fail);},'copy'));openSheet(_t('Диагностика'),box);}catch(e){fail(e);}}
 window.StudioEvents=function(event){var d=event.data||{};switch(event.type){
- case 'reply':var entry=pending.get(d.request);if(entry){clearTimeout(entry.timer);pending.delete(d.request);if(d.error)entry.reject(new Error(window.PocketI18n.status(d.error)));else entry.resolve(d.value);}break;
+ case 'reply':rpc.receive(d);break;
  case 'boot':if(d.knowledgeSource&&d.selection)openKnowledgeSource(d.selection,Number(d.sourceStart)||0,!!d.sourceSummary);else if(d.screen==='settings')navigate('settings');else if(d.selection){recordId=d.selection;poll(true);}else poll(true);break;
  case 'open':openMeeting(d.id);break;
  case 'videoLink':videoSheet(d.url);break;

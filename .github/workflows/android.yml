@@ -53,6 +53,7 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - name: UI checks
         run: |
+          node scripts/test-native-rpc.cjs
           node scripts/test-catalogue-ui.cjs
           node scripts/test-studio-ui.cjs
           node scripts/test-scanner-ui.cjs

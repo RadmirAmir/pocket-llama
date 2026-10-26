@@ -22,15 +22,7 @@ public final class SpeechModels {
             return ENV.createSession(file.getAbsolutePath(),options);
         }
     }
-    public static final class Word {
-        public final String text;public final long startMs,endMs;
-        public Word(String t,long s,long e){text=t;startMs=s;endMs=e;}
-    }
-    public interface Recognizer extends AutoCloseable {
-        List<Word> recognize(float[] pcm,long offsetMs)throws Exception;
-        void cancel();
-    }
-    public static final class Asr implements Recognizer {
+    public static final class Asr implements SpeechRecognizer {
         private final OrtSession session;
         private final SignalFeatures frontend=new SignalFeatures(false);
         private final String[] tokens=new String[256];
