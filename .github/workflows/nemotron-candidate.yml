@@ -3,7 +3,6 @@ on:
   push:
     branches: ['feature/nemotron-diarization']
     paths:
-      - '.github/workflows/nemotron-candidate.yml'
       - 'distribution/release-candidates/0.14.0-nemotron.1*'
   workflow_dispatch:
 permissions:
