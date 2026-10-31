@@ -2,8 +2,7 @@ name: Accept and publish frozen 0.13.4 APK
 on:
   push:
     paths:
-      - '.github/workflows/publish-candidate.yml'
-      - 'distribution/release-candidates/**'
+      - 'distribution/release-candidates/0.13.4*'
       - 'scripts/reconstruct-release-apk.py'
       - 'scripts/publish-verified-candidate.py'
       - 'scripts/release-candidate-evidence.py'
