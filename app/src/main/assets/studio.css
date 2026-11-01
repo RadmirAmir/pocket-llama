@@ -37,3 +37,33 @@ html{overflow:hidden}body{overflow:hidden}#app{height:100%;max-width:760px;margi
 .transcript-tools{align-items:center;flex-wrap:wrap;gap:10px}.transcript-tools .search{flex-basis:180px}.transcript-tools .text-button{margin-left:auto;min-height:44px;padding:8px 5px;font-size:.6875rem;white-space:nowrap}
 
 .summary-footer{flex-wrap:wrap}
+
+/* Keep the recording action in its own row so it never covers scrollable content. */
+.record-dock{position:relative;inset:auto;flex:0 0 auto;pointer-events:auto;z-index:2;padding:8px 24px 12px;background:var(--bg)}
+#libraryScreen[hidden]~.record-dock{display:none}
+.library-list{padding-bottom:24px}
+.record-button{max-width:100%}
+
+/* Readable metadata and reliable touch areas throughout the recording flow. */
+.search input{font-size:.875rem}
+.empty-library p,.video-entry>span{font-size:.8125rem}
+.meeting-meta,.meeting-subtitle,.player-label,.player-times,.job-detail,.row-copy p,.settings-description,.model-card .model-caption,.runtime-status,.memory-caption{font-size:.75rem}
+.detail-content>.eyebrow,.date-group,.section-label,.summary-label,.job-steps{font-size:.6875rem}
+.player-label,.player-times{opacity:.88}
+.speed-button{min-width:48px;min-height:48px;font-size:.75rem}
+.skip-button{width:48px;min-width:48px;height:48px;min-height:48px}
+.skip-button span:last-child{top:18px}
+.play-button{width:48px;height:48px}
+.seek-wrap input{min-height:48px}
+.source-ref{min-width:48px;min-height:48px;justify-content:center;font-size:.6875rem}
+.turn-time,.edit-turn{min-width:48px;min-height:48px}
+.theme-picker button{min-height:48px}
+.bottom-nav button{min-width:48px}
+.video-entry .text-button{min-height:48px}
+@media(max-width:350px){.brandbar .privacy,.recording-top .privacy{font-size:.625rem}}
+@media(max-height:480px){
+ .record-dock{padding:6px 20px 8px}
+ .record-button{min-height:48px;padding:10px 20px;border-radius:18px}
+ .bottom-nav{min-height:64px;padding-top:3px;padding-bottom:3px}
+ .bottom-nav button{min-height:56px}
+}

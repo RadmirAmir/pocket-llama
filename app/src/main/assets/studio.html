@@ -13,7 +13,6 @@
  <div class="library-tools"><label class="search"><span data-icon="search"></span><input id="librarySearch" type="search" autocomplete="off" maxlength="200" aria-label="Найти запись или слова в разговоре" placeholder="Найти в разговорах"><button id="clearSearch" type="button" class="clear-search" aria-label="Очистить поиск" hidden>×</button></label><button id="importAudio" class="icon-button import-button" aria-label="Импортировать аудио или видео" title="Импортировать"><span data-icon="import"></span></button></div>
  <div class="video-entry"><button id="importVideo" class="text-button"><span data-icon="link"></span><span>Добавить видео по ссылке</span></button><span>YouTube и другие платформы</span></div>
  <main id="libraryList" class="library-list" aria-live="polite"><div class="loading-line">Открываем ваши записи…</div></main>
- <div class="record-dock"><button id="newRecording" class="record-button"><span class="record-symbol"></span><span>Новая запись</span><span data-icon="plus"></span></button></div>
 </section>
 <section id="detailScreen" class="screen" hidden aria-label="Запись">
  <header class="detailbar"><button id="detailBack" class="back-button"><span data-icon="back"></span>Записи</button><button id="meetingMenu" class="icon-button" aria-label="Действия с записью"><span data-icon="more"></span></button></header>
@@ -34,6 +33,7 @@
  <header class="settings-heading"><div class="eyebrow">Всё на вашем телефоне</div><h1>Настройки<span class="accent-dot">.</span></h1><p>Ваш ритм. Ваши возможности.</p></header>
  <main id="settingsContent" class="settings-content"><div class="loading-line">Загружаем настройки…</div></main>
 </section>
+<div class="record-dock"><button id="newRecording" class="record-button"><span class="record-symbol"></span><span>Новая запись</span><span data-icon="plus"></span></button></div>
 <nav id="bottomNav" class="bottom-nav" aria-label="Основная навигация"><button id="navLibrary" aria-current="page"><span data-icon="library"></span><span>Записи</span></button><button id="navPhotos"><span data-icon="image"></span><span>Сканер</span></button><button id="navNotes"><span data-icon="file"></span><span>Заметки</span></button><button id="navChat"><span data-icon="chat"></span><span>Чат</span></button><button id="navSettings"><span data-icon="settings"></span><span>Настройки</span></button></nav>
 </div>
 <section id="recordingScreen" class="recording-screen" hidden aria-label="Идёт запись" aria-modal="true" role="dialog">
