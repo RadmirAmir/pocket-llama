@@ -1,6 +1,6 @@
 {
   "format": "pocket-apk-copy-v1",
-  "sourceCommit": "eb3b8486903434e137d6eab86aea02a1ff25d5af",
+  "sourceCommit": "dd25a45d523e3a7406ee2d3cab4e6a24483fd86e",
   "tag": "v0.14.1-nemotron.1",
   "baseline": {
     "name": "baseline.apk",
@@ -10,12 +10,12 @@
   "candidate": {
     "name": "PocketLlama-0.14.1-nemotron.1-arm64.apk",
     "bytes": 770150699,
-    "sha256": "ef3c542ec1962c67214d34169beaf262f63d2ee47870b7dc195d773400874a39"
+    "sha256": "c57fb149c3a515b38c6d167d281e57fcd702284ec5ef2a62e4f0d2e50da45b04"
   },
   "literal": {
     "name": "0.14.1-nemotron.1.literal.bin",
     "bytes": 94680,
-    "sha256": "54ef830f2d9196026314ddd18a239deac7c54ee9990cdfe87b459102a3c62167"
+    "sha256": "7eb0d1408b97d9ec0b8b13da567deb0e1a2185c349eaae1b1699a4abe82774f0"
   },
   "operations": [
     [
@@ -1075,4 +1075,3 @@
     ]
   ]
 }
-
