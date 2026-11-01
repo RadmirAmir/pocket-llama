@@ -61,9 +61,25 @@ html{overflow:hidden}body{overflow:hidden}#app{height:100%;max-width:760px;margi
 .bottom-nav button{min-width:48px}
 .video-entry .text-button{min-height:48px}
 @media(max-width:350px){.brandbar .privacy,.recording-top .privacy{font-size:.625rem}}
+@media(max-height:680px) and (max-width:480px){
+ .brandbar{padding:20px 0 12px}
+ .library-heading{padding:10px 0 12px}
+ .library-heading h1{margin:6px 0 8px}
+ .library-tools{margin:4px 0 12px}
+ .empty-art{height:82px;margin-bottom:9px}
+ .empty-art:before{width:92px;height:92px}
+ .empty-art .paper{width:70px;height:88px}
+ .empty-art .paper:last-child{width:75px;height:95px}
+}
 @media(max-height:480px){
  .record-dock{padding:6px 20px 8px}
  .record-button{min-height:48px;padding:10px 20px;border-radius:18px}
  .bottom-nav{min-height:64px;padding-top:3px;padding-bottom:3px}
  .bottom-nav button{min-height:56px}
+}
+@media(max-height:480px) and (min-width:481px){
+ .brandbar{padding:12px 0 8px}
+ .library-heading{padding:6px 0 10px}
+ .library-heading h1{font-size:2rem;line-height:1.15;margin:4px 0 6px}
+ .library-tools{margin:4px 0 12px}
 }
