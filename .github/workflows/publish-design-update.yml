@@ -8,7 +8,7 @@ permissions:
   contents: read
 concurrency:
   group: pocket-0141-design
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   accept:
     runs-on: ubuntu-latest
