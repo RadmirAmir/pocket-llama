@@ -59,18 +59,7 @@ jobs:
           disk-size: 8192M
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
-          script: |
-            set -euo pipefail
-            if [ "$(adb shell getprop ro.kernel.qemu | tr -d '\r')" != 1 ] && [ "$(adb shell getprop ro.boot.qemu | tr -d '\r')" != 1 ]; then
-              echo 'Refusing installation tests on a physical device' >&2; exit 1
-            fi
-            adb install --no-streaming --no-incremental build/release-candidate/baseline.apk | tee build/release-candidate/evidence/old-install.txt
-            adb shell am start -W -n dev.pocketllama/dev.pocketllama.MainActivity > build/release-candidate/evidence/old-start.txt
-            adb install --no-streaming --no-incremental -r build/release-candidate/candidate.apk | tee build/release-candidate/evidence/upgrade.txt
-            adb shell am start -W -n dev.pocketllama/dev.pocketllama.MainActivity > build/release-candidate/evidence/upgrade-start.txt
-            adb shell dumpsys package dev.pocketllama > build/release-candidate/evidence/installed-package.txt
-            grep -q 'versionCode=39' build/release-candidate/evidence/installed-package.txt
-            adb shell pidof dev.pocketllama
+          script: bash scripts/test-design-update-android.sh
       - name: Stage verified candidate
         run: |
           cp build/release-candidate/candidate.apk build/release-candidate/PocketLlama-0.14.1-nemotron.1-arm64.apk

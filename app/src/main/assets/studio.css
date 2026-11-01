@@ -55,7 +55,8 @@ html{overflow:hidden}body{overflow:hidden}#app{height:100%;max-width:760px;margi
 .skip-button span:last-child{top:18px}
 .play-button{width:48px;height:48px}
 .seek-wrap input{min-height:48px}
-.source-ref{min-width:48px;min-height:48px;justify-content:center;font-size:.6875rem}
+.source-ref{position:relative;min-width:40px;min-height:36px;margin:0 5px;justify-content:center;font-size:.6875rem}
+.source-ref::after{content:'';position:absolute;inset:-6px -4px}
 .turn-time,.edit-turn{min-width:48px;min-height:48px}
 .theme-picker button{min-height:48px}
 .bottom-nav button{min-width:48px}

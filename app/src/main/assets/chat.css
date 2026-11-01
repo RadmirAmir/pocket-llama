@@ -15,7 +15,8 @@ header .back{width:48px;min-width:48px;margin-left:-12px}
 .header-buttons .icon-button{width:48px;min-width:48px}
 .model,.statusbar,.message-meta,.note,.options,.options select,.file-chip small{font-size:.6875rem}
 .pill,.footnote{font-size:.625rem}
-.copy-button,.retry-button,.attach,.file-chip,.file-chip b{font-size:.6875rem;min-height:48px}
+.copy-button,.retry-button,.attach{font-size:.6875rem;min-height:48px}
+.file-chip,.file-chip b{font-size:.6875rem}
 .file-chip .remove,.send,.tool-close{min-width:48px;min-height:48px}
 .send{width:48px;height:48px}
 .attach{padding-left:5px;padding-right:5px}
