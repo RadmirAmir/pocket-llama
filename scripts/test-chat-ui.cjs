@@ -20,6 +20,11 @@ const assert = require('node:assert/strict');
  });
  await page.goto('file://'+path.resolve(__dirname,'../app/src/main/assets/chat.html'));
  await page.waitForFunction(()=>document.getElementById('status').textContent==='Модель готова');
+ for(const id of ['back','new','settings','send']){
+  const size=await page.locator('#'+id).boundingBox();
+  assert(size&&size.width>=48&&size.height>=48,id+' has a comfortable touch target');
+ }
+ assert(await page.locator('#model').evaluate(e=>parseFloat(getComputedStyle(e).fontSize)>=11),'Model label remains legible');
  assert(await page.locator('#image').isDisabled());
  await page.evaluate(()=>window.PocketEvents({type:'attachment',data:{id:'file1',kind:'text',name:'Протокол.txt',bytes:32,text:'Основное решение: согласовано.'}}));
  await page.locator('#input').fill('Сделай резюме.');
@@ -83,6 +88,12 @@ const assert = require('node:assert/strict');
  assert.equal(await page.locator('#input').inputValue(),'Черновик сообщения');
  const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth);
  assert(!overflow,'Mobile layout must not overflow horizontally');
+ await page.setViewportSize({width:320,height:640});
+ assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Chat fits a narrow screen');
+ for(const id of ['back','new','settings','send']){
+  const size=await page.locator('#'+id).boundingBox();
+  assert(size&&size.width>=48&&size.height>=48,id+' remains tappable on a narrow screen');
+ }
  await page.evaluate(()=>window.PocketEvents({type:'state',data:{ready:false,active:false,model:'Qwen.gguf',context:2048,backend:'cpu'}}));
  await page.locator('#activateModel').click();assert(await page.evaluate(()=>window.startModelPressed),'Model activation');
  await page.locator('#back').click();assert(await page.evaluate(()=>window.backPressed),'Back to recordings');
